@@ -1,0 +1,140 @@
+import pkg_resources
+from pathlib import Path
+from .conf import DBClient, DemoConf, Conf, DemoNotebook
+from .notebook_parser import NotebookParser
+import json
+import re
+import shutil
+import base64
+from .job_bundler import JobBundler
+from concurrent.futures import ThreadPoolExecutor
+import collections
+
+
+class Packager:
+    def __init__(self, conf: Conf, jobBundler: JobBundler):
+        self.db = DBClient(conf)
+        self.jobBundler = jobBundler
+
+    def package_all(self, iframe_root_src = "./"):
+        for _, demo_conf in self.jobBundler.bundles.items():
+            self.clean_bundle(demo_conf)
+            dashboard_ids = self.package_demo(demo_conf)
+            self.extract_dashboards(demo_conf, dashboard_ids)
+            self.build_minisite(demo_conf, iframe_root_src)
+
+    def clean_bundle(self, demo_conf: DemoConf):
+        if Path(demo_conf.get_bundle_path()).exists():
+            shutil.rmtree(demo_conf.get_bundle_path())
+
+    def extract_dashboards(self, demo_conf: DemoConf, dashboard_ids):
+        for id in set(dashboard_ids):
+            dashboard = self.db.get(f"2.0/preview/sql/dashboards/{id}/export")
+            if "message" in dashboard:
+                raise Exception(f"Error loading dashboard id {id} in demo {demo_conf.name}. "
+                                f"Ids are extracted from links in notebooks, please review & correct your notebook template.")
+            #Fix bug having (1) (2) ... at the end of the name of the requests
+            dashboard = json.dumps(dashboard, indent=4)
+            matches = re.finditer(r'"name".*?(?P<bug_num>(\s?\([0-9]\) ?){1,5})"', dashboard)
+            for match in matches:
+                dashboard = dashboard.replace(match.groupdict()["bug_num"], '')
+            dashboard_path = demo_conf.get_bundle_dashboard_path()
+            Path(dashboard_path).mkdir(parents=True, exist_ok=True)
+            with open(f"{dashboard_path}/{id}.json", "w") as f:
+                f.write(dashboard)
+
+    def package_demo(self, demo_conf: DemoConf):
+        print(f"packaging demo {demo_conf.name} ({demo_conf.path})")
+        if len(demo_conf.get_notebooks_to_publish()) > 0 and not self.jobBundler.staging_reseted:
+            self.jobBundler.reset_staging_repo()
+        if len(demo_conf.get_notebooks_to_run()) > 0:
+            run = self.db.get("2.1/jobs/runs/get", {"run_id": demo_conf.run_id})
+            if run['state']['result_state'] != 'SUCCESS':
+                raise Exception(f"last job {self.db.conf.workspace_url}/#job/{demo_conf.job_id}/run/{demo_conf.run_id} failed for demo {demo_conf.name}. Can't package the demo. {run['state']}")
+
+        def download_notebook_html(notebook):
+            full_path = demo_conf.get_bundle_path()+"/"+notebook.path+".html"
+            Path(full_path[:full_path.rindex("/")]).mkdir(parents=True, exist_ok=True)
+            if not notebook.pre_run:
+                repo_path = self.jobBundler.conf.get_repo_path()+"/"+demo_conf.path+"/"+notebook.path
+                file = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "HTML", "direct_download": False})
+                if 'error_code' in file:
+                    raise Exception(f"Couldn't find file {repo_path} in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
+                html = base64.b64decode(file['content']).decode('utf-8')
+            else:
+                tasks = [t for t in run['tasks'] if t['notebook_task']['notebook_path'].endswith(notebook.path)]
+                if len(tasks) == 0:
+                    raise Exception(f"couldn't find task for notebook {notebook.path}. Please re-run the job & make sure the stating git repo is synch / reseted.")
+                notebook_result = self.db.get("2.1/jobs/runs/export", {'run_id': tasks[0]['run_id'], 'views_to_export': 'ALL'})
+                html = notebook_result["views"][0]["content"]
+            #Replace notebook content.
+            parser = NotebookParser(html)
+            parser.remove_uncomment_tag()
+            parser.hide_commands_and_results()
+            requires_global_setup = False
+            if parser.contains("00-global-setup"):
+                parser.replace_in_notebook('(?:\.\.\/)*_resources\/00-global-setup(?:-bundle)?', './00-global-setup-bundle', True)
+                requires_global_setup = True
+            with open(full_path, "w") as f:
+                f.write(parser.get_html())
+            return (requires_global_setup, parser.get_dashboard_ids())
+
+        dashboard_ids = []
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            requires_global_setup = False
+            for r, ids in executor.map(download_notebook_html, demo_conf.notebooks):
+                dashboard_ids += ids
+                if r:
+                    requires_global_setup = True
+
+            #Add the global notebook if required
+            # TODO: not ideal, it's a bit messy need to re-think that
+            if requires_global_setup:
+                init_notebook = DemoNotebook("_resources/00-global-setup-bundle", "Global init", "Global init")
+                demo_conf.add_notebook(init_notebook)
+                file = self.db.get("2.0/workspace/export", {"path": self.jobBundler.conf.get_repo_path() +"/"+ init_notebook.path, "format": "HTML", "direct_download": False})
+                if 'error_code' in file:
+                    raise Exception(f"Couldn't find file '{self.jobBundler.conf.get_repo_path()}/{init_notebook.path}' in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
+                html = base64.b64decode(file['content']).decode('utf-8')
+                with open(demo_conf.get_bundle_path() + "/" + init_notebook.path+".html", "w") as f:
+                    f.write(html)
+        return dashboard_ids
+
+    def get_html_menu(self, title: str, description: str, notebook_link: str):
+        # Add padding for subfolder for better visualization
+        padding = title.count("/")*20
+        return f"""
+                <a href="#" class="_left_menu list-group-item list-group-item-action py-3 lh-sm" iframe-src="{notebook_link}">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <strong class="mb-1">{title}</strong>
+                    </div>
+                    <div class="small" style="padding-left: {padding}px;">{description}</div>
+                </a>"""
+
+    #Build HTML pages with index.
+    # - If the notebook is pre-run, load them from the install_package folder
+    # - If the notebook isn't pre-run, download them from the pacakge workspace as HTML (ex: can't run DLT pipelines)
+    def build_minisite(self, demo_conf: DemoConf, iframe_root_src = "./"):
+        notebooks_to_publish = demo_conf.get_notebooks_to_publish()
+        print(f"Build minisite for demo {demo_conf.name} ({demo_conf.path}) - {notebooks_to_publish}")
+        minisite_path = demo_conf.get_minisite_path()
+        html_menu = {}
+        for notebook in notebooks_to_publish:
+            Path(minisite_path).mkdir(parents=True, exist_ok=True)
+            full_path = minisite_path+"/"+notebook.path+".html"
+            Path(full_path[:full_path.rindex("/")]).mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(demo_conf.get_bundle_path()+"/"+notebook.path+".html", full_path)
+            html_menu[notebook.path] = self.get_html_menu(notebook.path, notebook.description, iframe_root_src+notebook.path+".html")
+
+            #create the index file
+            template = pkg_resources.resource_string("dbdemos", "template/index.html").decode('UTF-8')
+            #Sort the menu to display  proper order.
+            menu_keys = [*html_menu]
+            menu_keys.sort()
+            template = template.replace("{{LEFT_MENU}}", ' '.join([html_menu[k] for k in menu_keys]))
+            template = template.replace("{{TITLE}}", demo_conf.title)
+            with open(minisite_path+"/index.html", "w") as f:
+                f.write(template)
+            #dump the conf
+            with open(demo_conf.get_bundle_root_path()+"/conf.json", "w") as f:
+                f.write(json.dumps(demo_conf.json_conf))

@@ -1,0 +1,11 @@
+{
+  "cloud": "AWS",
+  "pat_token": "xxx",
+  "username": "xx.xx@databricks.com",
+  "url": "https://xxx.databricks.com",
+  "repo_staging_path": "/Repos/xx.xx@databricks.com",
+  "repo_name": "field-demos_build",
+  "repo_url": "https://github.com/databricks/field-demo.git",
+  "branch": "master",
+  "current_folder": "/Users/quentin.ambard@databricks.com/test_install_demo"
+}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>{{TITLE}}</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <style>
+
+      .b-example-divider {
+        height: 3rem;
+        background-color: rgba(0, 0, 0, .1);
+        border: solid rgba(0, 0, 0, .15);
+        border-width: 1px 0;
+        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+      }
+
+      .b-example-vr {
+        flex-shrink: 0;
+        width: 1.5rem;
+        height: 91.4vh;
+      }
+
+      .bi {
+        vertical-align: -.125em;
+        fill: currentColor;
+      }
+
+    </style>
+
+
+    <!-- Custom styles for this template -->
+    <link href="sidebars.css" rel="stylesheet">
+</head>
+<body>
+
+<div style="height: 8vh;" class="border-bottom">
+    <a style="float: left" href="https://databricks.com" class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none">
+        <img src="https://databricks-prod-cloudfront.cloud.databricks.com/static/ddd080df888c63d3c68438635badd32f0c91e40f31fe8fa2ed73da63df3598e3/js/../media/databricks.a424ad6e.svg" alt="databricks-logo" style="width: 200px">
+    </a>
+    <h1 style="font-size: 30px; text-align: center; padding-top: 20px">{{TITLE}}</h1>
+</div>
+<main class="d-flex flex-nowrap">
+    <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white" style="width: 350px;">
+        <div class="list-group list-group-flush border-bottom scrollarea">
+            {{LEFT_MENU}}
+        </div>
+    </div>
+    <div class="b-example-divider b-example-vr"></div>
+    <div style="width: 100%">
+        <iframe id="_iframe" style="width: 100%; height: 100%; border: 0px" src=""></iframe>
+    </div>
+</main>
+
+
+<script src="/docs/5.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+
+<script src="sidebars.js"></script>
+</body>
+
+<script>
+(function() {
+    $($('._left_menu')[0]).addClass('active')
+
+    $('._left_menu').click(function(e) {
+        $('._left_menu').removeClass('active')
+        $(this).addClass('active')
+        src = $(this).attr("iframe-src")
+        $('#_iframe').attr('src', src);
+    });
+    $($('._left_menu')[0]).click()
+})();
+
+</script>
+</html>

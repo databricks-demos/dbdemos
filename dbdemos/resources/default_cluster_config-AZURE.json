@@ -1,0 +1,8 @@
+{
+  "node_type_id": "Standard_DS4_v2",
+  "azure_attributes": {
+    "first_on_demand": 1,
+    "availability": "ON_DEMAND_AZURE",
+    "spot_bid_max_price": -1
+  }
+}

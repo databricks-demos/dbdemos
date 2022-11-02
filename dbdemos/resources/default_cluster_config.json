@@ -1,0 +1,19 @@
+{
+  "autoscale": {
+    "min_workers": 2,
+    "max_workers": 4
+  },
+  "cluster_name": "demo-{{DEMO_NAME}}-{{CURRENT_USER_NAME}}",
+  "spark_version": "11.2.x-cpu-ml-scala2.12",
+  "spark_conf": {},
+  "ssh_public_keys": [],
+  "custom_tags": {
+    "project": "databricks-demo",
+    "demo": "{{DEMO_NAME}}"
+  },
+  "spark_env_vars": {},
+  "autotermination_minutes": 60,
+  "cluster_source": "UI",
+  "init_scripts": [],
+  "runtime_engine": "STANDARD"
+}

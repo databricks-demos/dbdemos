@@ -1,0 +1,10 @@
+{
+  "node_type_id": "i3.xlarge",
+  "aws_attributes": {
+    "first_on_demand": 1,
+    "availability": "SPOT_WITH_FALLBACK",
+    "instance_profile_arn": null,
+    "spot_bid_price_percent": 100,
+    "ebs_volume_count": 0
+  }
+}

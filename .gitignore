@@ -1,0 +1,17 @@
+local_conf_awsevent.json
+local_conf_cse2.json
+local_conf.json
+.eggs
+.DS_Store
+build
+dbdemos/bundles
+dist
+*.egg-info/
+dbdemos/__pycache__
+.idea
+send_to_e2.sh
+test_package.py
+dbdemos/resources/local_conf.json
+field-demo
+venv
+databricks-demos.iml
