@@ -3,15 +3,16 @@
 Simply deploy & share demos on any workspace. dbdemos is packaged with a list of demos:
 
 - Lakehouse, end-to-end demos (ex: Lakehouse Retail Churn)
-- Feature demos (ex: Delta Live Table, CDC, MLOps...)
+- Product demos (ex: Delta Live Table, CDC, MLOps...)
 
 ## Installation 
 
+For the beta, the wheel is updated in the repo directly:
 ```
-%pip install https://github.com/databricks-demos/dbdemos/release/dbdemos-0.1.whl --force
+%pip install https://github.com/databricks-demos/dbdemos/raw/main/release/dbdemos-0.1-py3-none-any.whl --force
 ```
 
-## Usage
+## Usage within Databricks
 
 See [demo video](https://drive.google.com/file/d/12Iu50r7hlawVN01eE_GoUKBQ4kvUrR56/view?usp=sharing) 
 ```
@@ -19,8 +20,18 @@ import dbdemos
 dbdemos.help()
 dbdemos.list_demos()
 
-dbdemos.install('auto-loader', path='./', overwrite = True)
+dbdemos.install('lakehouse-retail-churn', path='./', overwrite = True)
 ```
+
+![Dbdemos install](https://github.com/databricks-demos/dbdemos/raw/main/resources/dbdemos-screenshot.png)
+
+## Requirements
+
+`dbdemos` requires the current user to have:
+* Cluster creation permission
+* DLT Pipeline creation permission 
+* DBSQL dashboard Import/Export preview enabled (contact your account team)
+
 
 ## Features
 
@@ -31,7 +42,6 @@ dbdemos.install('auto-loader', path='./', overwrite = True)
 * Setup DBSQL dashboard
 * Create ML Model
 * Demo links are updated with resources created for an easy navigation
-
 
 ## Feedback
 
