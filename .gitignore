@@ -1,5 +1,6 @@
 local_conf_awsevent.json
 local_conf_cse2.json
+local_conf_gcp.json
 local_conf.json
 .eggs
 .DS_Store

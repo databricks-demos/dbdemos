@@ -51,12 +51,12 @@ def bundle():
 #bundle()
 
 #Loads conf to install on cse2.
-with open("./local_conf_cse2.json", "r") as r:
+with open("./local_conf_gcp.json", "r") as r:
     c = json.loads(r.read())
 
 import dbdemos
 dbdemos.list_demos(None)
-dbdemos.install("lakehouse-retail-churn", "/Users/papadopoulos.i@me.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], skip_dashboards = False)
+dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="GCP")
 #dbdemos.install("delta-sharing-airlines", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-cdc", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])

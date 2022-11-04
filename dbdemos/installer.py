@@ -34,7 +34,8 @@ display: inline;
 </style>"""
 
 class Installer:
-    def __init__(self, username = None, pat_token = None, workspace_url = None):
+    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS"):
+        self.cloud = cloud
         self.dbutils = None
         if username is None:
             username = self.get_current_username()
@@ -113,9 +114,10 @@ class Installer:
         try:
             hostname = self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
         except:
-            return "AWS"
+            print(f"WARNING: Can't get cloud from dbutils. Fallback to default local cloud {self.cloud}")
+            return self.cloud
         if "gcp" in hostname:
-            raise Exception(f'Cloud provided GCP not supported')
+            return "GCP"
         elif "azure" in hostname:
             return "AZURE"
         else:
@@ -175,6 +177,8 @@ class Installer:
                 path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
                 self.db.post("2.0/workspace/mkdirs", {"path": path})
                 folders = self.db.get("2.0/workspace/list", {"path": Path(path).parent.absolute()})
+                if "error_code" in folders:
+                    raise Exception(f"ERROR - wrong install path: {folders}")
                 parent_folder_id = None
                 for f in folders["objects"]:
                     if f["object_type"] == "DIRECTORY" and f["path"] == path:
@@ -404,7 +408,6 @@ class Installer:
                             print(f"ERROR: A folder already exists under {install_path}. Add the overwrite option to replace the content:")
                             print(f"dbdemos.install('{demo_name}', overwrite=True)")
                         raise Exception(f"Couldn't create folder under {install_path}. Import error: {r}")
-            print({"path": install_path+"/"+notebook.path, "format": "HTML"})
             r = self.db.post("2.0/workspace/import", {"path": install_path+"/"+notebook.path, "content": content, "format": "HTML"})
             if 'error_code' in r:
                 raise Exception(f"Couldn't install demo under {install_path}/{notebook.path}. Do you have permission?. Import error: {r}")

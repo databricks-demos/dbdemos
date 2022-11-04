@@ -182,8 +182,8 @@ def list_delta_live_tables(category = None):
 def list_dashboards(category = None):
     pass
 
-def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False):
-    installer = Installer(username, pat_token, workspace_url)
+def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS"):
+    installer = Installer(username, pat_token, workspace_url, cloud)
     installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards)
 
 
