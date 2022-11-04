@@ -6,8 +6,8 @@ python3 setup.py clean --all bdist_wheel
 cp dist/dbdemos-0.1-py3-none-any.whl release/dbdemos-0.1-py3-none-any.whl
 
 
-curl --netrc -X POST \
-https://adb-984752964297111.11.azuredatabricks.net/api/2.0/dbfs/put \
---form contents="@./dist/dbdemos-0.1-py3-none-any.whl" \
---form path="/FileStore/quentin/dbdemos-0.1-py3-none-any.whl" \
---form overwrite=true
+#curl --netrc -X POST \
+#https://adb-984752964297111.11.azuredatabricks.net/api/2.0/dbfs/put \
+#--form contents="@./dist/dbdemos-0.1-py3-none-any.whl" \
+#--form path="/FileStore/quentin/dbdemos-0.1-py3-none-any.whl" \
+#--form overwrite=true
