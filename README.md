@@ -30,7 +30,9 @@ dbdemos.install('lakehouse-retail-churn', path='./', overwrite = True)
 `dbdemos` requires the current user to have:
 * Cluster creation permission
 * DLT Pipeline creation permission 
+* DBSQL dashboard & query creation permission
 * DBSQL dashboard Import/Export preview enabled (contact your account team)
+* For UC demos: Unity Catalog metastore must be available (demo will be installed but won't work) 
 
 
 ## Features

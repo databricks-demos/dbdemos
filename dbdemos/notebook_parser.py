@@ -62,6 +62,14 @@ class NotebookParser:
         content["commands"].insert(position, command)
         self.content = json.dumps(content)
 
+    #as auto ml links are unique per workspace, we have to delete them
+    def remove_automl_result_links(self):
+        content = json.loads(self.content)
+        for c in content["commands"]:
+            if re.search('display_[a-zA-Z]*_churn_link', c["command"]):
+                if 'results' in c and 'data' in c['results'] and len(c['results']['data']) > 0 and 'data' in c['results']['data'][0]:
+                    c['results']['data'][0]['data'] = 'Please run the notebook cells to get your AutoML links (from the begining)'
+        self.content = json.dumps(content)
 
     def hide_commands_and_results(self):
         content = json.loads(self.content)
@@ -73,17 +81,22 @@ class NotebookParser:
         self.content = json.dumps(content)
 
     def replace_dashboard_links(self, dashboards):
-        for d in dashboards:
-            if d["installed_id"] is None:
-                def replace_link_with_error(pattern):
-                    for p in pattern.findall(self.content):
-                        self.content = self.content.replace(p[0], f"{p[1]}: ERROR - couldn't load the dashboard {d['name']}. Do you have the permission to create an endpoint? {d['error']}")
-                pattern = re.compile(rf'\[(.*?)\]\(\/sql\/dashboards\/{d["id"]}.*?\)', re.IGNORECASE)
-                replace_link_with_error(pattern)
-                pattern = re.compile(rf'(<a.*?\/sql\/dashboards\/{d["id"]}.*?>(.*?)</a>)', re.IGNORECASE)
-                replace_link_with_error(pattern)
-            else:
-                self.content = self.content.replace(d['id'], d["installed_id"])
+        def replace_link_with_error(pattern, c):
+            for p in pattern.findall(c["command"]):
+                c["command"] = c["command"].replace(p[0], f"{p[1]}: ERROR - could not load the dashboard {d['name']}. {d['error']}")
+        if "sql/dashboards" in self.content:
+            content = json.loads(self.content)
+            for d in dashboards:
+                pattern1 = re.compile(rf'\[(.*?)\]\(\/sql\/dashboards\/{d["id"]}.*?\)', re.IGNORECASE)
+                pattern2 = re.compile(rf'(<a.*?\/sql\/dashboards\/{d["id"]}.*?>(.*?)</a>)', re.IGNORECASE)
+                for c in content["commands"]:
+                    if "sql/dashboards" in c["command"]:
+                        if d["installed_id"] is None:
+                            replace_link_with_error(pattern1, c)
+                            replace_link_with_error(pattern2, c)
+                        else:
+                            c["command"] = c["command"].replace(d['id'], d["installed_id"])
+            self.content = json.dumps(content)
 
     def replace_dynamic_links_pipeline(self, pipelines_id):
         matches = re.finditer(r'<a\s*dbdemos-pipeline-id=\\?"(?P<dlt_id>.*?)\\?"\s*href=\\?".*?\/pipelines\/(?P<dlt_uid>[a-z0-9-]*).*?>', self.content)

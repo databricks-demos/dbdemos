@@ -31,7 +31,7 @@ class Packager:
         for id in set(dashboard_ids):
             dashboard = self.db.get(f"2.0/preview/sql/dashboards/{id}/export")
             if "message" in dashboard:
-                raise Exception(f"Error loading dashboard id {id} in demo {demo_conf.name}. "
+                raise Exception(f"Error exporting dashboard id {id} in demo {demo_conf.name}. "
                                 f"Ids are extracted from links in notebooks, please review & correct your notebook template.")
             #Fix bug having (1) (2) ... at the end of the name of the requests
             dashboard = json.dumps(dashboard, indent=4)

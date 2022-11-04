@@ -122,6 +122,8 @@ def list_demos(category = None):
     installer = Installer()
     installer.tracker.track_list()
     demos = defaultdict(lambda: [])
+    #Define category order
+    demos["retail"] = []
     for demo in installer.get_demos_available():
         conf = installer.get_demo_conf(demo)
         if category is None or conf.category == category.lower():
@@ -134,7 +136,6 @@ def list_demos(category = None):
 def list_html(demos):
     content = f"""{CSS_LIST}<div class="dbdemo">"""
     categories = list(demos.keys())
-    categories.sort()
     for cat in categories:
         content += f"""<div class="dbdemo_category" style="min-height: 200px">
                        <h1 class="category">{cat.capitalize()}</h1>"""
@@ -166,7 +167,6 @@ def list_console(demos):
     print("----------------- Demos Available ------------------")
     print("----------------------------------------------------")
     categories = list(demos.keys())
-    categories.sort()
     for cat in categories:
         print(f"{cat.capitalize()}")
         ds = list(demos[cat])
@@ -182,9 +182,9 @@ def list_delta_live_tables(category = None):
 def list_dashboards(category = None):
     pass
 
-def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None):
+def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False):
     installer = Installer(username, pat_token, workspace_url)
-    installer.install_demo(demo_name, path, overwrite)
+    installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards)
 
 
 def create_cluster(demo_name, username = None, pat_token = None, workspace_url = None):

@@ -140,7 +140,7 @@ class Installer:
     def get_resource(self, path):
         return pkg_resources.resource_string("dbdemos", path).decode('UTF-8')
 
-    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True):
+    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -153,7 +153,7 @@ class Installer:
         self.get_current_username()
         cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf)
-        dashboards = self.install_dashboards(demo_conf, install_path)
+        dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path)
         notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, overwrite)
         job_id, run_id = self.start_demo_init_job(demo_conf)
         for pipeline in pipeline_ids:
@@ -166,6 +166,7 @@ class Installer:
         result = []
         if "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
             print(f'    Installing dashsboards')
+            # TODO: could parallelize that?
             for dashboard in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name+"/dashboards"):
                 definition = json.loads(self.get_resource("bundles/"+demo_conf.name+"/dashboards/"+dashboard))
                 id = dashboard[:dashboard.rfind(".json")]
@@ -178,26 +179,28 @@ class Installer:
                 for f in folders["objects"]:
                     if f["object_type"] == "DIRECTORY" and f["path"] == path:
                         parent_folder_id = f["object_id"]
-                endpoint_id = self.get_or_create_endpoint()
-                #Add "warehouse_id": endpoint when not null. See https://github.com/databricks/universe/pull/214533. Target release is 10/17
                 data = {
                     'import_file_contents': definition,
                     'parent': f'folders/{parent_folder_id}'
                 }
+                endpoint_id = self.get_or_create_endpoint()
+                if endpoint_id is None:
+                    print("ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without (import will pick the first available if any)")
+                else:
+                    data['warehouse_id'] = endpoint_id
                 if existing_dashboard is not None:
                     data['overwrite_dashboard_id'] = existing_dashboard
                     data['should_overwrite_existing_queries'] = True
-
                 i = self.db.post(f"2.0/preview/sql/dashboards/import", data)
                 if "id" in i:
                     result.append({"id": id, "name": definition['dashboard']['name'], "installed_id": i["id"]})
-                    run_as_viewer = self.db.post("2.0/preview/sql/dashboards/"+i["id"], {"run_as_role": "viewer"})
                     permissions = {"access_control_list": [
                         {"user_name": self.db.conf.username, "permission_level": "CAN_MANAGE"},
                         {"group_name": "users", "permission_level": "CAN_EDIT"}
                     ]}
                     permissions = self.db.post("2.0/preview/sql/permissions/dashboards/"+i["id"], permissions)
                     print(f"     Dashboard {definition['dashboard']['name']} permissions set to {permissions}")
+                    self.db.post("2.0/preview/sql/dashboards/"+i["id"], {"run_as_role": "viewer"})
                 else:
                     print(f"    ERROR loading dashboard {definition['dashboard']['name']}: {i}, {existing_dashboard}")
                     result.append({"id": id, "name": definition['dashboard']['name'], "error": i, "installed_id": existing_dashboard})
@@ -219,12 +222,19 @@ class Installer:
         for source in data_sources:
             if source['name'] == "dbdemos-shared-endpoint":
                 return source
+        #Try to fallback to an existing shared endpoint.
+        for source in data_sources:
+            if "shared-sql-endpoint" in source['name'].lower():
+                return source
+        for source in data_sources:
+            if "shared" in source['name'].lower():
+                return source
         return None
 
     def get_or_create_endpoint(self):
         ds = self.get_demo_datasource()
         if ds is not None:
-            return ds["id"]
+            return ds["warehouse_id"]
         def get_definition(serverless):
             return {
                 "name": "dbdemos-shared-endpoint",
@@ -379,6 +389,7 @@ class Installer:
             if notebook.add_cluster_setup_cell:
                 self.add_cluster_setup_cell(parser, demo_name, cluster_name, cluster_id, self.db.conf.workspace_url)
             parser.replace_dashboard_links(dashboards)
+            parser.remove_automl_result_links()
             parser.replace_dynamic_links_pipeline(pipeline_ids)
             parser.set_tracker_tag(self.get_org_id(), self.get_uid(), demo_conf.category, demo_name, notebook.path)
             content = parser.get_html()
@@ -393,13 +404,14 @@ class Installer:
                             print(f"ERROR: A folder already exists under {install_path}. Add the overwrite option to replace the content:")
                             print(f"dbdemos.install('{demo_name}', overwrite=True)")
                         raise Exception(f"Couldn't create folder under {install_path}. Import error: {r}")
+            print({"path": install_path+"/"+notebook.path, "format": "HTML"})
             r = self.db.post("2.0/workspace/import", {"path": install_path+"/"+notebook.path, "content": content, "format": "HTML"})
             if 'error_code' in r:
                 raise Exception(f"Couldn't install demo under {install_path}/{notebook.path}. Do you have permission?. Import error: {r}")
             return notebook
 
         #Always adds the licence notebooks
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor(max_workers=5) as executor:
             notebooks = [
                 DemoNotebook("_resources/LICENSE", "LICENSE", "Demo License"),
                 DemoNotebook("_resources/NOTICE", "NOTICE", "Demo Notice"),
@@ -409,7 +421,7 @@ class Installer:
                 load_notebook_path(notebook, f"template/{notebook.title}.html")
             collections.deque(executor.map(load_notebook_templet, notebooks))
 
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor(max_workers=5) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
 
 
@@ -428,10 +440,12 @@ class Installer:
             existing_job = self.db.find_job(job_name)
             if existing_job is not None:
                 job_id = existing_job["job_id"]
+                self.db.post("/2.1/jobs/runs/cancel-all", {"job_id": job_id})
+                self.wait_for_run_completion(job_id)
                 print("    Updating existing job")
                 r = self.db.post("2.1/jobs/reset", {"job_id": job_id, "new_settings": demo_conf.init_job["settings"]})
                 if "error_code" in r:
-                    raise Exception(f'error setting up job, please check job definition {r}, {demo_conf.init_job["settings"]}')
+                    raise Exception(f'ERROR setting up init job, do you have permission? please check job definition {r}, {demo_conf.init_job["settings"]}')
             else:
                 print("    Creating a new job for demo initialization (data & table setup).")
                 r_jobs = self.db.post("2.1/jobs/create", demo_conf.init_job["settings"])
@@ -442,6 +456,16 @@ class Installer:
             print(f"    Demo data initialization job started: {self.db.conf.workspace_url}/#job/{job_id}/run/{j['run_id']}")
             return job_id, j['run_id']
         return None, None
+
+
+    def wait_for_run_completion(self, job_id, max_retry=10):
+        def is_still_running(job_id):
+            runs = self.db.get("2.1/jobs/runs/list", {"job_id": job_id, "active_only": "true"})
+            return "runs" in runs and len(runs["runs"]) > 0
+        i = 0
+        while i <= max_retry and is_still_running(job_id):
+            print(f"      A run is still running for job {job_id}, waiting for termination...")
+            time.sleep(5)
 
     def load_demo_pipelines(self, demo_name, demo_conf: DemoConf):
         #default cluster conf
