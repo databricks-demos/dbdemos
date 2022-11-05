@@ -172,13 +172,30 @@ class Installer:
             for dashboard in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name+"/dashboards"):
                 definition = json.loads(self.get_resource("bundles/"+demo_conf.name+"/dashboards/"+dashboard))
                 id = dashboard[:dashboard.rfind(".json")]
-                existing_dashboard = self.get_dashboard_id_by_name(definition['dashboard']['name'])
+                dashboard_name = definition['dashboard']['name']
+                existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
+                if existing_dashboard is not None:
+                    # Try to change ownership to be able to override the dashboard. Only admin can override ownership.
+                    # If we can't change the ownership, we'll have to create a new dashboard.
+                    owner = self.db.post(f"2.0/preview/sql/permissions/dashboard/{existing_dashboard}/transfer", {"new_owner": self.db.conf.username})
+                    could_change_owner_changed = 'error_code' in owner
+                    for q in definition["queries"]:
+                        owner = self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}/transfer", {"new_owner": self.db.conf.username})
+                        if 'error_code' in owner:
+                            could_change_owner_changed = False
+                    if not could_change_owner_changed:
+                        # Can't change ownership, we won't be able to override the dashboard. Create a new one with your name.
+                        name = self.db.conf.username[:self.db.conf.username.rfind('@')]
+                        name = re.sub("[^A-Za-z0-9]", '_', name)
+                        dashboard_name = dashboard_name +" - "+name
+                        print(f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
+                        existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
                 #Create the folder where to save the queries
                 path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
                 self.db.post("2.0/workspace/mkdirs", {"path": path})
                 folders = self.db.get("2.0/workspace/list", {"path": Path(path).parent.absolute()})
                 if "error_code" in folders:
-                    raise Exception(f"ERROR - wrong install path: {folders}")
+                    raise Exception(f"ERROR - wrong install path, can't save dashboard here: {folders}")
                 parent_folder_id = None
                 for f in folders["objects"]:
                     if f["object_type"] == "DIRECTORY" and f["path"] == path:
@@ -198,11 +215,14 @@ class Installer:
                 i = self.db.post(f"2.0/preview/sql/dashboards/import", data)
                 if "id" in i:
                     result.append({"id": id, "name": definition['dashboard']['name'], "installed_id": i["id"]})
+                    #Change definition for all users to be able to use the dashboard & the queries.
                     permissions = {"access_control_list": [
                         {"user_name": self.db.conf.username, "permission_level": "CAN_MANAGE"},
                         {"group_name": "users", "permission_level": "CAN_EDIT"}
                     ]}
                     permissions = self.db.post("2.0/preview/sql/permissions/dashboards/"+i["id"], permissions)
+                    for q in definition["queries"]:
+                        self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}", permissions)
                     print(f"     Dashboard {definition['dashboard']['name']} permissions set to {permissions}")
                     self.db.post("2.0/preview/sql/dashboards/"+i["id"], {"run_as_role": "viewer"})
                 else:
@@ -212,11 +232,12 @@ class Installer:
 
     def get_dashboard_id_by_name(self, name):
         def get_dashboard(page):
-            ds = self.db.get("2.0/preview/sql/dashboards", params = {"page_size": 250, "page": page})
+            page_size = 250
+            ds = self.db.get("2.0/preview/sql/dashboards", params = {"page_size": page_size, "page": page})
             for d in ds['results']:
                 if d['name'] == name:
                     return d['id']
-            if ds["count"] >= 250:
+            if len(ds["results"]) >= page_size:
                 return get_dashboard(page+1)
             return None
         return get_dashboard(1)
