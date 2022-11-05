@@ -32,6 +32,7 @@ class NotebookParser:
             #We need to update the tracker with the demo configuration & dbdemos setup.
             r = r"""(<img\s*width=\\?"1px\\?"\s*src=\\?")(https:\/\/www\.google-analytics\.com\/collect.*?)(\\?"\s?\/?>)"""
             tracker_url = tracker.get_track_url(category, demo_name, "VIEW", notebook)
+            print(tracker_url)
             self.content = re.sub(r, rf'\1{tracker_url}\3', self.content)
         else:
             #Remove all the tracker from the notebook

@@ -183,7 +183,7 @@ class Installer:
                         owner = self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}/transfer", {"new_owner": self.db.conf.username})
                         if 'error_code' in owner:
                             could_change_owner_changed = False
-                    if not could_change_owner_changed:
+                    if could_change_owner_changed:
                         # Can't change ownership, we won't be able to override the dashboard. Create a new one with your name.
                         name = self.db.conf.username[:self.db.conf.username.rfind('@')]
                         name = re.sub("[^A-Za-z0-9]", '_', name)

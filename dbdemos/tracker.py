@@ -1,10 +1,12 @@
 import requests
+import urllib.parse
 
 class Tracker:
     #Set this value to false to disable dbdemo toolkit tracker.
     enable_tracker = True
     TID = "UA-163989034-1"
     GTM = "GTM-NKQ8TT7"
+    URL = "https://www.google-analytics.com/collect"
 
     def __init__(self, org_id, uid):
         self.org_id = org_id
@@ -19,15 +21,20 @@ class Tracker:
     def track_list(self):
         self.track("list_demos", "list_demos", "LIST")
 
-    def get_track_url(self, category, demo_name, event, notebook = ""):
+    def get_track_url(self, category, demo_name, event, notebook =""):
+        params = self.get_track_params(category, demo_name, event)
+        return Tracker.URL+"?"+urllib.parse.urlencode(params)
+
+    def get_track_params(self, category, demo_name, event, notebook =""):
         if not Tracker.enable_tracker:
-            return ""
+            return {}
         if len(notebook) > 0:
             notebook = '/'+notebook
         params = {"v": 1, "gtm": Tracker.GTM, "tid": Tracker.TID, "cid": 555, "aip": 1, "t": "event",
                   "ec":"dbdemos", "ea":"display", "dp": f"/_dbdemos/{category}/{demo_name}{notebook}",
                   "cid": self.org_id, "uid": self.uid, "ea": event}
         return params
+
 
     def track(self, category,  demo_name, event):
         if Tracker.enable_tracker:
@@ -37,7 +44,7 @@ class Tracker:
                         "cache-control": "max-age=0",
                         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"}
             try:
-                t = requests.get("https://www.google-analytics.com/collect", params = self.get_track_url(category, demo_name, event), headers=headers, timeout=5)
+                t = requests.get(Tracker.URL, params = self.get_track_params(category, demo_name, event), headers=headers, timeout=5)
                 if t.status_code != 200:
                     print(f"Usage report error. See readme to disable it. {t.text}")
             except Exception as e:
