@@ -37,7 +37,7 @@ class Tracker:
                         "cache-control": "max-age=0",
                         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"}
             try:
-                t = requests.get("https://www.google-analytics.com/collect", params = self.get_track_url(category, demo_name, event), headers=headers)
+                t = requests.get("https://www.google-analytics.com/collect", params = self.get_track_url(category, demo_name, event), headers=headers, timeout=5)
                 if t.status_code != 200:
                     print(f"Usage report error. See readme to disable it. {t.text}")
             except Exception as e:
