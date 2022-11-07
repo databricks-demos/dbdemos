@@ -21,8 +21,8 @@ class Tracker:
     def track_list(self):
         self.track("list_demos", "list_demos", "LIST")
 
-    def get_track_url(self, category, demo_name, event, notebook =""):
-        params = self.get_track_params(category, demo_name, event)
+    def get_track_url(self, category, demo_name, event, notebook = ""):
+        params = self.get_track_params(category, demo_name, event, notebook)
         return Tracker.URL+"?"+urllib.parse.urlencode(params)
 
     def get_track_params(self, category, demo_name, event, notebook =""):

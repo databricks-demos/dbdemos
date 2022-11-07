@@ -165,70 +165,94 @@ class Installer:
         self.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipeline_ids, dashboards)
 
     def install_dashboards(self, demo_conf: DemoConf, install_path):
-        result = []
         if "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
-            print(f'    Installing dashsboards')
-            # TODO: could parallelize that?
-            for dashboard in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name+"/dashboards"):
-                definition = json.loads(self.get_resource("bundles/"+demo_conf.name+"/dashboards/"+dashboard))
-                id = dashboard[:dashboard.rfind(".json")]
-                dashboard_name = definition['dashboard']['name']
-                existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
-                if existing_dashboard is not None:
-                    # Try to change ownership to be able to override the dashboard. Only admin can override ownership.
-                    # If we can't change the ownership, we'll have to create a new dashboard.
-                    owner = self.db.post(f"2.0/preview/sql/permissions/dashboard/{existing_dashboard}/transfer", {"new_owner": self.db.conf.username})
-                    could_change_owner_changed = 'error_code' in owner
-                    for q in definition["queries"]:
-                        owner = self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}/transfer", {"new_owner": self.db.conf.username})
-                        if 'error_code' in owner:
-                            could_change_owner_changed = False
-                    if could_change_owner_changed:
-                        # Can't change ownership, we won't be able to override the dashboard. Create a new one with your name.
-                        name = self.db.conf.username[:self.db.conf.username.rfind('@')]
-                        name = re.sub("[^A-Za-z0-9]", '_', name)
-                        dashboard_name = dashboard_name +" - "+name
-                        print(f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
-                        existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
-                #Create the folder where to save the queries
-                path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
-                self.db.post("2.0/workspace/mkdirs", {"path": path})
-                folders = self.db.get("2.0/workspace/list", {"path": Path(path).parent.absolute()})
-                if "error_code" in folders:
-                    raise Exception(f"ERROR - wrong install path, can't save dashboard here: {folders}")
-                parent_folder_id = None
-                for f in folders["objects"]:
-                    if f["object_type"] == "DIRECTORY" and f["path"] == path:
-                        parent_folder_id = f["object_id"]
-                data = {
-                    'import_file_contents': definition,
-                    'parent': f'folders/{parent_folder_id}'
-                }
-                endpoint_id = self.get_or_create_endpoint()
-                if endpoint_id is None:
-                    print("ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without (import will pick the first available if any)")
-                else:
-                    data['warehouse_id'] = endpoint_id
-                if existing_dashboard is not None:
-                    data['overwrite_dashboard_id'] = existing_dashboard
-                    data['should_overwrite_existing_queries'] = True
-                i = self.db.post(f"2.0/preview/sql/dashboards/import", data)
-                if "id" in i:
-                    result.append({"id": id, "name": definition['dashboard']['name'], "installed_id": i["id"]})
-                    #Change definition for all users to be able to use the dashboard & the queries.
-                    permissions = {"access_control_list": [
-                        {"user_name": self.db.conf.username, "permission_level": "CAN_MANAGE"},
-                        {"group_name": "users", "permission_level": "CAN_EDIT"}
-                    ]}
-                    permissions = self.db.post("2.0/preview/sql/permissions/dashboards/"+i["id"], permissions)
-                    for q in definition["queries"]:
+            print(f'    Installing dashboards')
+            def install_dash(dashboard):
+                return self.install_dashboard(demo_conf, install_path, dashboard)
+            dashboards = pkg_resources.resource_listdir("dbdemos", "bundles/" + demo_conf.name + "/dashboards")
+            # Parallelize dashboard install, 3 by 3.
+            with ThreadPoolExecutor(max_workers=3) as executor:
+                return [n for n in executor.map(install_dash, dashboards)]
+
+    def install_dashboard(self, demo_conf, install_path, dashboard):
+            definition = json.loads(self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard))
+            id = dashboard[:dashboard.rfind(".json")]
+            dashboard_name = definition['dashboard']['name']
+            print(f"     Installing dashboard {dashboard_name} - {id}...")
+            existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
+            if existing_dashboard is not None:
+                # If we can't change the ownership, we'll have to create a new dashboard.
+                could_change_owner_changed = self.change_dashboard_ownership(existing_dashboard)
+                # Can't change ownership, we won't be able to override the dashboard. Create a new one with your name.
+                if not could_change_owner_changed:
+                    name = self.db.conf.username[:self.db.conf.username.rfind('@')]
+                    name = re.sub("[^A-Za-z0-9]", '_', name)
+                    dashboard_name = dashboard_name + " - " + name
+                    print(
+                        f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
+                    existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
+            # Create the folder where to save the queries
+            path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
+            self.db.post("2.0/workspace/mkdirs", {"path": path})
+            folders = self.db.get("2.0/workspace/list", {"path": Path(path).parent.absolute()})
+            if "error_code" in folders:
+                raise Exception(f"ERROR - wrong install path, can't save dashboard here: {folders}")
+            parent_folder_id = None
+            for f in folders["objects"]:
+                if f["object_type"] == "DIRECTORY" and f["path"] == path:
+                    parent_folder_id = f["object_id"]
+            data = {
+                'import_file_contents': definition,
+                'parent': f'folders/{parent_folder_id}'
+            }
+            endpoint_id = self.get_or_create_endpoint()
+            if endpoint_id is None:
+                print(
+                    "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without (import will pick the first available if any)")
+            else:
+                data['warehouse_id'] = endpoint_id
+            if existing_dashboard is not None:
+                data['overwrite_dashboard_id'] = existing_dashboard
+                data['should_overwrite_existing_queries'] = True
+            i = self.db.post(f"2.0/preview/sql/dashboards/import", data)
+            if "id" in i:
+                # Change definition for all users to be able to use the dashboard & the queries.
+                permissions = {"access_control_list": [
+                    {"user_name": self.db.conf.username, "permission_level": "CAN_MANAGE"},
+                    {"group_name": "users", "permission_level": "CAN_EDIT"}
+                ]}
+                permissions = self.db.post("2.0/preview/sql/permissions/dashboards/" + i["id"], permissions)
+                existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard}/export")
+                if "queries" in existing_dashboard_definition:
+                    for q in existing_dashboard_definition["queries"]:
                         self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}", permissions)
-                    print(f"     Dashboard {definition['dashboard']['name']} permissions set to {permissions}")
-                    self.db.post("2.0/preview/sql/dashboards/"+i["id"], {"run_as_role": "viewer"})
-                else:
-                    print(f"    ERROR loading dashboard {definition['dashboard']['name']}: {i}, {existing_dashboard}")
-                    result.append({"id": id, "name": definition['dashboard']['name'], "error": i, "installed_id": existing_dashboard})
-        return result
+                print(f"     Dashboard {definition['dashboard']['name']} installed. Permissions set to {permissions}")
+                self.db.post("2.0/preview/sql/dashboards/" + i["id"], {"run_as_role": "viewer"})
+                return {"id": id, "name": definition['dashboard']['name'], "installed_id": i["id"]}
+            else:
+                print(f"    ERROR loading dashboard {definition['dashboard']['name']}: {i}, {existing_dashboard}")
+                return {"id": id, "name": definition['dashboard']['name'], "error": i, "installed_id": existing_dashboard}
+
+    # Try to change ownership to be able to override the dashboard. Only admin can override ownership.
+    # Return True if we've been able to change ownership, false otherwise
+    def change_dashboard_ownership(self, existing_dashboard):
+        owner = self.db.post(f"2.0/preview/sql/permissions/dashboard/{existing_dashboard}/transfer", {"new_owner": self.db.conf.username})
+        if 'error_code' in owner:
+            print(f"WARN: Couldn't update ownership of dashboard {existing_dashboard} to current user. Will create a new one.")
+            return False
+        # Get existing dashboard definition and change all its query ownership
+        existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard}/export")
+        if "message" in existing_dashboard_definition:
+            print(f"WARN: Error getting existing dashboard details - id {existing_dashboard}: {existing_dashboard_definition}. Will create a new one.")
+            return False
+        else:
+            # Try to update all individual query ownership
+            for q in existing_dashboard_definition["queries"]:
+                owner = self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}/transfer", {"new_owner": self.db.conf.username})
+                if 'error_code' in owner:
+                    print(f"WARN: Couldn't update ownership of query {q['id']} to current user. Will create a new dashboard.")
+                    return False
+        return True
 
     def get_dashboard_id_by_name(self, name):
         def get_dashboard(page):

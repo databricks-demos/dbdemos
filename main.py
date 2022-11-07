@@ -51,7 +51,7 @@ def bundle():
 #bundle()
 
 #Loads conf to install on cse2.
-with open("./local_conf_awsevent.json", "r") as r:
+with open("./local_conf_cse2.json", "r") as r:
     c = json.loads(r.read())
 
 import dbdemos
