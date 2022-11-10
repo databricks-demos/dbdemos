@@ -22,8 +22,8 @@ def bundle():
     # Discover bundles from repo:
     #bundler.load_bundles_conf()
     # Or manually add bundle to run faster:
+    """
     bundler.add_bundle("product_demos/Data-Science/MLOps E2E pipeline: Churn detection")
-
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
     bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
     bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
@@ -37,13 +37,13 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-CDC")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
-    bundler.add_bundle("product_demos/Delta-Sharing")
+    bundler.add_bundle("product_demos/Delta-Sharing")"""
     bundler.add_bundle("demo-retail/lakehouse-retail-churn")
-    """
-    """
+
+
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
-    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=True)
+    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False)
 
     packager = Packager(conf, bundler)
     packager.package_all()
@@ -51,12 +51,13 @@ def bundle():
 #bundle()
 
 #Loads conf to install on cse2.
-with open("./local_conf_cse2.json", "r") as r:
+with open("./local_conf_gcp.json", "r") as r:
     c = json.loads(r.read())
 
 import dbdemos
 dbdemos.list_demos(None)
-dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+dbdemos.install("lakehouse-retail-churn", "/Users/ioannis.papadopoulos@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="GCP")
+#dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("delta-sharing-airlines", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-cdc", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])

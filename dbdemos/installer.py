@@ -173,6 +173,7 @@ class Installer:
             # Parallelize dashboard install, 3 by 3.
             with ThreadPoolExecutor(max_workers=3) as executor:
                 return [n for n in executor.map(install_dash, dashboards)]
+        return []
 
     def install_dashboard(self, demo_conf, install_path, dashboard):
             definition = json.loads(self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard))
@@ -237,8 +238,8 @@ class Installer:
     # Return True if we've been able to change ownership, false otherwise
     def change_dashboard_ownership(self, existing_dashboard):
         owner = self.db.post(f"2.0/preview/sql/permissions/dashboard/{existing_dashboard}/transfer", {"new_owner": self.db.conf.username})
-        if 'error_code' in owner:
-            print(f"WARN: Couldn't update ownership of dashboard {existing_dashboard} to current user. Will create a new one.")
+        if 'error_code' in owner or ('message' in owner and (owner['message'] != 'Success' and not owner['message'].startswith("This object already belongs"))):
+            print(f"       WARN: Couldn't update ownership of dashboard {existing_dashboard} to current user. Will create a new one.")
             return False
         # Get existing dashboard definition and change all its query ownership
         existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard}/export")
@@ -250,7 +251,7 @@ class Installer:
             for q in existing_dashboard_definition["queries"]:
                 owner = self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}/transfer", {"new_owner": self.db.conf.username})
                 if 'error_code' in owner:
-                    print(f"WARN: Couldn't update ownership of query {q['id']} to current user. Will create a new dashboard.")
+                    print(f"       WARN: Couldn't update ownership of query {q['id']} to current user. Will create a new dashboard.")
                     return False
         return True
 
@@ -459,7 +460,7 @@ class Installer:
             return notebook
 
         #Always adds the licence notebooks
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=3) as executor:
             notebooks = [
                 DemoNotebook("_resources/LICENSE", "LICENSE", "Demo License"),
                 DemoNotebook("_resources/NOTICE", "NOTICE", "Demo Notice"),
@@ -469,7 +470,7 @@ class Installer:
                 load_notebook_path(notebook, f"template/{notebook.title}.html")
             collections.deque(executor.map(load_notebook_templet, notebooks))
 
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=3) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
 
 
