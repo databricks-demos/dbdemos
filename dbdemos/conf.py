@@ -21,7 +21,7 @@ class Conf():
         self.username = username
         self.workspace_url = workspace_url
         self.pat_token = pat_token
-        self.headers = {"Authorization": "Bearer " + pat_token, 'Content-type': 'application/json'}
+        self.headers = {"Authorization": "Bearer " + pat_token, 'Content-type': 'application/json', 'User-Agent': 'dbdemos'}
         self.default_cluster_template = default_cluster_template
         self.default_cluster_job_template = default_cluster_job_template
         self.repo_staging_path = repo_staging_path
@@ -46,16 +46,20 @@ class DBClient():
         return path
 
     def post(self, path: str, json: dict = {}):
-        return requests.post(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, json=json).json()
+        with requests.post(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, json=json) as r:
+            return r.json()
 
     def put(self, path: str, json: dict = {}):
-        return requests.put(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, json=json).json()
+        with requests.put(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, json=json) as r:
+            return r.json()
 
     def patch(self, path: str, json: dict = {}):
-        return requests.patch(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, json=json).json()
+        with requests.patch(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, json=json) as r:
+            return r.json()
 
     def get(self, path: str, params: dict= {}):
-        return requests.get(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, params=params).json()
+        with requests.get(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, params=params) as r:
+            return r.json()
 
     def search_cluster(self, cluster_name: str, tags: dict):
         clusters = self.db.get("2.1/clusters/list")

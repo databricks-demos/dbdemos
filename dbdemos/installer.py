@@ -189,6 +189,7 @@ class Installer:
                     name = self.db.conf.username[:self.db.conf.username.rfind('@')]
                     name = re.sub("[^A-Za-z0-9]", '_', name)
                     dashboard_name = dashboard_name + " - " + name
+                    definition['dashboard']['name'] = dashboard_name
                     print(
                         f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
                     existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
