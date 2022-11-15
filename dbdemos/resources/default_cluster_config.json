@@ -8,7 +8,7 @@
   "spark_conf": {},
   "ssh_public_keys": [],
   "custom_tags": {
-    "project": "databricks-demo",
+    "project": "dbdemos",
     "demo": "{{DEMO_NAME}}"
   },
   "spark_env_vars": {},

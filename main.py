@@ -37,8 +37,9 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-CDC")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
-    bundler.add_bundle("product_demos/Delta-Sharing")"""
-    bundler.add_bundle("demo-retail/lakehouse-retail-churn")
+    bundler.add_bundle("product_demos/Delta-Sharing")
+    bundler.add_bundle("demo-retail/lakehouse-retail-churn")"""
+    bundler.add_bundle("product_demos/Data-Science/Koalas")
 
 
 
@@ -48,15 +49,16 @@ def bundle():
     packager = Packager(conf, bundler)
     packager.package_all()
 
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
-with open("./local_conf_gcp.json", "r") as r:
+with open("./local_conf.json", "r") as r:
     c = json.loads(r.read())
 
 import dbdemos
 dbdemos.list_demos(None)
-dbdemos.install("lakehouse-retail-churn", "/Users/ioannis.papadopoulos@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="GCP")
+dbdemos.install("pandas-on-spark", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+#dbdemos.install("lakehouse-retail-churn", "/Users/ioannis.papadopoulos@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="GCP")
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("delta-sharing-airlines", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-cdc", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])

@@ -13,7 +13,7 @@
       "new_cluster": {
         "spark_version": "11.0.x-cpu-ml-scala2.12",
         "custom_tags": {
-          "project": "databricks-demo",
+          "project": "dbdemos",
           "demo_bundle_job": "autoloader",
           "demo": "autoloader"
         },

@@ -293,7 +293,7 @@ class Installer:
                 "min_num_clusters": 1,
                 "max_num_clusters": 1,
                 "tags": {
-                    "custom_tags": [{"project": "databricks-demo"}]
+                    "custom_tags": [{"project": "dbdemos"}]
                 },
                 "spot_instance_policy": "COST_OPTIMIZED",
                 "enable_photon": "true",
@@ -525,7 +525,7 @@ class Installer:
             today = date.today().strftime("%Y-%m-%d")
             #enforce demo tagging in the cluster
             for cluster in definition["clusters"]:
-                merge_dict(cluster, {"custom_tags": {"project": "databricks-demo", "demo": demo_name, "demo_install_date": today}})
+                merge_dict(cluster, {"custom_tags": {"project": "dbdemos", "demo": demo_name, "demo_install_date": today}})
             existing_pipeline = self.get_pipeline(definition["name"])
             print(f'    Installing pipeline {definition["name"]}')
             if existing_pipeline == None:
