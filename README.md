@@ -6,6 +6,7 @@ Simply deploy & share demos on any workspace. dbdemos is packaged with a list of
 - Product demos (ex: Delta Live Table, CDC, MLOps...)
 
 ## Installation 
+**Do not clone the repo, just pip install dbdemos wheel.**
 
 For the beta, the wheel is updated in the repo directly:
 ```
