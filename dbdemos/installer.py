@@ -148,6 +148,8 @@ class Installer:
             install_path = self.get_current_folder()
         elif install_path.startswith("./"):
             install_path = self.get_current_folder()+"/"+install_path[2:]
+        if install_path.endswith("/"):
+            install_path = install_path[:-1]
         print(f"Installing demo {demo_name} under {install_path}...")
         self.check_demo_name(demo_name)
         demo_conf = self.get_demo_conf(demo_name, install_path+"/"+demo_name)
@@ -203,6 +205,8 @@ class Installer:
             for f in folders["objects"]:
                 if f["object_type"] == "DIRECTORY" and f["path"] == path:
                     parent_folder_id = f["object_id"]
+            if parent_folder_id is None:
+                print(f"ERROR: couldn't find dashboard folder {path}. Do you have permission?")
             data = {
                 'import_file_contents': definition,
                 'parent': f'folders/{parent_folder_id}'
