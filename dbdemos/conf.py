@@ -1,5 +1,6 @@
 import json
 import requests
+import urllib
 from datetime import date
 import re
 
@@ -75,7 +76,7 @@ class DBClient():
         return None
 
     def find_job(self, name, offset = 0, limit = 25):
-        r = self.get("2.1/jobs/list", {"limit": limit, "offset": offset})
+        r = self.get("2.1/jobs/list", {"limit": limit, "offset": offset, "name": urllib.parse.quote_plus(name)})
         if 'jobs' in r:
             for job in r['jobs']:
                 if job["settings"]["name"] == name:
