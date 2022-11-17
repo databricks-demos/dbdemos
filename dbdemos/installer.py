@@ -562,7 +562,11 @@ class Installer:
         existing_cluster = self.find_cluster(cluster_conf["cluster_name"])
         if existing_cluster == None:
             cluster = self.db.post("2.0/clusters/create", json = cluster_conf)
-            cluster_conf["cluster_id"] = cluster["cluster_id"]
+            if "cluster_id" not  in cluster:
+                print(f"    WARN: couldn't create the cluster for the demo: {cluster}")
+                return "CLUSTER_CREATION_ERROR", "CLUSTER_CREATION_ERROR"
+            else:
+                cluster_conf["cluster_id"] = cluster["cluster_id"]
         else:
             cluster_conf["cluster_id"] = existing_cluster["cluster_id"]
             if update_cluster_if_exists:

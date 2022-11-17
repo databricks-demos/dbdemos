@@ -78,6 +78,9 @@ class NotebookParser:
                 c["hideCommandCode"] = True
             if "%run " in c["command"]:
                 c["hideCommandResult"] = True
+            if "results" in c and  c["results"] is not None and "data" in c["results"] and c["results"]["data"] is not None and \
+                c["results"]["type"] == "table" and len(c["results"]["data"])>0 and str(c["results"]["data"][0][0]).startswith("This Delta Live Tables query is syntactically valid"):
+                c["hideCommandResult"] = True
         self.content = json.dumps(content)
 
     def replace_dashboard_links(self, dashboards):
