@@ -23,7 +23,6 @@ def bundle():
     #bundler.load_bundles_conf()
     # Or manually add bundle to run faster:
     """
-    bundler.add_bundle("product_demos/Data-Science/MLOps E2E pipeline: Churn detection")
     bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
     bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
     bundler.add_bundle("product_demos/Unity-Catalog/03-Data-lineage")
@@ -35,13 +34,13 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Lake-CDC-CDF")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-CDC")
-    bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
     bundler.add_bundle("product_demos/Delta-Sharing")
-    bundler.add_bundle("product_demos/Data-Science/Koalas")
+    bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
+    bundler.add_bundle("product_demos/Data-Science/MLOps E2E pipeline: Churn detection")
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
 """
     #bundler.add_bundle("demo-retail/lakehouse-retail-churn")
-    bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
+    bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
@@ -50,7 +49,7 @@ def bundle():
     packager = Packager(conf, bundler)
     packager.package_all()
 
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf.json", "r") as r:
