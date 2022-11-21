@@ -40,7 +40,7 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Lake")
 """
     bundler.add_bundle("demo-retail/lakehouse-retail-churn")
-    bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
+    #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
