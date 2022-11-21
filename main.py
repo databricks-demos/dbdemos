@@ -30,17 +30,17 @@ def bundle():
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     bundler.add_bundle("product_demos/DBSQL-Datawarehousing/01-FK-PK-Indentity-Data-modeling")
     bundler.add_bundle("product_demos/Data-Science/Koalas")
-    bundler.add_bundle("product_demos/Delta-Lake")
     bundler.add_bundle("product_demos/Delta-Lake-CDC-CDF")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-CDC")
     bundler.add_bundle("product_demos/Delta-Sharing")
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
-    bundler.add_bundle("product_demos/Data-Science/MLOps E2E pipeline: Churn detection")
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
-"""
-    #bundler.add_bundle("demo-retail/lakehouse-retail-churn")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
+    bundler.add_bundle("product_demos/Delta-Lake")
+"""
+    bundler.add_bundle("demo-retail/lakehouse-retail-churn")
+    bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
@@ -57,15 +57,15 @@ with open("local_conf.json", "r") as r:
 
 import dbdemos
 dbdemos.list_demos(None)
+dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install2/", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("pandas-on-spark", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("auto-loader", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
-#dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install2/", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("lakehouse-retail-churn", "/Users/ioannis.papadopoulos@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="GCP")
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("delta-sharing-airlines", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-cdc", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
-dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-unit-test", "/Users/quentin.ambard@databricks.com/test_install", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("uc-01-acl", "/Users/quentin.ambard@databricks.com/test_install2", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.create_cluster("uc-05-upgrade", c['username'], c['pat_token'], c['url'], c['current_folder'])

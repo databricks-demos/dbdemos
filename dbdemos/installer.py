@@ -337,13 +337,13 @@ class Installer:
             cluster_section = ""
             cluster_instruction = ""
         if len(notebooks) > 0:
-            first = list(filter(lambda n: "/" not in n.path, notebooks))
-            first.sort(key=lambda n: n.path)
-            html += f"""Start with the first notebook <a href="{self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].path}">{demo_name}/{first[0].path}</a>{cluster_instruction}"""
+            first = list(filter(lambda n: "/" not in n.get_clean_path(), notebooks))
+            first.sort(key=lambda n: n.get_clean_path())
+            html += f"""Start with the first notebook <a href="{self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}">{demo_name}/{first[0].get_clean_path()}</a>{cluster_instruction}"""
             html += """<h2>Notebook installed:</h2><ul>"""
             for n in notebooks:
-                if "_resources" not in n.path:
-                    html += f"""<li>{n.path}: <a href="{self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{n.path}">{n.title}</a></li>"""
+                if "_resources" not in n.get_clean_path():
+                    html += f"""<li>{n.get_clean_path()}: <a href="{self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{n.get_clean_path()}">{n.title}</a></li>"""
             html += """</ul>"""
         if len(pipelines_ids) > 0:
             html += f"""<h2>Delta Live Table Pipelines</h2><ul>"""
@@ -375,8 +375,8 @@ class Installer:
             print("----------------------------------------------------")
             print("-------------- Notebook installed: -----------------")
             for n in notebooks:
-                if "_resources" not in n.path:
-                    print(f"   - {n.title}: {self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{n.path}")
+                if "_resources" not in n.get_clean_path():
+                    print(f"   - {n.title}: {self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{n.get_clean_path()}")
         if job_id is not None:
             print("----------------------------------------------------")
             print("--- Job initialization started (load demo data): ---")
@@ -407,9 +407,9 @@ class Installer:
         print("----------------------------------------------------")
         print(f"Your demo {title} is ready! ")
         if len(notebooks) > 0:
-            first = list(filter(lambda n: "/" not in n.path, notebooks))
-            first.sort(key=lambda n: n.path)
-            print(f"Start with the first notebook {demo_name}/{first[0].path}{cluster_instruction}: {self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].path}.")
+            first = list(filter(lambda n: "/" not in n.get_clean_path(), notebooks))
+            first.sort(key=lambda n: n.get_clean_path())
+            print(f"Start with the first notebook {demo_name}/{first[0].get_clean_path()}{cluster_instruction}: {self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}.")
 
     def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str, pipeline_ids, dashboards, overwrite=False):
         assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
@@ -437,7 +437,7 @@ class Installer:
         #Avoid multiple mkdirs in parallel as it's creating error.
         folders_created_lock = threading.Lock()
         def load_notebook(notebook):
-            return load_notebook_path(notebook, "bundles/"+demo_name+"/install_package/"+notebook.path+".html")
+            return load_notebook_path(notebook, "bundles/"+demo_name+"/install_package/"+notebook.get_clean_path()+".html")
 
         def load_notebook_path(notebook: DemoNotebook, template_path):
             parser = NotebookParser(self.get_resource(template_path))
@@ -446,10 +446,10 @@ class Installer:
             parser.replace_dashboard_links(dashboards)
             parser.remove_automl_result_links()
             parser.replace_dynamic_links_pipeline(pipeline_ids)
-            parser.set_tracker_tag(self.get_org_id(), self.get_uid(), demo_conf.category, demo_name, notebook.path)
+            parser.set_tracker_tag(self.get_org_id(), self.get_uid(), demo_conf.category, demo_name, notebook.get_clean_path())
             content = parser.get_html()
             content = base64.b64encode(content.encode("utf-8")).decode("utf-8")
-            parent = str(Path(install_path+"/"+notebook.path).parent)
+            parent = str(Path(install_path+"/"+notebook.get_clean_path()).parent)
             with folders_created_lock:
                 if parent not in folders_created:
                     r = self.db.post("2.0/workspace/mkdirs", {"path": parent})
@@ -459,9 +459,9 @@ class Installer:
                             print(f"ERROR: A folder already exists under {install_path}. Add the overwrite option to replace the content:")
                             print(f"dbdemos.install('{demo_name}', overwrite=True)")
                         raise Exception(f"Couldn't create folder under {install_path}. Import error: {r}")
-            r = self.db.post("2.0/workspace/import", {"path": install_path+"/"+notebook.path, "content": content, "format": "HTML"})
+            r = self.db.post("2.0/workspace/import", {"path": install_path+"/"+notebook.get_clean_path(), "content": content, "format": "HTML"})
             if 'error_code' in r:
-                raise Exception(f"Couldn't install demo under {install_path}/{notebook.path}. Do you have permission?. Import error: {r}")
+                raise Exception(f"Couldn't install demo under {install_path}/{notebook.get_clean_path()}. Do you have permission?. Import error: {r}")
             return notebook
 
         #Always adds the licence notebooks

@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+
 import requests
 import urllib
 from datetime import date
@@ -98,6 +100,16 @@ class DemoNotebook():
 
     def __repr__(self):
         return self.path
+
+    def get_clean_path(self):
+        #Some notebook path are relatives, like ../../demo-retail/lakehouse-retail/_resources/xxx
+        # DThis function removes it and returns _resources/xxx
+        p = Path(self.path)
+        parent_count = p.parts.count('..')
+        if parent_count > 0:
+            return str(p.relative_to(*p.parts[:parent_count*2-1]))
+        return self.path
+
 
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__)
