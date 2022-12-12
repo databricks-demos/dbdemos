@@ -5,7 +5,9 @@
   },
   "cluster_name": "demo-{{DEMO_NAME}}-{{CURRENT_USER_NAME}}",
   "spark_version": "11.2.x-cpu-ml-scala2.12",
-  "spark_conf": {},
+  "spark_conf": {
+    "spark.databricks.dataLineage.enabled": "true"
+  },
   "ssh_public_keys": [],
   "custom_tags": {
     "project": "dbdemos",
@@ -15,5 +17,6 @@
   "autotermination_minutes": 60,
   "cluster_source": "UI",
   "init_scripts": [],
-  "runtime_engine": "STANDARD"
+  "runtime_engine": "STANDARD",
+
 }

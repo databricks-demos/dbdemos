@@ -118,6 +118,7 @@ class DemoConf():
     def __init__(self, path: str, json_conf: dict):
         self.json_conf = json_conf
         self.notebooks = []
+        self.extra_init_task = json_conf.get('extra_init_task', [])
         self.cluster = json_conf.get('cluster', {})
         self.pipelines = json_conf.get('pipelines', [])
         self.init_job = json_conf.get('init_job', {})

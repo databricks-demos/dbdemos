@@ -17,6 +17,9 @@
           "demo_bundle_job": "autoloader",
           "demo": "autoloader"
         },
+        "spark_conf": {
+          "spark.databricks.dataLineage.enabled": "true"
+        },
         "instance_pool_id": "0727-104344-hauls13-pool-uftxk0r6",
         "data_security_mode": "NONE",
         "runtime_engine": "STANDARD",

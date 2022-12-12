@@ -188,6 +188,19 @@ class JobBundler:
                 merge_dict(task["notebook_task"]["base_parameters"], notebook.parameters)
                 default_job_conf['tasks'].append(task)
             del default_job_conf['tasks'][0]["depends_on"]
+            #TODO: need to be improved
+            for i, task in enumerate(demo_conf.extra_init_task):
+                task = {
+                    "task_key": f"bundle_{demo_conf.name}_extra_{i}",
+                    "notebook_task": {
+                        "notebook_path": demo_conf.path+"/"+task["path"],
+                        "base_parameters": {"reset_all_data": "true"},
+                        "source": "GIT"
+                    },
+                    "job_cluster_key": default_job_conf["job_clusters"][0]["job_cluster_key"],
+                    "timeout_seconds": 0,
+                    "email_notifications": {}}
+                default_job_conf['tasks'].append(task)
 
             return self.create_or_update_job(demo_conf, default_job_conf)
 

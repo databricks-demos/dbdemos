@@ -39,9 +39,10 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Lake")
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
     bundler.add_bundle("product_demos/Unity-Catalog/03-Data-lineage")
+    bundler.add_bundle("product_demos/Delta-Lake-CDC-CDF")
 """
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
-    bundler.add_bundle("product_demos/Delta-Lake-CDC-CDF")
+    bundler.add_bundle("product_demos/streaming-sessionization")
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
