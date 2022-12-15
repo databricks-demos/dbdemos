@@ -11,7 +11,7 @@
     {
       "job_cluster_key": "field_demo_test",
       "new_cluster": {
-        "spark_version": "11.0.x-cpu-ml-scala2.12",
+        "spark_version": "11.3.x-cpu-ml-scala2.12",
         "custom_tags": {
           "project": "dbdemos",
           "demo_bundle_job": "autoloader",
@@ -19,6 +19,9 @@
         },
         "spark_conf": {
           "spark.databricks.dataLineage.enabled": "true"
+        },
+        "aws_attributes": {
+          "instance_profile_arn": "arn:aws:iam::997819012307:instance-profile/one-env-databricks-access"
         },
         "instance_pool_id": "0727-104344-hauls13-pool-uftxk0r6",
         "data_security_mode": "NONE",

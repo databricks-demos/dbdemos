@@ -89,7 +89,7 @@ class DBClient():
 
 class DemoNotebook():
     def __init__(self, path: str, title: str, description: str, pre_run: bool = False, publish_on_website: bool = False,
-                 add_cluster_setup_cell: bool = False, parameters: dict = {}):
+                 add_cluster_setup_cell: bool = False, parameters: dict = {}, depends_on_previous: bool = True):
         self.path = path
         self.title = title
         self.description = description
@@ -97,6 +97,7 @@ class DemoNotebook():
         self.publish_on_website = publish_on_website
         self.add_cluster_setup_cell = add_cluster_setup_cell
         self.parameters = parameters
+        self.depends_on_previous = depends_on_previous
 
     def __repr__(self):
         return self.path
@@ -118,7 +119,6 @@ class DemoConf():
     def __init__(self, path: str, json_conf: dict):
         self.json_conf = json_conf
         self.notebooks = []
-        self.extra_init_task = json_conf.get('extra_init_task', [])
         self.cluster = json_conf.get('cluster', {})
         self.pipelines = json_conf.get('pipelines', [])
         self.init_job = json_conf.get('init_job', {})
@@ -135,7 +135,8 @@ class DemoConf():
         for n in json_conf['notebooks']:
             add_cluster_setup_cell = n.get('add_cluster_setup_cell', False)
             params = n.get('parameters', {})
-            self.notebooks.append(DemoNotebook(n['path'], n['title'], n['description'], n['pre_run'], n['publish_on_website'], add_cluster_setup_cell, params))
+            depends_on_previous = n.get('depends_on_previous', True)
+            self.notebooks.append(DemoNotebook(n['path'], n['title'], n['description'], n['pre_run'], n['publish_on_website'], add_cluster_setup_cell, params, depends_on_previous))
 
     def __repr__(self):
         return self.path + "("+str(self.notebooks)+")"

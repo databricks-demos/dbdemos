@@ -4,7 +4,7 @@
     "max_workers": 4
   },
   "cluster_name": "demo-{{DEMO_NAME}}-{{CURRENT_USER_NAME}}",
-  "spark_version": "11.2.x-cpu-ml-scala2.12",
+  "spark_version": "11.3.x-cpu-ml-scala2.12",
   "spark_conf": {
     "spark.databricks.dataLineage.enabled": "true"
   },
@@ -15,8 +15,7 @@
   },
   "spark_env_vars": {},
   "autotermination_minutes": 60,
-  "cluster_source": "UI",
+  "clus4ter_source": "UI",
   "init_scripts": [],
-  "runtime_engine": "STANDARD",
-
+  "runtime_engine": "STANDARD"
 }

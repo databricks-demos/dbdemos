@@ -66,8 +66,8 @@ class JobBundler:
         j = re.sub(r'[:\s*]False', ' false', j)
         try:
             json_conf = json.loads(j)
-        except:
-            raise Exception(f"incorrect json setting for {config_path}. The cell should contain a python object. Please use double quote.\n {j}")
+        except Exception as e:
+            raise Exception(f"incorrect json setting for {config_path}: {e}. The cell should contain a python object. Please use double quote.\n {j}")
         demo_conf = DemoConf(bundle_path, json_conf)
         self.bundles[bundle_path] = demo_conf
 
@@ -162,7 +162,6 @@ class JobBundler:
                 #TODO: to be improved, we use only use AWS for now
                 if 'instance_pool_id':
                     job_cluster["new_cluster"].pop('node_type_id', None)
-                    job_cluster["new_cluster"].pop('aws_attributes', None)
                 job_cluster["new_cluster"].pop('cluster_name', None)
                 job_cluster["new_cluster"].pop('autotermination_minutes', None)
                 if job_cluster["new_cluster"]["spark_conf"].get("spark.databricks.cluster.profile", "") == "singleNode":
@@ -172,11 +171,6 @@ class JobBundler:
             for i, notebook in enumerate(notebooks_to_run):
                 task = {
                     "task_key": f"bundle_{demo_conf.name}_{i}",
-                    "depends_on": [
-                        {
-                            "task_key": f"bundle_{demo_conf.name}_{i-1}",
-                        }
-                    ],
                     "notebook_task": {
                         "notebook_path": demo_conf.path+"/"+notebook.path,
                         "base_parameters": {"reset_all_data": "true"},
@@ -186,21 +180,11 @@ class JobBundler:
                     "timeout_seconds": 0,
                     "email_notifications": {}}
                 merge_dict(task["notebook_task"]["base_parameters"], notebook.parameters)
+                if notebook.depends_on_previous:
+                    task["depends_on"] = [{"task_key": f"bundle_{demo_conf.name}_{i-1}"}]
                 default_job_conf['tasks'].append(task)
-            del default_job_conf['tasks'][0]["depends_on"]
-            #TODO: need to be improved
-            for i, task in enumerate(demo_conf.extra_init_task):
-                task = {
-                    "task_key": f"bundle_{demo_conf.name}_extra_{i}",
-                    "notebook_task": {
-                        "notebook_path": demo_conf.path+"/"+task["path"],
-                        "base_parameters": {"reset_all_data": "true"},
-                        "source": "GIT"
-                    },
-                    "job_cluster_key": default_job_conf["job_clusters"][0]["job_cluster_key"],
-                    "timeout_seconds": 0,
-                    "email_notifications": {}}
-                default_job_conf['tasks'].append(task)
+            if "depends_on" in default_job_conf['tasks'][0]:
+                del default_job_conf['tasks'][0]["depends_on"]
 
             return self.create_or_update_job(demo_conf, default_job_conf)
 

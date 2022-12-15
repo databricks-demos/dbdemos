@@ -474,7 +474,6 @@ class Installer:
             def load_notebook_templet(notebook):
                 load_notebook_path(notebook, f"template/{notebook.title}.html")
             collections.deque(executor.map(load_notebook_templet, notebooks))
-
         with ThreadPoolExecutor(max_workers=3) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
 
