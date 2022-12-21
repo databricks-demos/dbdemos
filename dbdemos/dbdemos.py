@@ -183,6 +183,10 @@ def list_dashboards(category = None):
     pass
 
 def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS"):
+    if demo_name == "lakehouse-retail-churn":
+        print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
+        demo_name = "lakehouse-retail-c360"
+
     installer = Installer(username, pat_token, workspace_url, cloud)
     installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards)
 
