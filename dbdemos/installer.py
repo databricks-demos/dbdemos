@@ -148,6 +148,8 @@ class Installer:
             install_path = self.get_current_folder()
         elif install_path.startswith("./"):
             install_path = self.get_current_folder()+"/"+install_path[2:]
+        elif not install_path.startswith("/"):
+            install_path = self.get_current_folder()+"/"+install_path
         if install_path.endswith("/"):
             install_path = install_path[:-1]
         print(f"Installing demo {demo_name} under {install_path}...")
