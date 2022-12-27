@@ -1,9 +1,11 @@
 # dbdemos
 
+DBDemos is a toolkit to easily install Lakehouse demos for Databricks.
+
 Simply deploy & share demos on any workspace. dbdemos is packaged with a list of demos:
 
 - Lakehouse, end-to-end demos (ex: Lakehouse Retail Churn)
-- Product demos (ex: Delta Live Table, CDC, MLOps...)
+- Product demos (ex: Delta Live Table, CDC, ML, DBSQL Dashboard, MLOps...)
 
 ## Installation 
 **Do not clone the repo, just pip install dbdemos wheel:**
