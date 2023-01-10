@@ -3,7 +3,7 @@ python3 setup.py clean --all bdist_wheel
 #pip3 install dist/dbdemos-0.1-py3-none-any.whl --force
 #python3 test_package.py
 
-cp dist/dbdemos-0.1-py3-none-any.whl release/dbdemos-0.1-py3-none-any.whl
+cp dist/dbdemos-* release/
 
 
 #curl --netrc -X POST \

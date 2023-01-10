@@ -6,6 +6,9 @@ import urllib
 from datetime import date
 import re
 
+from requests import Response
+
+
 def merge_dict(a, b, path=None):
     """merges dict b into a. Mutate a"""
     if path is None: path = []
@@ -49,20 +52,31 @@ class DBClient():
         return path
 
     def post(self, path: str, json: dict = {}):
-        with requests.post(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, json=json) as r:
-            return r.json()
+        url = self.conf.workspace_url+"/api/"+self.clean_path(path)
+        with requests.post(url, headers = self.conf.headers, json=json) as r:
+            return self.get_json_result(url, r)
 
     def put(self, path: str, json: dict = {}):
-        with requests.put(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, json=json) as r:
-            return r.json()
+        url = self.conf.workspace_url+"/api/"+self.clean_path(path)
+        with requests.put(url, headers = self.conf.headers, json=json) as r:
+            return self.get_json_result(url, r)
 
     def patch(self, path: str, json: dict = {}):
-        with requests.patch(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, json=json) as r:
-            return r.json()
+        url = self.conf.workspace_url+"/api/"+self.clean_path(path)
+        with requests.patch(url, headers = self.conf.headers, json=json) as r:
+            return self.get_json_result(url, r)
 
     def get(self, path: str, params: dict= {}):
-        with requests.get(self.conf.workspace_url+"/api/"+self.clean_path(path), headers = self.conf.headers, params=params) as r:
+        url = self.conf.workspace_url+"/api/"+self.clean_path(path)
+        with requests.get(url, headers = self.conf.headers, params=params) as r:
+            return self.get_json_result(url, r)
+
+    def get_json_result(self, url: str, r: Response):
+        try:
             return r.json()
+        except Exception as e:
+            print(f"API CALL ERROR - can't read json. status: {r.status_code} {r.text} - URL: {url} - {e}")
+            raise e
 
     def search_cluster(self, cluster_name: str, tags: dict):
         clusters = self.db.get("2.1/clusters/list")

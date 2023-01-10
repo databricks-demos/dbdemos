@@ -100,9 +100,14 @@ class Installer:
 
     def get_current_pat_token(self):
         try:
-            return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+            token = self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
         except:
             return "local"
+        if len(token) == 0:
+            raise Exception("Couldn't get a token to call Databricks API to create demo resources. " +
+                            "This is likely due to legacy cluster being used with admin protection for “No isolation shared” https://docs.databricks.com/administration-guide/account-settings/no-isolation-shared.html (account level setting)." +
+                            "\nPlease use a cluser with Access mode set to Isolation to Single User or Shared instead and re-run your dbdemos command.")
+        return token
 
     def get_current_username(self):
         try:
@@ -299,7 +304,7 @@ class Installer:
                 "min_num_clusters": 1,
                 "max_num_clusters": 1,
                 "tags": {
-                    "custom_tags": [{"project": "dbdemos"}]
+                    "project": "dbdemos"
                 },
                 "spot_instance_policy": "COST_OPTIMIZED",
                 "enable_photon": "true",

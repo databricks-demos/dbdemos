@@ -1,5 +1,5 @@
 #increase the release (needs pip install bump)
-#bump
+bump
 #pachage
 rm -rf ./dist/*
 python3 setup.py clean --all bdist_wheel

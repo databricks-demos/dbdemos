@@ -41,9 +41,10 @@ def bundle():
     bundler.add_bundle("product_demos/Unity-Catalog/03-Data-lineage")
     bundler.add_bundle("product_demos/Delta-Lake-CDC-CDF")
     bundler.add_bundle("product_demos/streaming-sessionization")
+    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
 """
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
@@ -52,7 +53,7 @@ def bundle():
     packager = Packager(conf, bundler)
     packager.package_all()
 
-bundle()
+#bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf.json", "r") as r:
