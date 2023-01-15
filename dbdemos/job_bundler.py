@@ -34,7 +34,7 @@ class JobBundler:
                 for r in executor.map(lambda args, f=find_conf_files: f(*args), params):
                     list.update(r)
                 for o in objects:
-                    if o['object_type'] == 'NOTEBOOK' and o['path'].endswith("bundle_config"):
+                    if o['object_type'] == 'NOTEBOOK' and o['path'].endswith("/bundle_config"):
                         list.add(o['path'])
                 return list
         bundles = find_conf_files(self.conf.get_repo_path(), set())

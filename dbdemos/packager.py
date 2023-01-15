@@ -13,6 +13,7 @@ import collections
 
 
 class Packager:
+    DASHBOARD_IMPORT_API = "_import_api"
     def __init__(self, conf: Conf, jobBundler: JobBundler):
         self.db = DBClient(conf)
         self.jobBundler = jobBundler
@@ -29,20 +30,33 @@ class Packager:
             shutil.rmtree(demo_conf.get_bundle_path())
 
     def extract_dashboards(self, demo_conf: DemoConf, dashboard_ids):
-        for id in set(dashboard_ids):
-            dashboard = self.db.get(f"2.0/preview/sql/dashboards/{id}/export")
-            if "message" in dashboard:
-                raise Exception(f"Error exporting dashboard id {id} in demo {demo_conf.name}. "
-                                f"Ids are extracted from links in notebooks, please review & correct your notebook template.")
+        def cleanup_names_import_bug(dashboard):
             #Fix bug having (1) (2) ... at the end of the name of the requests
             dashboard = json.dumps(dashboard, indent=4)
             matches = re.finditer(r'"name".*?(?P<bug_num>(\s?\([0-9]\) ?){1,5})"', dashboard)
             for match in matches:
                 dashboard = dashboard.replace(match.groupdict()["bug_num"], '')
+            return dashboard
+
+        for id in set(dashboard_ids):
+            dashboard = self.db.get(f"2.0/preview/sql/dashboards/{id}/export")
+            if "message" in dashboard:
+                raise Exception(f"Error exporting dashboard id {id} in demo {demo_conf.name}. "
+                                f"Ids are extracted from links in notebooks, please review & correct your notebook template.")
+            dashboard = cleanup_names_import_bug(dashboard)
             dashboard_path = demo_conf.get_bundle_dashboard_path()
             Path(dashboard_path).mkdir(parents=True, exist_ok=True)
+            with open(f"{dashboard_path}/{id}{Packager.DASHBOARD_IMPORT_API}.json", "w") as f:
+                f.write(dashboard)
+            #LEGACY IMPORT/EXPORT
+            from dbsqlclone.utils import dump_dashboard
+            from dbsqlclone.utils.client import Client
+            client = Client(self.db.conf.workspace_url, self.db.conf.pat_token)
+            dashboard = dump_dashboard.get_dashboard_definition_by_id(client, id)
+            dashboard = cleanup_names_import_bug(dashboard)
             with open(f"{dashboard_path}/{id}.json", "w") as f:
                 f.write(dashboard)
+
 
     def package_demo(self, demo_conf: DemoConf):
         print(f"packaging demo {demo_conf.name} ({demo_conf.path})")

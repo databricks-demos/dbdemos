@@ -1,6 +1,8 @@
 import collections
 
 import pkg_resources
+from dbdemos.packager import Packager
+
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .tracker import Tracker
 from .notebook_parser import NotebookParser
@@ -179,72 +181,107 @@ class Installer:
             def install_dash(dashboard):
                 return self.install_dashboard(demo_conf, install_path, dashboard)
             dashboards = pkg_resources.resource_listdir("dbdemos", "bundles/" + demo_conf.name + "/dashboards")
+            #filter out new import/export api:
+            dashboards = filter(lambda n: Packager.DASHBOARD_IMPORT_API not in n, dashboards)
             # Parallelize dashboard install, 3 by 3.
             with ThreadPoolExecutor(max_workers=3) as executor:
                 return [n for n in executor.map(install_dash, dashboards)]
         return []
 
     def install_dashboard(self, demo_conf, install_path, dashboard):
-            definition = json.loads(self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard))
-            id = dashboard[:dashboard.rfind(".json")]
-            dashboard_name = definition['dashboard']['name']
-            print(f"     Installing dashboard {dashboard_name} - {id}...")
-            existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
-            if existing_dashboard is not None:
-                # If we can't change the ownership, we'll have to create a new dashboard.
-                could_change_owner_changed = self.change_dashboard_ownership(existing_dashboard)
-                # Can't change ownership, we won't be able to override the dashboard. Create a new one with your name.
-                if not could_change_owner_changed:
-                    name = self.db.conf.username[:self.db.conf.username.rfind('@')]
-                    name = re.sub("[^A-Za-z0-9]", '_', name)
-                    dashboard_name = dashboard_name + " - " + name
-                    definition['dashboard']['name'] = dashboard_name
-                    print(
-                        f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
-                    existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
-            # Create the folder where to save the queries
-            path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
-            self.db.post("2.0/workspace/mkdirs", {"path": path})
-            folders = self.db.get("2.0/workspace/list", {"path": Path(path).parent.absolute()})
-            if "error_code" in folders:
-                raise Exception(f"ERROR - wrong install path, can't save dashboard here: {folders}")
-            parent_folder_id = None
-            for f in folders["objects"]:
-                if f["object_type"] == "DIRECTORY" and f["path"] == path:
-                    parent_folder_id = f["object_id"]
-            if parent_folder_id is None:
-                print(f"ERROR: couldn't find dashboard folder {path}. Do you have permission?")
-            data = {
-                'import_file_contents': definition,
-                'parent': f'folders/{parent_folder_id}'
-            }
+        definition = json.loads(self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard))
+        id = dashboard[:dashboard.rfind(".json")]
+        dashboard_name = definition['dashboard']['name']
+        print(f"     Installing dashboard {dashboard_name} - {id}...")
+        existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
+        if existing_dashboard is not None:
+            # If we can't change the ownership, we'll have to create a new dashboard.
+            could_change_owner_changed = self.change_dashboard_ownership(existing_dashboard)
+            # Can't change ownership, we won't be able to override the dashboard. Create a new one with your name.
+            if not could_change_owner_changed:
+                name = self.db.conf.username[:self.db.conf.username.rfind('@')]
+                name = re.sub("[^A-Za-z0-9]", '_', name)
+                dashboard_name = dashboard_name + " - " + name
+                #TODO: legacy import/export
+                definition['name'] = dashboard_name
+                #definition['dashboard']['name'] = dashboard_name
+                print(
+                    f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
+                existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
+        # Create the folder where to save the queries
+        path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
+        self.db.post("2.0/workspace/mkdirs", {"path": path})
+        folders = self.db.get("2.0/workspace/list", {"path": Path(path).parent.absolute()})
+        if "error_code" in folders:
+            raise Exception(f"ERROR - wrong install path, can't save dashboard here: {folders}")
+        parent_folder_id = None
+        for f in folders["objects"]:
+            if f["object_type"] == "DIRECTORY" and f["path"] == path:
+                parent_folder_id = f["object_id"]
+        if parent_folder_id is None:
+            print(f"ERROR: couldn't find dashboard folder {path}. Do you have permission?")
+
+        # ------- LEGACY IMPORT/EXPORT DASHBOARD - TO BE REPLACED ONCE IMPORT/EXPORT API IS PUBLIC PREVIEW
+        from dbsqlclone.utils.client import Client
+        from dbsqlclone.utils import load_dashboard, clone_dashboard
+        client = Client(self.db.conf.workspace_url, self.db.conf.pat_token, permissions= [
+            {"user_name": self.db.conf.username, "permission_level": "CAN_MANAGE"},
+            {"group_name": "users", "permission_level": "CAN_EDIT"}
+        ])
+        try:
             endpoint_id = self.get_or_create_endpoint()
             if endpoint_id is None:
                 print(
-                    "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without (import will pick the first available if any)")
+                    "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without endoint (import will pick the first available if any)")
             else:
-                data['warehouse_id'] = endpoint_id
+                client.data_source_id = endpoint_id
+                clone_dashboard.set_data_source_id_from_endpoint_id(client)
             if existing_dashboard is not None:
-                data['overwrite_dashboard_id'] = existing_dashboard
-                data['should_overwrite_existing_queries'] = True
-            i = self.db.post(f"2.0/preview/sql/dashboards/import", data)
-            if "id" in i:
-                # Change definition for all users to be able to use the dashboard & the queries.
-                permissions = {"access_control_list": [
-                    {"user_name": self.db.conf.username, "permission_level": "CAN_MANAGE"},
-                    {"group_name": "users", "permission_level": "CAN_EDIT"}
-                ]}
-                permissions = self.db.post("2.0/preview/sql/permissions/dashboards/" + i["id"], permissions)
-                existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard}/export")
-                if "queries" in existing_dashboard_definition:
-                    for q in existing_dashboard_definition["queries"]:
-                        self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}", permissions)
-                print(f"     Dashboard {definition['dashboard']['name']} installed. Permissions set to {permissions}")
-                self.db.post("2.0/preview/sql/dashboards/" + i["id"], {"run_as_role": "viewer"})
-                return {"id": id, "name": definition['dashboard']['name'], "installed_id": i["id"]}
+                state = load_dashboard.clone_dashboard_without_saved_state(definition, client, existing_dashboard, parent=f'folders/{parent_folder_id}')
+                return {"id": id, "name": dashboard_name, "installed_id": existing_dashboard}
             else:
-                print(f"    ERROR loading dashboard {definition['dashboard']['name']}: {i}, {existing_dashboard}")
-                return {"id": id, "name": definition['dashboard']['name'], "error": i, "installed_id": existing_dashboard}
+                state = load_dashboard.clone_dashboard(definition, client, parent=f'folders/{parent_folder_id}')
+                return {"id": id, "name": dashboard_name, "installed_id": state["new_id"]}
+        except Exception as e:
+            print(f"    ERROR loading dashboard {dashboard_name}, {existing_dashboard} - {str(e)}")
+            raise e
+            return {"id": id, "name": dashboard_name, "error": str(e), "existing_dashboard": existing_dashboard}
+
+        """
+        # ------- NEW IMPORT/EXPORT API
+        data = {
+            'import_file_contents': definition,
+            'parent': f'folders/{parent_folder_id}'
+        }
+        endpoint_id = self.get_or_create_endpoint()
+        if endpoint_id is None:
+            print(
+                "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without endoint (import will pick the first available if any)")
+        else:
+            data['warehouse_id'] = endpoint_id
+        if existing_dashboard is not None:
+            data['overwrite_dashboard_id'] = existing_dashboard
+            data['should_overwrite_existing_queries'] = True
+        
+        TODO: import / export public preview delayed. Instead we'll fallback to manual import/export
+        i = self.db.post(f"2.0/preview/sql/dashboards/import", data)
+        if "id" in i:
+            # Change definition for all users to be able to use the dashboard & the queries.
+            permissions = {"access_control_list": [
+                {"user_name": self.db.conf.username, "permission_level": "CAN_MANAGE"},
+                {"group_name": "users", "permission_level": "CAN_EDIT"}
+            ]}
+            permissions = self.db.post("2.0/preview/sql/permissions/dashboards/" + i["id"], permissions)
+            existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard}/export")
+            if "queries" in existing_dashboard_definition:
+                for q in existing_dashboard_definition["queries"]:
+                    self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}", permissions)
+            print(f"     Dashboard {definition['dashboard']['name']} installed. Permissions set to {permissions}")
+            self.db.post("2.0/preview/sql/dashboards/" + i["id"], {"run_as_role": "viewer"})
+            return {"id": id, "name": definition['dashboard']['name'], "installed_id": i["id"]}
+        else:
+            print(f"    ERROR loading dashboard {definition['dashboard']['name']}: {i}, {existing_dashboard}")
+            return {"id": id, "name": definition['dashboard']['name'], "error": i, "installed_id": existing_dashboard}"""
 
     # Try to change ownership to be able to override the dashboard. Only admin can override ownership.
     # Return True if we've been able to change ownership, false otherwise
@@ -254,6 +291,7 @@ class Installer:
             print(f"       WARN: Couldn't update ownership of dashboard {existing_dashboard} to current user. Will create a new one.")
             return False
         # Get existing dashboard definition and change all its query ownership
+        # TODO a revoir
         existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard}/export")
         if "message" in existing_dashboard_definition:
             print(f"WARN: Error getting existing dashboard details - id {existing_dashboard}: {existing_dashboard_definition}. Will create a new one.")
@@ -272,7 +310,7 @@ class Installer:
             page_size = 250
             ds = self.db.get("2.0/preview/sql/dashboards", params = {"page_size": page_size, "page": page})
             for d in ds['results']:
-                if d['name'] == name:
+                if d['name'] == name and 'moved_to_trash_at' not in d:
                     return d['id']
             if len(ds["results"]) >= page_size:
                 return get_dashboard(page+1)

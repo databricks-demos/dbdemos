@@ -41,10 +41,13 @@ def bundle():
     bundler.add_bundle("product_demos/Unity-Catalog/03-Data-lineage")
     bundler.add_bundle("product_demos/Delta-Lake-CDC-CDF")
     bundler.add_bundle("product_demos/streaming-sessionization")
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
 """
+
+    #bundler.load_bundles_conf()
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
+    bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
+    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
@@ -53,15 +56,22 @@ def bundle():
     packager = Packager(conf, bundler)
     packager.package_all()
 
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf.json", "r") as r:
     c = json.loads(r.read())
 
+from dbdemos.installer import Installer
 import dbdemos
-dbdemos.list_demos(None)
-dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+
+installer = Installer()
+#for d in installer.get_demos_available():
+#    dbdemos.install(d, "/Users/quentin.ambard@databricks.com/test_dbdemos", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+
+
+#dbdemos.list_demos(None)
+#dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("streaming-sessionization", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("uc-03-data-lineage", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")

@@ -138,6 +138,8 @@ class DemoConf():
         self.init_job = json_conf.get('init_job', {})
         self.job_id = None
         self.run_id = None
+        if path.startswith('/'):
+            path = path[1:]
         self.path = path
         self.name = json_conf['name']
         self.category = json_conf['category']
