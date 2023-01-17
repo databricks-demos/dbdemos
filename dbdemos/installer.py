@@ -193,8 +193,12 @@ class Installer:
         id = dashboard[:dashboard.rfind(".json")]
         dashboard_name = definition['dashboard']['name']
         print(f"     Installing dashboard {dashboard_name} - {id}...")
-        existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
+        from dbsqlclone.utils import dump_dashboard
+        from dbsqlclone.utils.client import Client
+        client = Client(self.db.conf.workspace_url, self.db.conf.pat_token)
+        existing_dashboard = self.get_dashboard_by_name(dashboard_name)
         if existing_dashboard is not None:
+            existing_dashboard = dump_dashboard.get_dashboard_definition_by_id(client, existing_dashboard['id'])
             # If we can't change the ownership, we'll have to create a new dashboard.
             could_change_owner_changed = self.change_dashboard_ownership(existing_dashboard)
             # Can't change ownership, we won't be able to override the dashboard. Create a new one with your name.
@@ -207,7 +211,9 @@ class Installer:
                 #definition['dashboard']['name'] = dashboard_name
                 print(
                     f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
-                existing_dashboard = self.get_dashboard_id_by_name(dashboard_name)
+                existing_dashboard = self.get_dashboard_by_name(dashboard_name)
+                if existing_dashboard is not None:
+                    existing_dashboard = dump_dashboard.get_dashboard_definition_by_id(client, existing_dashboard['id'])
         # Create the folder where to save the queries
         path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
         self.db.post("2.0/workspace/mkdirs", {"path": path})
@@ -229,23 +235,22 @@ class Installer:
             {"group_name": "users", "permission_level": "CAN_EDIT"}
         ])
         try:
-            endpoint_id = self.get_or_create_endpoint()
-            if endpoint_id is None:
+            endpoint = self.get_or_create_endpoint()
+            if endpoint is None:
                 print(
                     "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without endoint (import will pick the first available if any)")
             else:
-                client.data_source_id = endpoint_id
-                clone_dashboard.set_data_source_id_from_endpoint_id(client)
+                client.data_source_id = endpoint['id']
             if existing_dashboard is not None:
-                state = load_dashboard.clone_dashboard_without_saved_state(definition, client, existing_dashboard, parent=f'folders/{parent_folder_id}')
-                return {"id": id, "name": dashboard_name, "installed_id": existing_dashboard}
+                load_dashboard.clone_dashboard_without_saved_state(definition, client, existing_dashboard['id'], parent=f'folders/{parent_folder_id}')
+                return {"id": id, "name": dashboard_name, "installed_id": existing_dashboard['id']}
             else:
                 state = load_dashboard.clone_dashboard(definition, client, parent=f'folders/{parent_folder_id}')
                 return {"id": id, "name": dashboard_name, "installed_id": state["new_id"]}
         except Exception as e:
-            print(f"    ERROR loading dashboard {dashboard_name}, {existing_dashboard} - {str(e)}")
+            print(f"    ERROR loading dashboard {dashboard_name}, {existing_dashboard['id']} - {str(e)}")
             raise e
-            return {"id": id, "name": dashboard_name, "error": str(e), "existing_dashboard": existing_dashboard}
+            return {"id": id, "name": dashboard_name, "error": str(e), "existing_dashboard": existing_dashboard['id']}
 
         """
         # ------- NEW IMPORT/EXPORT API
@@ -286,32 +291,32 @@ class Installer:
     # Try to change ownership to be able to override the dashboard. Only admin can override ownership.
     # Return True if we've been able to change ownership, false otherwise
     def change_dashboard_ownership(self, existing_dashboard):
-        owner = self.db.post(f"2.0/preview/sql/permissions/dashboard/{existing_dashboard}/transfer", {"new_owner": self.db.conf.username})
+        owner = self.db.post(f"2.0/preview/sql/permissions/dashboard/{existing_dashboard['id']}/transfer", {"new_owner": self.db.conf.username})
         if 'error_code' in owner or ('message' in owner and (owner['message'] != 'Success' and not owner['message'].startswith("This object already belongs"))):
-            print(f"       WARN: Couldn't update ownership of dashboard {existing_dashboard} to current user. Will create a new one.")
+            print(f"       WARN: Couldn't update ownership of dashboard {existing_dashboard['id']} to current user. Will create a new one.")
             return False
         # Get existing dashboard definition and change all its query ownership
-        # TODO a revoir
-        existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard}/export")
-        if "message" in existing_dashboard_definition:
-            print(f"WARN: Error getting existing dashboard details - id {existing_dashboard}: {existing_dashboard_definition}. Will create a new one.")
-            return False
-        else:
-            # Try to update all individual query ownership
-            for q in existing_dashboard_definition["queries"]:
-                owner = self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}/transfer", {"new_owner": self.db.conf.username})
-                if 'error_code' in owner:
-                    print(f"       WARN: Couldn't update ownership of query {q['id']} to current user. Will create a new dashboard.")
-                    return False
+        # TODO legacy import/export
+        # existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard_id}/export")
+        # if "message" in existing_dashboard_definition:
+        #     print(f"WARN: Error getting existing dashboard details - id {existing_dashboard['id']}: {existing_dashboard_definition}. Will create a new one.")
+        #    return False
+        # else:
+        # Try to update all individual query ownership
+        for q in existing_dashboard["queries"]:
+            owner = self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}/transfer", {"new_owner": self.db.conf.username})
+            if 'error_code' in owner:
+                print(f"       WARN: Couldn't update ownership of query {q['id']} to current user. Will create a new dashboard.")
+                return False
         return True
 
-    def get_dashboard_id_by_name(self, name):
+    def get_dashboard_by_name(self, name):
         def get_dashboard(page):
             page_size = 250
             ds = self.db.get("2.0/preview/sql/dashboards", params = {"page_size": page_size, "page": page})
             for d in ds['results']:
                 if d['name'] == name and 'moved_to_trash_at' not in d:
-                    return d['id']
+                    return d
             if len(ds["results"]) >= page_size:
                 return get_dashboard(page+1)
             return None
@@ -334,7 +339,7 @@ class Installer:
     def get_or_create_endpoint(self):
         ds = self.get_demo_datasource()
         if ds is not None:
-            return ds["warehouse_id"]
+            return ds
         def get_definition(serverless):
             return {
                 "name": "dbdemos-shared-endpoint",
@@ -578,6 +583,9 @@ class Installer:
             print(f'    Installing pipeline {definition["name"]}')
             if existing_pipeline == None:
                 p = self.db.post("2.0/pipelines", definition)
+                if 'error_code' in p and p['error_code'] == 'FEATURE_DISABLED':
+                    message = f'ERROR: DLT pipelines are not available in this workspace. Only Premium workspaces are supported on Azure - {p}'
+                    raise Exception(message)
                 id = p['pipeline_id']
             else:
                 print("    Updating existing pipeline with last configuration")

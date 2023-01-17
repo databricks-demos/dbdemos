@@ -72,6 +72,8 @@ class DBClient():
             return self.get_json_result(url, r)
 
     def get_json_result(self, url: str, r: Response):
+        if r.status_code == 403:
+            print(f"Unauthorized call. Check your PAT token {r.text}")
         try:
             return r.json()
         except Exception as e:
@@ -186,7 +188,7 @@ class DemoConf():
         return "dbdemos/bundles/"+self.name
 
     def get_minisite_path(self):
-        return self.get_bundle_root_path() + "/minisite"
+        return "dbdemos/minisite/"+self.name
 
 
 class ConfTemplate:
