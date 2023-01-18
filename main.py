@@ -44,9 +44,10 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
 """
 
+    #bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     #bundler.load_bundles_conf()
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
-    bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
+    #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
 
 
@@ -71,7 +72,7 @@ installer = Installer()
 
 
 #dbdemos.list_demos(None)
-#dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("streaming-sessionization", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("uc-03-data-lineage", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
@@ -83,4 +84,5 @@ installer = Installer()
 #dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-unit-test", "/Users/quentin.ambard@databricks.com/test_install", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("uc-01-acl", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
+#dbdemos.install("uc-05-upgrade", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.create_cluster("uc-05-upgrade", c['username'], c['pat_token'], c['url'], c['current_folder'])

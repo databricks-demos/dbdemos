@@ -86,6 +86,7 @@ class Packager:
             #Replace notebook content.
             parser = NotebookParser(html)
             parser.remove_uncomment_tag()
+            parser.remove_static_settings()
             parser.hide_commands_and_results()
             requires_global_setup = False
             if parser.contains("00-global-setup"):

@@ -33,9 +33,9 @@ dbdemos.install('lakehouse-retail-c360', path='./', overwrite = True)
 * Cluster creation permission
 * DLT Pipeline creation permission 
 * DBSQL dashboard & query creation permission
-* DBSQL dashboard Import/Export preview enabled (contact your account team)
 * For UC demos: Unity Catalog metastore must be available (demo will be installed but won't work) 
 
+New with 0.2: dbdemos can import/export dahsboard without the import/export preview (using the dbsqlclone toolkit)
 
 ## Features
 

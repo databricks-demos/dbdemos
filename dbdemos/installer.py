@@ -149,6 +149,12 @@ class Installer:
     def get_resource(self, path):
         return pkg_resources.resource_string("dbdemos", path).decode('UTF-8')
 
+    def test_standard_pricing(self):
+        w = self.db.get("2.0/sq/config/warehouses", {"limit": 1})
+        if "error_code" in w and w["error_code"] == "FEATURE_DISABLED":
+            raise Exception(f"ERROR: DBSQL isn't available in this workspace. Only Premium workspaces are supported - {w}")
+
+
     def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False):
         # first get the demo conf.
         if install_path is None:
@@ -245,7 +251,7 @@ class Installer:
                 load_dashboard.clone_dashboard_without_saved_state(definition, client, existing_dashboard['id'], parent=f'folders/{parent_folder_id}')
                 return {"id": id, "name": dashboard_name, "installed_id": existing_dashboard['id']}
             else:
-                state = load_dashboard.clone_dashboard(definition, client, parent=f'folders/{parent_folder_id}')
+                state = load_dashboard.clone_dashboard(definition, client, {}, parent=f'folders/{parent_folder_id}')
                 return {"id": id, "name": dashboard_name, "installed_id": state["new_id"]}
         except Exception as e:
             print(f"    ERROR loading dashboard {dashboard_name}, {existing_dashboard['id']} - {str(e)}")

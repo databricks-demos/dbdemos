@@ -24,6 +24,10 @@ class NotebookParser:
     def contains(self, str):
         return str in self.content
 
+    def remove_static_settings(self):
+        #Remove the static settings tags are it's too big & unecessary to repeat in each notebook.
+        self.html = re.sub("""<script>\s?window\.__STATIC_SETTINGS__.*</script>""", "", self.html)
+
     def set_tracker_tag(self, org_id, uid, category, demo_name, notebook):
         #Replace internal tags with dbdemos
         if Tracker.enable_tracker:

@@ -127,7 +127,7 @@ class JobBundler:
                                 if len(tasks_with_different_commit) == 0:
                                     execute = False
                                     demo_conf.run_id = run['run_id']
-                                    print("skipping job execution as previous run is already at staging. run with force_execution=true to override this check.")
+                                    print(f"skipping job execution for {demo_conf.name} as previous run is already at staging. run with force_execution=true to override this check.")
                 if execute:
                     run = self.db.post("2.1/jobs/run-now", {"job_id": demo_conf.job_id})
                     demo_conf.run_id = run["run_id"]

@@ -188,6 +188,7 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
         demo_name = "lakehouse-retail-c360"
 
     installer = Installer(username, pat_token, workspace_url, cloud)
+    installer.test_standard_pricing()
     installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards)
 
 
