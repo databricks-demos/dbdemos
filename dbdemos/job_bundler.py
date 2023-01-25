@@ -29,7 +29,7 @@ class JobBundler:
         print("scanning folder for bundles...")
         def find_conf_files(path, list, depth = 0):
             objects = self.db.get("2.0/workspace/list", {"path": path})["objects"]
-            with ThreadPoolExecutor(max_workers=3 if depth <= 2 else 1) as executor:
+            with ThreadPoolExecutor(max_workers=10 if depth <= 2 else 1) as executor:
                 params = [(o['path'], list, depth+1) for o in objects if o['object_type'] == 'DIRECTORY']
                 for r in executor.map(lambda args, f=find_conf_files: f(*args), params):
                     list.update(r)
@@ -38,8 +38,8 @@ class JobBundler:
                         list.add(o['path'])
                 return list
         bundles = find_conf_files(self.conf.get_repo_path(), set())
-        for b in bundles:
-            self.add_bundle_from_config(b)
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            collections.deque(executor.map(self.add_bundle_from_config, bundles))
 
     def add_bundle_from_config(self, bundle_config_paths):
         #Remove the /Repos/xxx from the path (we need it from the repo root)

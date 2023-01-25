@@ -19,11 +19,15 @@ class Packager:
         self.jobBundler = jobBundler
 
     def package_all(self, iframe_root_src = "./"):
-        for _, demo_conf in self.jobBundler.bundles.items():
+        def package_demo(demo_conf):
             self.clean_bundle(demo_conf)
             dashboard_ids = self.package_demo(demo_conf)
             self.extract_dashboards(demo_conf, dashboard_ids)
             self.build_minisite(demo_conf, iframe_root_src)
+
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            confs = [ demo_conf for _, demo_conf in self.jobBundler.bundles.items()]
+            collections.deque(executor.map(package_demo, confs))
 
     def clean_bundle(self, demo_conf: DemoConf):
         if Path(demo_conf.get_bundle_path()).exists():
@@ -86,7 +90,7 @@ class Packager:
             #Replace notebook content.
             parser = NotebookParser(html)
             parser.remove_uncomment_tag()
-            parser.remove_static_settings()
+            #parser.remove_static_settings()
             parser.hide_commands_and_results()
             requires_global_setup = False
             if parser.contains("00-global-setup"):
@@ -97,7 +101,7 @@ class Packager:
             return (requires_global_setup, parser.get_dashboard_ids())
 
         dashboard_ids = []
-        with ThreadPoolExecutor(max_workers=1) as executor:
+        with ThreadPoolExecutor(max_workers=3) as executor:
             requires_global_setup = False
             for r, ids in executor.map(download_notebook_html, demo_conf.notebooks):
                 dashboard_ids += ids
@@ -120,12 +124,18 @@ class Packager:
     def get_html_menu(self, title: str, description: str, notebook_link: str):
         # Add padding for subfolder for better visualization
         padding = title.count("/")*20
+        i = title.rfind("/")
+        if i > 0:
+            folder = title[:i+1]
+            title = title[i+1:]
+        else:
+            folder = ""
         return f"""
                 <a href="#" class="_left_menu list-group-item list-group-item-action py-3 lh-sm" iframe-src="{notebook_link}">
                     <div class="d-flex w-100 align-items-center justify-content-between">
-                        <strong class="mb-1">{title}</strong>
+                        <span class="notebook_path">{folder}<strong class="mb-1">{title}</strong></span>
                     </div>
-                    <div class="small" style="padding-left: {padding}px;">{description}</div>
+                    <div class="small notebook_description" style="padding-left: {padding}px;">{description}</div>
                 </a>"""
 
     #Build HTML pages with index.

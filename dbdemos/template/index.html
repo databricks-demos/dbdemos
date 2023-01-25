@@ -12,6 +12,16 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
     <style>
+        .list-group-item {
+            padding-top: 4px !important;
+            padding-bottom: 4px !important;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+       .notebook_path{
+          font-size: 15px;
+       }
 
       .b-example-divider {
         height: 3rem;
@@ -32,6 +42,13 @@
         fill: currentColor;
       }
 
+      .notebook_description{
+        color: #778490;
+      }
+
+      .active .notebook_description {
+        color: #fff;
+      }
     </style>
 
 
@@ -39,15 +56,16 @@
     <link href="sidebars.css" rel="stylesheet">
 </head>
 <body>
-
+<!--
 <div style="height: 8vh;" class="border-bottom">
     <a style="float: left" href="https://databricks.com" class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none">
         <img src="https://databricks-prod-cloudfront.cloud.databricks.com/static/ddd080df888c63d3c68438635badd32f0c91e40f31fe8fa2ed73da63df3598e3/js/../media/databricks.a424ad6e.svg" alt="databricks-logo" style="width: 200px">
     </a>
     <h1 style="font-size: 30px; text-align: center; padding-top: 20px">{{TITLE}}</h1>
 </div>
+-->
 <main class="d-flex flex-nowrap">
-    <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white" style="width: 350px;">
+    <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white" style="width: 350px; overflow: auto; height: 91.4vh;">
         <div class="list-group list-group-flush border-bottom scrollarea">
             {{LEFT_MENU}}
         </div>

@@ -55,6 +55,10 @@ CSS_LIST = """
 .dbdemo_tag.dbdemo_uc {
     background-color: #3664ff;
 }
+
+.dbdemo_tag.dbdemo_delta-sharing {
+    background-color: #3664ff;
+}
 .dbdemo_tag.dbdemo_dlt {
     background-color: #f58742;
 }
@@ -102,9 +106,10 @@ def help():
                   <div class="code">dbdemos.list_demos(category: str = None)</div>: list all demos available, can filter per category (ex: 'governance').<br/><br/>
                 </li>
                 <li>
-                  <div class="code">dbdemos.install_demo(demo_name: str, path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None)</div>: install the given demo to the given path.<br/><br/>
+                  <div class="code">dbdemos.install_demo(demo_name: str, path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS")</div>: install the given demo to the given path.<br/><br/>
                   If overwrite is True, will delete the given folder and re-install the notebooks.<br/>
-                  If no authentication are provided, will use the current user credential & workspace to install the demo.<br/><br/>
+                  skip_dashboards = True will not load the DBSQL dashboard if any (faster, use it if the dashboard generation creates some issue).<br/>                  
+                  If no authentication are provided, will use the current user credential & workspace + cloud to install the demo.<br/><br/>
                 </li>
                 <li>
                   <div class="code">dbdemos.create_cluster(demo_name: str)</div>: install update the interactive cluster for the demo (scoped to the user).<br/><br/>
@@ -115,7 +120,7 @@ def help():
         print("------------ DBDemos ------------------")
         print("""dbdemos.help(): display help.""")
         print("""dbdemos.list_demos(category: str = None): list all demos available, can filter per category (ex: 'governance').""")
-        print("""dbdemos.install_demo(demo_name: str, path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None): install the given demo to the given path.""")
+        print("""dbdemos.install_demo(demo_name: str, path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS"): install the given demo to the given path.""")
         print("""dbdemos.create_cluster(demo_name: str): install update the interactive cluster for the demo (scoped to the user).""")
 
 def list_demos(category = None):
@@ -124,6 +129,7 @@ def list_demos(category = None):
     demos = defaultdict(lambda: [])
     #Define category order
     demos["retail"] = []
+    demos["manufacturing"] = []
     for demo in installer.get_demos_available():
         conf = installer.get_demo_conf(demo)
         if category is None or conf.category == category.lower():
