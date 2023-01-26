@@ -254,7 +254,7 @@ class Installer:
                 state = load_dashboard.clone_dashboard(definition, client, {}, parent=f'folders/{parent_folder_id}')
                 return {"id": id, "name": dashboard_name, "installed_id": state["new_id"]}
         except Exception as e:
-            print(f"    ERROR loading dashboard {dashboard_name}, {existing_dashboard} - {str(e)}")
+            print(f"    ERROR loading dashboard {dashboard_name} - {str(e)}")
             raise e
             return {"id": id, "name": dashboard_name, "error": str(e), "existing_dashboard": existing_dashboard['id']}
 
