@@ -48,7 +48,8 @@ def bundle():
     #bundler.load_bundles_conf()
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    bundler.add_bundle("product_demos/DBT")
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
@@ -72,7 +73,7 @@ installer = Installer()
 
 
 #dbdemos.list_demos(None)
-dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+dbdemos.install("dbt-on-databricks", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")#dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("lakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("streaming-sessionization", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("uc-03-data-lineage", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")

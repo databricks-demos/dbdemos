@@ -6,6 +6,7 @@ from dbdemos.packager import Packager
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .tracker import Tracker
 from .notebook_parser import NotebookParser
+from .installer_workflows import InstallerWorkflow
 from pathlib import Path
 import time
 import json
@@ -48,6 +49,8 @@ class Installer:
         conf = Conf(username, workspace_url, pat_token)
         self.tracker = Tracker(self.get_org_id(), self.get_uid())
         self.db = DBClient(conf)
+        self.installerWorkflow = InstallerWorkflow(self)
+
 
     def displayHTML_available(self):
         try:
@@ -174,12 +177,13 @@ class Installer:
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf)
         dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path)
         notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, overwrite)
-        job_id, run_id = self.start_demo_init_job(demo_conf)
+        workflows = self.installerWorkflow.install_workflows(demo_conf)
+        job_id, run_id = self.installerWorkflow.start_demo_init_job(demo_conf)
         for pipeline in pipeline_ids:
             if pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
 
-        self.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipeline_ids, dashboards)
+        self.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
 
     def install_dashboards(self, demo_conf: DemoConf, install_path):
         if "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
@@ -368,13 +372,13 @@ class Installer:
             return w["id"]
         return None
 
-    def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = []):
+    def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
         if self.displayHTML_available():
-            self.display_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards)
+            self.display_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows)
         else:
-            self.display_install_result_console(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards)
+            self.display_install_result_console(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows)
 
-    def display_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = []):
+    def display_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
         html = f"""{CSS_REPORT}
         <div class="dbdemos_install">
             <img style="float:right; width: 100px; padding: 20px" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/{demo_name}.png" />
@@ -416,7 +420,14 @@ class Installer:
                     html += f"""<li>ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}</li>"""
                 else:
                     html += f"""<li><a href="{self.db.conf.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a></li>"""
-
+            html +="</ul>"
+        if len(workflows) > 0:
+            html += f"""<h2>Workflows</h2><ul>"""
+            for w in workflows:
+                if w['run_id'] is not None:
+                    html += f"""We created and started a <a href="{self.db.conf.workspace_url}/#job/{w['job_id']}/run/{w['run_id']}">workflow</a> as part of your demo !"""
+                else:
+                    html += f"""We created a <a href="{self.db.conf.workspace_url}/#job/{w['job_id']}">workflow</a> as part of your demo !"""
             html +="</ul>"
         if job_id is not None:
             html += f"""<h2>Initialization job started</h2>
@@ -426,7 +437,7 @@ class Installer:
         from dbruntime.display import displayHTML
         displayHTML(html)
 
-    def display_install_result_console(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = []):
+    def display_install_result_console(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
         if len(notebooks) > 0:
             print("----------------------------------------------------")
             print("-------------- Notebook installed: -----------------")
@@ -460,6 +471,14 @@ class Installer:
                     print(f"    - ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}")
                 else:
                     print(f"    - {d['name']}: {self.db.conf.workspace_url}/sql/dashboards/{d['installed_id']}")
+        if len(workflows) > 0:
+            print("----------------------------------------------------")
+            print("-------------------- Workflows: --------------------")
+            for w in workflows:
+                if w['run_id'] is not None:
+                    print(f"""We created and started a workflow as part of your demo: {self.db.conf.workspace_url}/#job/{w['job_id']}/run/{w['run_id']}""")
+                else:
+                    print(f"""We created a workflow as part of your demo: {self.db.conf.workspace_url}/#job/{w['job_id']}""")
         print("----------------------------------------------------")
         print(f"Your demo {title} is ready! ")
         if len(notebooks) > 0:
@@ -533,48 +552,6 @@ class Installer:
         with ThreadPoolExecutor(max_workers=3) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
 
-
-    #Start the init job if it exists
-    def start_demo_init_job(self, demo_conf: DemoConf):
-        if "settings" in demo_conf.init_job:
-            print(f"    Searching for existing demo initialisation job {demo_conf.init_job['settings']['name']}")
-            #We have an init jon
-            job_name = demo_conf.init_job["settings"]["name"]
-            #add cloud specific setup
-            cloud = self.get_current_cloud()
-            cluster_conf_cloud = json.loads(self.get_resource(f"resources/default_cluster_config-{cloud}.json"))
-            for cluster in demo_conf.init_job["settings"]["job_clusters"]:
-                if "new_cluster" in cluster:
-                    merge_dict(cluster["new_cluster"], cluster_conf_cloud)
-            existing_job = self.db.find_job(job_name)
-            if existing_job is not None:
-                job_id = existing_job["job_id"]
-                self.db.post("/2.1/jobs/runs/cancel-all", {"job_id": job_id})
-                self.wait_for_run_completion(job_id)
-                print("    Updating existing job")
-                r = self.db.post("2.1/jobs/reset", {"job_id": job_id, "new_settings": demo_conf.init_job["settings"]})
-                if "error_code" in r:
-                    raise Exception(f'ERROR setting up init job, do you have permission? please check job definition {r}, {demo_conf.init_job["settings"]}')
-            else:
-                print("    Creating a new job for demo initialization (data & table setup).")
-                r_jobs = self.db.post("2.1/jobs/create", demo_conf.init_job["settings"])
-                if "error_code" in r_jobs:
-                    raise Exception(f'error setting up job, please check job definition {r_jobs}, {demo_conf.init_job["settings"]}')
-                job_id = r_jobs["job_id"]
-            j = self.db.post("2.1/jobs/run-now", {"job_id": job_id})
-            print(f"    Demo data initialization job started: {self.db.conf.workspace_url}/#job/{job_id}/run/{j['run_id']}")
-            return job_id, j['run_id']
-        return None, None
-
-
-    def wait_for_run_completion(self, job_id, max_retry=10):
-        def is_still_running(job_id):
-            runs = self.db.get("2.1/jobs/runs/list", {"job_id": job_id, "active_only": "true"})
-            return "runs" in runs and len(runs["runs"]) > 0
-        i = 0
-        while i <= max_retry and is_still_running(job_id):
-            print(f"      A run is still running for job {job_id}, waiting for termination...")
-            time.sleep(5)
 
     def load_demo_pipelines(self, demo_name, demo_conf: DemoConf):
         #default cluster conf

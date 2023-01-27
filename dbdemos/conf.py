@@ -136,6 +136,7 @@ class DemoConf():
         self.json_conf = json_conf
         self.notebooks = []
         self.cluster = json_conf.get('cluster', {})
+        self.workflows = json_conf.get('workflows', [])
         self.pipelines = json_conf.get('pipelines', [])
         self.init_job = json_conf.get('init_job', {})
         self.job_id = None
