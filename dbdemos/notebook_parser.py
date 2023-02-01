@@ -75,6 +75,21 @@ class NotebookParser:
                     c['results']['data'][0]['data'] = 'Please run the notebook cells to get your AutoML links (from the begining)'
         self.content = json.dumps(content)
 
+
+    def add_ga_website_tracker(self):
+        if Tracker.enable_tracker:
+            tracker = f"""
+            <head>
+            <script async src="https://www.googletagmanager.com/gtag/js?id={Tracker.website_tracker_id}"></script>
+                <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){{dataLayer.push(arguments);}}
+                gtag('js', new Date());
+            
+                gtag('config', '{Tracker.website_tracker_id}');
+            </script>"""
+        self.html = re.sub("""<head>""", tracker, self.html)
+
     def hide_commands_and_results(self):
         content = json.loads(self.content)
         for c in content["commands"]:

@@ -92,6 +92,7 @@ class Packager:
             parser.remove_uncomment_tag()
             #parser.remove_static_settings()
             parser.hide_commands_and_results()
+            parser.add_ga_website_tracker()
             requires_global_setup = False
             if parser.contains("00-global-setup"):
                 parser.replace_in_notebook('(?:\.\.\/)*_resources\/00-global-setup(?:-bundle)?', './00-global-setup-bundle', True)
