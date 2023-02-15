@@ -44,6 +44,37 @@ class NotebookParser:
     def remove_uncomment_tag(self):
         self.replace_in_notebook('[#-]{1,2}\s*UNCOMMENT_FOR_DEMO ?', '', True)
 
+    def remove_robots_meta(self):
+        #Drop the noindex tag
+        self.html = self.html.replace('<meta name="robots" content="nofollow, noindex">', '')
+
+    def add_cell_as_html_for_seo(self):
+        #Add div as hidden HTML for SEO to capture the main information in the page.
+        def md_to_html(text):
+            if text.startswith('%md-sandbox'):
+                text = text[len('%md-sandbox'):]
+            if text.startswith('%md'):
+                text = text[len('%md'):]
+            #quick translation to html for seo
+            for i in reversed(range(1,6)):
+                tag = "#"*i
+                text = re.sub(rf'\s*{tag}\s*(.*)', rf'<h{i}>\1</h{i}>', text)
+            text = text.replace('\n', '<br/>')
+            return text
+        #Drop the noindex tag
+        content = json.loads(self.content)
+        html = ""
+        for c in content["commands"]:
+            if c['command'].startswith('%md'):
+                html += '<div>'+md_to_html(c['command'])+'</div>'
+        if len(html) > 0:
+            self.html = self.html.replace('<body>', f'''<body><div id='no_js_render' style='display: none'>{html}</div>''')
+            self.html = self.html.replace('<script>', "<script>window.addEventListener('load', function(event) { "
+                                                        "if (/bot|google|baidu|bing|msn|teoma|slurp|yandex/i.test(navigator.userAgent)) {"
+                                                            "document.getElementById('no_js_render').style.display = 'block';"
+                                                        "};"
+                                                      "});", 1)
+
     def replace_in_notebook(self, old, new, regex = False):
         if regex:
             self.content = re.sub(old, new, self.content)
@@ -70,9 +101,11 @@ class NotebookParser:
     def remove_automl_result_links(self):
         content = json.loads(self.content)
         for c in content["commands"]:
-            if re.search('display_[a-zA-Z]*_churn_link', c["command"]):
-                if 'results' in c and 'data' in c['results'] and len(c['results']['data']) > 0 and 'data' in c['results']['data'][0]:
-                    c['results']['data'][0]['data'] = 'Please run the notebook cells to get your AutoML links (from the begining)'
+            if re.search('display_automl_[a-zA-Z]*_link', c["command"]):
+                if 'results' in c and c['results'] is not None and 'data' in c['results'] and c['results']['data'] is not None and len(c['results']['data']) > 0:
+                    contains_exp_link = len([d for d in c['results']['data'] if 'Data exploration notebook' in d['data']]) > 0
+                    if contains_exp_link:
+                        c['results']['data'] = [{'type': 'ansi', 'data': 'Please run the notebook cells to get your AutoML links (from the begining)', 'name': None, 'arguments': {}, 'addedWidgets': {}, 'removedWidgets': [], 'datasetInfos': [], 'metadata': {}}]
         self.content = json.dumps(content)
 
 

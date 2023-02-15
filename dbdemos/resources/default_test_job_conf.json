@@ -20,10 +20,7 @@
         "spark_conf": {
           "spark.databricks.dataLineage.enabled": "true"
         },
-        "aws_attributes": {
-          "instance_profile_arn": "arn:aws:iam::997819012307:instance-profile/one-env-databricks-access"
-        },
-        "instance_pool_id": "0727-104344-hauls13-pool-uftxk0r6",
+        "instance_pool_id": "0213-111033-rowed79-pool-zb80houq",
         "data_security_mode": "NONE",
         "runtime_engine": "STANDARD",
         "num_workers": 1

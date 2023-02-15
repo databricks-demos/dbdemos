@@ -36,7 +36,7 @@ display: inline;
 </style>"""
 
 class Installer:
-    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS"):
+    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS", org_id: str = None):
         self.cloud = cloud
         self.dbutils = None
         if username is None:
@@ -45,8 +45,10 @@ class Installer:
             workspace_url = self.get_current_url()
         if pat_token is None:
             pat_token = self.get_current_pat_token()
-        conf = Conf(username, workspace_url, pat_token)
-        self.tracker = Tracker(self.get_org_id(), self.get_uid())
+        if org_id is None:
+            org_id = self.get_org_id()
+        conf = Conf(username, workspace_url, org_id, pat_token)
+        self.tracker = Tracker(org_id, self.get_uid())
         self.db = DBClient(conf)
 
     def displayHTML_available(self):
@@ -155,7 +157,7 @@ class Installer:
             raise Exception(f"ERROR: DBSQL isn't available in this workspace. Only Premium workspaces are supported - {w}")
 
 
-    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False):
+    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -170,7 +172,7 @@ class Installer:
         demo_conf = self.get_demo_conf(demo_name, install_path+"/"+demo_name)
         self.tracker.track_install(demo_conf.category, demo_name)
         self.get_current_username()
-        cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists)
+        cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists, start_cluster)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf)
         dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path)
         notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, overwrite)
@@ -241,7 +243,7 @@ class Installer:
             {"group_name": "users", "permission_level": "CAN_EDIT"}
         ])
         try:
-            endpoint = self.get_or_create_endpoint()
+            endpoint = self.get_or_create_endpoint(self.db.conf.name)
             if endpoint is None:
                 print(
                     "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without endoint (import will pick the first available if any)")
@@ -342,13 +344,13 @@ class Installer:
                 return source
         return None
 
-    def get_or_create_endpoint(self):
+    def get_or_create_endpoint(self, username, endpoint_name = "dbdemos-shared-endpoint"):
         ds = self.get_demo_datasource()
         if ds is not None:
             return ds
-        def get_definition(serverless):
+        def get_definition(serverless, name):
             return {
-                "name": "dbdemos-shared-endpoint",
+                "name": name,
                 "cluster_size": "Small",
                 "min_num_clusters": 1,
                 "max_num_clusters": 1,
@@ -360,12 +362,21 @@ class Installer:
                 "enable_serverless_compute": serverless,
                 "channel": { "name": "CHANNEL_NAME_CURRENT" }
             }
-        w = self.db.post("2.0/sql/warehouses", json=get_definition(True))
-        if "id" in w:
-            return w["id"]
-        w = self.db.post("2.0/sql/warehouses", json=get_definition(False))
-        if "id" in w:
-            return w["id"]
+        def try_create_endpoint(serverless):
+            w = self.db.post("2.0/sql/warehouses", json=get_definition(serverless, endpoint_name))
+            if "message" in w and "already exists" in w['message']:
+                w = self.db.post("2.0/sql/warehouses", json=get_definition(serverless, endpoint_name+"-"+username))
+            if "id" in w:
+                return w["id"]
+            return None
+
+        endpoint = try_create_endpoint(True)
+        if endpoint is None:
+            #Try to fallback with classic endpoint?
+            endpoint = try_create_endpoint(False)
+        if "id" in endpoint:
+            return endpoint["id"]
+        print(f"Couldn't create endpoint. Creation response: {w}")
         return None
 
     def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = []):
@@ -546,6 +557,14 @@ class Installer:
             for cluster in demo_conf.init_job["settings"]["job_clusters"]:
                 if "new_cluster" in cluster:
                     merge_dict(cluster["new_cluster"], cluster_conf_cloud)
+                    #Let's make sure we add our dev pool for faster startup
+                    if self.db.conf.is_dev_env():
+                        cluster["new_cluster"]["instance_pool_id"] = "0213-111033-rowed79-pool-zb80houq"
+                        del cluster["new_cluster"]["node_type_id"]
+                        del cluster["new_cluster"]["enable_elastic_disk"]
+                        del cluster["new_cluster"]["aws_attributes"]
+
+
             existing_job = self.db.find_job(job_name)
             if existing_job is not None:
                 job_id = existing_job["job_id"]
@@ -602,7 +621,11 @@ class Installer:
             demo_conf.set_pipeline_id(pipeline["id"], id)
         return pipeline_ids
 
-    def load_demo_cluster(self, demo_name, demo_conf: DemoConf, update_cluster_if_exists):
+    def load_demo_cluster(self, demo_name, demo_conf: DemoConf, update_cluster_if_exists, start_cluster = True):
+        #Do not start clusters by default in Databricks FE clusters to avoid costs as we have shared clusters for demos
+        if start_cluster is None:
+            start_cluster = not (self.db.conf.is_dev_env() or self.db.conf.is_fe_env())
+
         #default cluster conf
         conf_template = ConfTemplate(self.db.conf.username, demo_name)
         cluster_conf = self.get_resource("resources/default_cluster_config.json")
@@ -620,7 +643,7 @@ class Installer:
         existing_cluster = self.find_cluster(cluster_conf["cluster_name"])
         if existing_cluster == None:
             cluster = self.db.post("2.0/clusters/create", json = cluster_conf)
-            if "cluster_id" not  in cluster:
+            if "cluster_id" not in cluster:
                 print(f"    WARN: couldn't create the cluster for the demo: {cluster}")
                 return "CLUSTER_CREATION_ERROR", "CLUSTER_CREATION_ERROR"
             else:
@@ -643,7 +666,8 @@ class Installer:
                     if cluster["state"] != "TERMINATED":
                         print(f"    WARNING: Couldn't stop the demo cluster properly. Unknown state. Please stop your cluster {cluster_conf['cluster_name']} before.")
                     self.db.post("2.0/clusters/edit", json = cluster_conf)
-            self.db.post("2.0/clusters/start", json = cluster_conf)
+            if start_cluster:
+                self.db.post("2.0/clusters/start", json = cluster_conf)
         return cluster_conf['cluster_id'], cluster_conf['cluster_name']
 
     #return the cluster with the given name or none

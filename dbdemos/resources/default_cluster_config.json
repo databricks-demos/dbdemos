@@ -3,7 +3,7 @@
     "min_workers": 2,
     "max_workers": 4
   },
-  "cluster_name": "demo-{{DEMO_NAME}}-{{CURRENT_USER_NAME}}",
+  "cluster_name": "dbdemos-{{DEMO_NAME}}-{{CURRENT_USER_NAME}}",
   "spark_version": "11.3.x-cpu-ml-scala2.12",
   "spark_conf": {
     "spark.databricks.dataLineage.enabled": "true"
