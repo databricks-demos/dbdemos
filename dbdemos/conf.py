@@ -22,10 +22,13 @@ def merge_dict(a, b, path=None):
             a[key] = b[key]
 
 class Conf():
-    def __init__(self, username: str, workspace_url: str, pat_token: str, default_cluster_template: str = None, default_cluster_job_template = None,
+    def __init__(self, username: str, workspace_url: str, org_id: str, pat_token: str, default_cluster_template: str = None, default_cluster_job_template = None,
                  repo_staging_path: str = None, repo_name: str = None, repo_url: str = None, branch: str = "master"):
         self.username = username
+        name = self.username[:self.username.rfind('@')]
+        self.name = re.sub("[^A-Za-z0-9]", '_', name)
         self.workspace_url = workspace_url
+        self.org_id = org_id
         self.pat_token = pat_token
         self.headers = {"Authorization": "Bearer " + pat_token, 'Content-type': 'application/json', 'User-Agent': 'dbdemos'}
         self.default_cluster_template = default_cluster_template
@@ -37,6 +40,13 @@ class Conf():
 
     def get_repo_path(self):
         return self.repo_staging_path+"/"+self.repo_name
+
+    def is_dev_env(self):
+        return "e2-demo-tools" in self.workspace_url
+
+    def is_fe_env(self):
+        return "e2-demo-field-eng" in self.workspace_url or "eastus2" in self.workspace_url or \
+                self.org_id in ["5206439413157315", "984752964297111", "local", "1444828305810485", "2556758628403379"]
 
 class DBClient():
     def __init__(self, conf: Conf):
@@ -66,9 +76,14 @@ class DBClient():
         with requests.patch(url, headers = self.conf.headers, json=json) as r:
             return self.get_json_result(url, r)
 
-    def get(self, path: str, params: dict= {}):
+    def get(self, path: str, params: dict = {}):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
         with requests.get(url, headers = self.conf.headers, params=params) as r:
+            return self.get_json_result(url, r)
+
+    def delete(self, path: str, params: dict = {}):
+        url = self.conf.workspace_url+"/api/"+self.clean_path(path)
+        with requests.delete(url, headers = self.conf.headers, params=params) as r:
             return self.get_json_result(url, r)
 
     def get_json_result(self, url: str, r: Response):

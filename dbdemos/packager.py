@@ -30,8 +30,8 @@ class Packager:
             collections.deque(executor.map(package_demo, confs))
 
     def clean_bundle(self, demo_conf: DemoConf):
-        if Path(demo_conf.get_bundle_path()).exists():
-            shutil.rmtree(demo_conf.get_bundle_path())
+        if Path(demo_conf.get_bundle_root_path()).exists():
+            shutil.rmtree(demo_conf.get_bundle_root_path())
 
     def extract_dashboards(self, demo_conf: DemoConf, dashboard_ids):
         def cleanup_names_import_bug(dashboard):
@@ -92,9 +92,10 @@ class Packager:
             parser.remove_uncomment_tag()
             #parser.remove_static_settings()
             parser.hide_commands_and_results()
+            parser.add_ga_website_tracker()
             requires_global_setup = False
             if parser.contains("00-global-setup"):
-                parser.replace_in_notebook('(?:\.\.\/)*_resources\/00-global-setup(?:-bundle)?', './00-global-setup-bundle', True)
+                parser.replace_in_notebook('(?:\.\.\/)*_resources\/00-global-setup', './00-global-setup', True)
                 requires_global_setup = True
             with open(full_path, "w") as f:
                 f.write(parser.get_html())
@@ -111,7 +112,7 @@ class Packager:
             #Add the global notebook if required
             # TODO: not ideal, it's a bit messy need to re-think that
             if requires_global_setup:
-                init_notebook = DemoNotebook("_resources/00-global-setup-bundle", "Global init", "Global init")
+                init_notebook = DemoNotebook("_resources/00-global-setup", "Global init", "Global init")
                 demo_conf.add_notebook(init_notebook)
                 file = self.db.get("2.0/workspace/export", {"path": self.jobBundler.conf.get_repo_path() +"/"+ init_notebook.path, "format": "HTML", "direct_download": False})
                 if 'error_code' in file:
@@ -150,7 +151,12 @@ class Packager:
             Path(minisite_path).mkdir(parents=True, exist_ok=True)
             full_path = minisite_path+"/"+notebook.get_clean_path()+".html"
             Path(full_path[:full_path.rindex("/")]).mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(demo_conf.get_bundle_path()+"/"+notebook.get_clean_path()+".html", full_path)
+            with open(demo_conf.get_bundle_path()+"/"+notebook.get_clean_path()+".html", "r") as f:
+                parser = NotebookParser(f.read())
+            with open(full_path, "w") as f:
+                parser.remove_robots_meta()
+                parser.add_cell_as_html_for_seo()
+                f.write(parser.get_html())
             html_menu[notebook.get_clean_path()] = self.get_html_menu(notebook.get_clean_path(), notebook.description, iframe_root_src+notebook.get_clean_path()+".html")
 
         #create the index file

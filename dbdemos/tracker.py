@@ -4,6 +4,7 @@ import urllib.parse
 class Tracker:
     #Set this value to false to disable dbdemo toolkit tracker.
     enable_tracker = True
+    website_tracker_id = "G-6YMJB8VLT3"
     TID = "UA-163989034-1"
     GTM = "GTM-NKQ8TT7"
     URL = "https://www.google-analytics.com/collect"
@@ -37,7 +38,9 @@ class Tracker:
 
 
     def track(self, category,  demo_name, event):
-        if Tracker.enable_tracker:
+        if self.org_id == "1660015457675682":
+            print("skipping tracker for test / dev")
+        elif Tracker.enable_tracker:
             headers = {"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                         "accept-encoding": "gzip, deflate, br",
                         "accept-language": "en-US,en;q=0.9",

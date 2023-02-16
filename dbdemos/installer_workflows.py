@@ -43,6 +43,12 @@ class InstallerWorkflow:
         for cluster in definition["settings"]["job_clusters"]:
             if "new_cluster" in cluster:
                 merge_dict(cluster["new_cluster"], cluster_conf)
+                #Let's make sure we add our dev pool for faster startup
+                if self.db.conf.is_dev_env():
+                    cluster["new_cluster"]["instance_pool_id"] = "0213-111033-rowed79-pool-zb80houq"
+                    del cluster["new_cluster"]["node_type_id"]
+                    del cluster["new_cluster"]["enable_elastic_disk"]
+                    del cluster["new_cluster"]["aws_attributes"]
         existing_job = self.installer.db.find_job(job_name)
         if existing_job is not None:
             job_id = existing_job["job_id"]

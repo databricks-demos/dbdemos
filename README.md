@@ -7,6 +7,8 @@ Simply deploy & share demos on any workspace. dbdemos is packaged with a list of
 - Lakehouse, end-to-end demos (ex: Lakehouse Retail Churn)
 - Product demos (ex: Delta Live Table, CDC, ML, DBSQL Dashboard, MLOps...)
 
+**Please visit [dbdemos.ai](https://www.dbdemos.ai) to explore all our demos.**
+
 ## Installation 
 **Do not clone the repo, just pip install dbdemos wheel:**
 

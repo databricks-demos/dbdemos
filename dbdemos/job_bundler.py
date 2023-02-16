@@ -38,7 +38,7 @@ class JobBundler:
                         list.add(o['path'])
                 return list
         bundles = find_conf_files(self.conf.get_repo_path(), set())
-        with ThreadPoolExecutor(max_workers=3) as executor:
+        with ThreadPoolExecutor(max_workers=5) as executor:
             collections.deque(executor.map(self.add_bundle_from_config, bundles))
 
     def add_bundle_from_config(self, bundle_config_paths):
@@ -57,7 +57,7 @@ class JobBundler:
         file = self.db.get("2.0/workspace/export", {"path": config_path, "format": "SOURCE", "direct_download": False})
         if "content" not in file:
             raise Exception(f"Couldn't download bundle file: {config_path}. Check your bundle path if you added it manualy.")
-        content = base64.b64decode(file['content']).decode('ascii')
+        content = base64.b64decode(file['content']).decode('utf8')
         #TODO not great, we can't download a file so need to use a notebook. We could use eval() to eval the cell but it's not super safe.
         #Need to wait for file support via api (Q3)
         lines = [l for l in content.split('\n') if not l.startswith("#") and len(l) > 0]
