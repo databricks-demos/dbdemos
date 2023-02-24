@@ -154,14 +154,14 @@ class NotebookParser:
             self.content = json.dumps(content)
 
     def replace_dynamic_links(self, items, name, link_path):
-        matches = re.finditer(rf'<a\s*dbdemos-{name}-id=\\?"(?P<item_id>.*?)\\?"\s*href=\\?".*?\/{link_path}\/(?P<item_uid>[a-z0-9_-]*).*?>', self.content)
+        matches = re.finditer(rf'<a\s*dbdemos-{name}-id=\\?"(?P<item_id>.*?)\\?"\s*href=\\?".*?\/?{link_path}\/(?P<item_uid>[a-zA-Z0-9_-]*).*?>', self.content)
         for match in matches:
             item_id = match.groupdict()["item_id"]
             installed = False
             for i in items:
                 if i["id"] == item_id:
                     installed = True
-                    self.content = self.content.replace(match.groupdict()["item_id"], i['uid'])
+                    self.content = self.content.replace(match.groupdict()["item_uid"], str(i['uid']))
             if not installed:
                 print(f'''ERROR: couldn't find {name} with dbdemos-{name}-id={item_id}''')
 
@@ -170,16 +170,19 @@ class NotebookParser:
         """
         Replace the links in the notebook with the workflow installed if any
         """
-        self.replace_dynamic_links(workflows, "workflow", "job")
+        self.replace_dynamic_links(workflows, "workflow", "#job")
 
     def replace_dynamic_links_repo(self, repos):
+        for r in repos:
+            if r["uid"].startswith("/"):
+                r["uid"] = r["uid"][1:]
         """
         Replace the links in the notebook with the repos installed if any
         """
-        self.replace_dynamic_links(repos, "repo", "workspace")
+        self.replace_dynamic_links(repos, "repo", "#workspace")
 
     def replace_dynamic_links_pipeline(self, pipelines_id):
         """
         Replace the links in the notebook with the DLT pipeline installed if any
         """
-        self.replace_dynamic_links(pipelines_id, "pipeline", "pipelines")
+        self.replace_dynamic_links(pipelines_id, "pipeline", "#joblist/pipelines")

@@ -17,7 +17,7 @@ class InstallerRepo:
                 repo_id = self.update_or_create_repo(repo)
                 #returns the path as id as that's what we'll change in the URL (#/workspace/<the/repo/path>/README.md)
                 # see notebook_parser.replace_dynamic_links_repo for more details.
-                repos.append({"uid": repo_id, "id": repo['path'], "repo_id": repo_id})
+                repos.append({"uid": repo['path'], "id": repo['id'], "repo_id": repo_id})
         return repos
 
     def get_repos(self, path_prefix):
@@ -29,14 +29,11 @@ class InstallerRepo:
         repo_path = repo['path']
         folder = repo_path[:repo_path.rfind('/')]
         r = self.get_repos(repo_path)
-        print(repo)
-        print(r)
         #No repo, clone it
         if 'repos' not in r:
             if repo_path.endswith('/'):
                 repo_path = repo_path[:-1]
             f = self.installer.db.post("/2.0/workspace/mkdirs", json = { "path": folder})
-            print(f)
             data = {
                 "url": repo['url'],
                 "branch": repo['branch'],
@@ -44,14 +41,11 @@ class InstallerRepo:
                 "path": repo_path
             }
             r = self.db.post("/2.0/repos", data)
-            print("folder created")
-            print(r)
             if 'error_code' in r:
                 error = f"ERROR - Could not clone the repo {repo['url']} under {repo_path}: {r}"
                 raise Exception(error)
             r = self.get_repos(repo['url'])
             return r['id']
-        print(r)
         repo_id = r['repos'][0]["id"]
         r = self.db.patch(f"/2.0/repos/{repo_id}", {"branch": repo["branch"]})
         if 'error_code' in r and r['error_code'] == 'GIT_CONFLICT':

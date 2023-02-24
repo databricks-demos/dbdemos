@@ -231,7 +231,9 @@ class Installer:
                     existing_dashboard = dump_dashboard.get_dashboard_definition_by_id(client, existing_dashboard['id'])
         # Create the folder where to save the queries
         path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
-        self.db.post("2.0/workspace/mkdirs", {"path": path})
+        f = self.db.post("2.0/workspace/mkdirs", {"path": path})
+        if "error_code" in f:
+            raise Exception(f"ERROR - wrong install path, can't save dashboard here: {f}")
         folders = self.db.get("2.0/workspace/list", {"path": Path(path).parent.absolute()})
         if "error_code" in folders:
             raise Exception(f"ERROR - wrong install path, can't save dashboard here: {folders}")

@@ -40,8 +40,6 @@ class InstallerWorkflow:
         cluster_conf = json.loads(conf_template.replace_template_key(cluster_conf))
         cluster_conf_cloud = json.loads(self.installer.get_resource(f"resources/default_cluster_config-{cloud}.json"))
         merge_dict(cluster_conf, cluster_conf_cloud)
-        print(demo_name)
-        print(definition)
         for cluster in definition["settings"]["job_clusters"]:
             if "new_cluster" in cluster:
                 merge_dict(cluster["new_cluster"], cluster_conf)
