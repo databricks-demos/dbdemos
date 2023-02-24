@@ -153,14 +153,33 @@ class NotebookParser:
                             c["command"] = c["command"].replace(d['id'], d["installed_id"])
             self.content = json.dumps(content)
 
-    def replace_dynamic_links_pipeline(self, pipelines_id):
-        matches = re.finditer(r'<a\s*dbdemos-pipeline-id=\\?"(?P<dlt_id>.*?)\\?"\s*href=\\?".*?\/pipelines\/(?P<dlt_uid>[a-z0-9-]*).*?>', self.content)
+    def replace_dynamic_links(self, items, name, link_path):
+        matches = re.finditer(rf'<a\s*dbdemos-{name}-id=\\?"(?P<item_id>.*?)\\?"\s*href=\\?".*?\/{link_path}\/(?P<item_uid>[a-z0-9_-]*).*?>', self.content)
         for match in matches:
-            pipeline_id = match.groupdict()["dlt_id"]
+            item_id = match.groupdict()["item_id"]
             installed = False
-            for p in pipelines_id:
-                if p["id"] == pipeline_id:
+            for i in items:
+                if i["id"] == item_id:
                     installed = True
-                    self.content = self.content.replace(match.groupdict()["dlt_uid"], p['uid'])
+                    self.content = self.content.replace(match.groupdict()["item_id"], i['uid'])
             if not installed:
-                print(f'''ERROR: couldn't find DLT pipeline with dbdemos-pipeline-id={pipeline_id}''')
+                print(f'''ERROR: couldn't find {name} with dbdemos-{name}-id={item_id}''')
+
+
+    def replace_dynamic_links_workflow(self, workflows):
+        """
+        Replace the links in the notebook with the workflow installed if any
+        """
+        self.replace_dynamic_links(workflows, "workflow", "job")
+
+    def replace_dynamic_links_repo(self, repos):
+        """
+        Replace the links in the notebook with the repos installed if any
+        """
+        self.replace_dynamic_links(repos, "repo", "workspace")
+
+    def replace_dynamic_links_pipeline(self, pipelines_id):
+        """
+        Replace the links in the notebook with the DLT pipeline installed if any
+        """
+        self.replace_dynamic_links(pipelines_id, "pipeline", "pipelines")

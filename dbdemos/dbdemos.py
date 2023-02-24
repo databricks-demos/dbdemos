@@ -231,7 +231,7 @@ def check_status(demo_name:str, username = None, pat_token = None, workspace_url
         existing_job = installer.db.find_job(job_name)
         if existing_job == None:
             raise Exception(f"Couldn't find job for demo {demo_name}. Did you install it first?")
-        installer.wait_for_run_completion(existing_job['job_id'])
+        installer.installer_workflow.wait_for_run_completion(existing_job['job_id'])
         runs = installer.db.get("2.1/jobs/runs/list", {"job_id": existing_job['job_id'], "limit": 1})
         if runs['runs'][0]['state']['result_state'] != "SUCCESS":
             raise Exception(f"Job {existing_job['job_id']} for demo {demo_name} failed: {installer.db.conf.workspace_url}/#job/{existing_job['job_id']}/run/{runs['runs'][0]['run_id']} - {runs}")

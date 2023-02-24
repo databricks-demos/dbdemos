@@ -7,6 +7,7 @@ from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebo
 from .tracker import Tracker
 from .notebook_parser import NotebookParser
 from .installer_workflows import InstallerWorkflow
+from .installer_repos import InstallerRepo
 from pathlib import Path
 import time
 import json
@@ -51,7 +52,8 @@ class Installer:
         conf = Conf(username, workspace_url, org_id, pat_token)
         self.tracker = Tracker(org_id, self.get_uid())
         self.db = DBClient(conf)
-        self.installerWorkflow = InstallerWorkflow(self)
+        self.installer_workflow = InstallerWorkflow(self)
+        self.installer_repo = InstallerRepo(self)
 
 
     def displayHTML_available(self):
@@ -178,9 +180,10 @@ class Installer:
         cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists, start_cluster)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf)
         dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path)
-        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, overwrite)
-        workflows = self.installerWorkflow.install_workflows(demo_conf)
-        job_id, run_id = self.installerWorkflow.start_demo_init_job(demo_conf)
+        workflows = self.installer_workflow.install_workflows(demo_conf)
+        repos = self.installer_repo.install_repos(demo_conf)
+        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, workflows, repos, overwrite)
+        job_id, run_id = self.installer_workflow.start_demo_init_job(demo_conf)
         for pipeline in pipeline_ids:
             if pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
@@ -487,9 +490,9 @@ class Installer:
             print("-------------------- Workflows: --------------------")
             for w in workflows:
                 if w['run_id'] is not None:
-                    print(f"""We created and started a workflow as part of your demo: {self.db.conf.workspace_url}/#job/{w['job_id']}/run/{w['run_id']}""")
+                    print(f"""We created and started a workflow as part of your demo: {self.db.conf.workspace_url}/#job/{w['uid']}/run/{w['run_id']}""")
                 else:
-                    print(f"""We created a workflow as part of your demo: {self.db.conf.workspace_url}/#job/{w['job_id']}""")
+                    print(f"""We created a workflow as part of your demo: {self.db.conf.workspace_url}/#job/{w['uid']}""")
         print("----------------------------------------------------")
         print(f"Your demo {title} is ready! ")
         if len(notebooks) > 0:
@@ -497,7 +500,7 @@ class Installer:
             first.sort(key=lambda n: n.get_clean_path())
             print(f"Start with the first notebook {demo_name}/{first[0].get_clean_path()}{cluster_instruction}: {self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}.")
 
-    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str, pipeline_ids, dashboards, overwrite=False):
+    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str, pipeline_ids, dashboards, workflows, repos, overwrite=False):
         assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
         print(f'    Installing notebooks')
         install_path = install_path+"/"+demo_name
@@ -532,6 +535,8 @@ class Installer:
             parser.replace_dashboard_links(dashboards)
             parser.remove_automl_result_links()
             parser.replace_dynamic_links_pipeline(pipeline_ids)
+            parser.replace_dynamic_links_repo(repos)
+            parser.replace_dynamic_links_workflow(workflows)
             parser.set_tracker_tag(self.get_org_id(), self.get_uid(), demo_conf.category, demo_name, notebook.get_clean_path())
             content = parser.get_html()
             content = base64.b64encode(content.encode("utf-8")).decode("utf-8")

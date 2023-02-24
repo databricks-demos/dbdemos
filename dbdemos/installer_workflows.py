@@ -19,16 +19,16 @@ class InstallerWorkflow:
                 #add cloud specific setup
                 job_id, run_id = self.create_or_replace_job(demo_conf.name, definition, job_name, workflow['start_on_install'])
                 print(f"    Demo workflow available: {self.installer.db.conf.workspace_url}/#job/{job_id}/run/{run_id}")
-                workflows.append({"job_id": job_id, "run_id": run_id})
+                workflows.append({"uid": job_id, "run_id": run_id, "id": workflow['id']})
         return workflows
 
     #Start the init job if it exists
     def start_demo_init_job(self, demo_conf: DemoConf):
         if "settings" in demo_conf.init_job:
-            print(f"    Searching for existing demo initialisation job {demo_conf.init_job['settings']['name']}")
-            #We have an init jon
             job_name = demo_conf.init_job["settings"]["name"]
-            job_id, run_id = self.create_or_replace_job(demo_conf.name, demo_conf.init_job["settings"], job_name, True)
+            print(f"    Searching for existing demo initialisation job {job_name}")
+            #We have an init json
+            job_id, run_id = self.create_or_replace_job(demo_conf.name, demo_conf.init_job, job_name, True)
             return job_id, run_id
         return None, None
 
@@ -40,15 +40,17 @@ class InstallerWorkflow:
         cluster_conf = json.loads(conf_template.replace_template_key(cluster_conf))
         cluster_conf_cloud = json.loads(self.installer.get_resource(f"resources/default_cluster_config-{cloud}.json"))
         merge_dict(cluster_conf, cluster_conf_cloud)
+        print(demo_name)
+        print(definition)
         for cluster in definition["settings"]["job_clusters"]:
             if "new_cluster" in cluster:
                 merge_dict(cluster["new_cluster"], cluster_conf)
                 #Let's make sure we add our dev pool for faster startup
                 if self.db.conf.is_dev_env():
                     cluster["new_cluster"]["instance_pool_id"] = "0213-111033-rowed79-pool-zb80houq"
-                    del cluster["new_cluster"]["node_type_id"]
-                    del cluster["new_cluster"]["enable_elastic_disk"]
-                    del cluster["new_cluster"]["aws_attributes"]
+                    if "node_type_id" in cluster["new_cluster"]: del cluster["new_cluster"]["node_type_id"]
+                    if "enable_elastic_disk" in cluster["new_cluster"]: del cluster["new_cluster"]["enable_elastic_disk"]
+                    if "aws_attributes" in cluster["new_cluster"]: del cluster["new_cluster"]["aws_attributes"]
         existing_job = self.installer.db.find_job(job_name)
         if existing_job is not None:
             job_id = existing_job["job_id"]
