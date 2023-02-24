@@ -231,9 +231,12 @@ class ConfTemplate:
     def template_DEMO_FOLDER(self):
         return self.demo_folder
 
+    def template_SHARED_WAREHOUSE_ID(self):
+        return self.demo_folder
+
     def replace_template_key(self, text: str):
         for key in set(re.findall(r'\{\{(.*?)\}\}', text)):
-            if not key.startswith("DYNAMIC"):
+            if not key.startswith("DYNAMIC") and not key.startswith("SHARED_WAREHOUSE"):
                 func = getattr(self, f"template_{key}")
                 replacement = func()
                 text = text.replace("{{"+key+"}}", replacement)

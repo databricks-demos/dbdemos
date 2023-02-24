@@ -180,8 +180,8 @@ class Installer:
         cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists, start_cluster)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf)
         dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path)
-        workflows = self.installer_workflow.install_workflows(demo_conf)
         repos = self.installer_repo.install_repos(demo_conf)
+        workflows = self.installer_workflow.install_workflows(demo_conf)
         notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, workflows, repos, overwrite)
         job_id, run_id = self.installer_workflow.start_demo_init_job(demo_conf)
         for pipeline in pipeline_ids:
@@ -376,16 +376,17 @@ class Installer:
             if "message" in w and "already exists" in w['message']:
                 w = self.db.post("2.0/sql/warehouses", json=get_definition(serverless, endpoint_name+"-"+username))
             if "id" in w:
-                return w["id"]
+                return w
+            print(f"WARN: Couldn't create endpoint with serverless = {endpoint_name} and endpoint name: {endpoint_name} and {endpoint_name}-{username}. Creation response: {w}")
             return None
 
-        endpoint = try_create_endpoint(True)
-        if endpoint is None:
+        if try_create_endpoint(True) is None:
             #Try to fallback with classic endpoint?
-            endpoint = try_create_endpoint(False)
-        if "id" in endpoint:
-            return endpoint["id"]
-        print(f"Couldn't create endpoint. Creation response: {w}")
+            try_create_endpoint(False)
+        ds = self.get_demo_datasource()
+        if ds is not None:
+            return ds
+        print(f"ERROR: Couldn't create endpoint.")
         return None
 
     def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):

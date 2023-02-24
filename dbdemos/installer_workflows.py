@@ -40,6 +40,7 @@ class InstallerWorkflow:
         cluster_conf = json.loads(conf_template.replace_template_key(cluster_conf))
         cluster_conf_cloud = json.loads(self.installer.get_resource(f"resources/default_cluster_config-{cloud}.json"))
         merge_dict(cluster_conf, cluster_conf_cloud)
+        definition = self.replace_warehouse_id(definition)
         for cluster in definition["settings"]["job_clusters"]:
             if "new_cluster" in cluster:
                 merge_dict(cluster["new_cluster"], cluster_conf)
@@ -70,6 +71,18 @@ class InstallerWorkflow:
             return job_id, j['run_id']
         return job_id, None
 
+    def replace_warehouse_id(self, definition):
+        # Jobs need a warehouse ID. Let's replace it with the one created. TODO: should be in the template?
+        if "{{SHARED_WAREHOUSE_ID}}" in json.dumps(definition):
+            endpoint = self.installer.get_or_create_endpoint(self.db.conf.name)
+            if endpoint is None:
+                print(
+                    "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Your workflow won't be able to execute the task.")
+                #TODO: quick & dirty, need to improve
+                definition = json.loads(json.dumps(definition).replace(""", "warehouse_id": "{{SHARED_WAREHOUSE_ID}}"}""", ""))
+            else:
+                definition = json.loads(json.dumps(definition).replace("{{SHARED_WAREHOUSE_ID}}", endpoint['warehouse_id']))
+        return definition
 
     def wait_for_run_completion(self, job_id, max_retry=10):
         def is_still_running(job_id):

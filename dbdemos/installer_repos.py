@@ -44,8 +44,13 @@ class InstallerRepo:
             if 'error_code' in r:
                 error = f"ERROR - Could not clone the repo {repo['url']} under {repo_path}: {r}"
                 raise Exception(error)
-            r = self.get_repos(repo['url'])
-            return r['id']
+            r = self.get_repos(repo_path)
+            try:
+                return r['repos'][0]["id"]
+            except:
+                raise Exception(f"couldn't properly create the repository {data} - {r}")
+
+
         repo_id = r['repos'][0]["id"]
         r = self.db.patch(f"/2.0/repos/{repo_id}", {"branch": repo["branch"]})
         if 'error_code' in r and r['error_code'] == 'GIT_CONFLICT':

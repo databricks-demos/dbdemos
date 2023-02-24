@@ -46,8 +46,8 @@ def bundle():
 """
 
     #bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
-    bundler.load_bundles_conf()
-    #bundler.add_bundle("product_demos/DBT")
+    #bundler.load_bundles_conf()
+    bundler.add_bundle("product_demos/DBT")
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
@@ -79,7 +79,7 @@ def bundle_with_retry(max_retry = 3):
 #bundle_with_retry(4)
 
 #Loads conf to install on cse2.
-with open("local_conf.json", "r") as r:
+with open("local_conf_E2FE.json", "r") as r:
     c = json.loads(r.read())
 
 from dbdemos.installer import Installer
