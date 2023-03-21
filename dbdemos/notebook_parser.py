@@ -110,18 +110,29 @@ class NotebookParser:
 
 
     def add_ga_website_tracker(self):
-        if Tracker.enable_tracker:
-            tracker = f"""
+        if False: #Tracker.enable_tracker:
+            tracker = """
             <head>
-            <script async src="https://www.googletagmanager.com/gtag/js?id={Tracker.website_tracker_id}"></script>
-                <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){{dataLayer.push(arguments);}}
-                gtag('js', new Date());
+            <!-- Cookie Consent by TermsFeed https://www.TermsFeed.com -->
+            <script type="text/javascript" src="https://www.termsfeed.com/public/cookie-consent/4.1.0/cookie-consent.js" charset="UTF-8"></script>
+            <script type="text/javascript" charset="UTF-8">
+            document.addEventListener('DOMContentLoaded', function () {
+                        cookieconsent.run({"notice_banner_type":"simple","consent_type":"express","palette":"light","language":"en","page_load_consent_levels":["strictly-necessary"],"notice_banner_reject_button_hide":false,"preferences_center_close_button_hide":false,"page_refresh_confirmation_buttons":false,"website_name":"dbdemos.ai","website_privacy_policy_url":"https://dbdemos.ai/privacy-policy"});
+                        });
+            </script>
+            <!-- analytics -->
+            <script type="text/plain" data-cookie-consent="tracking" async src="https://www.googletagmanager.com/gtag/js?id="""+Tracker.website_tracker_id+""""></script>
+            <script type="text/plain" data-cookie-consent="tracking">
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
             
-                gtag('config', '{Tracker.website_tracker_id}');
-            </script>"""
-        self.html = re.sub("""<head>""", tracker, self.html)
+              gtag('config', '"""+Tracker.website_tracker_id+"""');
+            </script>
+            <!-- end of analytics-->
+            <a href="#" id="open_preferences_center">Update cookies preferences</a>
+            """
+            self.html = re.sub("""<head>""", tracker, self.html)
 
     def hide_commands_and_results(self):
         content = json.loads(self.content)

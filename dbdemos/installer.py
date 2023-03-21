@@ -4,6 +4,7 @@ import pkg_resources
 from dbdemos.packager import Packager
 
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
+from .installer_report import InstallerReport
 from .tracker import Tracker
 from .notebook_parser import NotebookParser
 from .installer_workflows import InstallerWorkflow
@@ -17,25 +18,6 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 import urllib
 import threading
-
-CSS_REPORT = """
-<style>
-.dbdemos_install{
-                    font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji,FontAwesome;
-color: #3b3b3b;
-box-shadow: 0 .15rem 1.15rem 0 rgba(58,59,69,.15)!important;
-padding: 10px;
-margin: 10px;
-}
-.code {
-    padding: 5px;
-border: 1px solid #e4e4e4;
-font-family: monospace;
-background-color: #f5f5f5;
-margin: 5px 0px 0px 0px;
-display: inline;
-}
-</style>"""
 
 class Installer:
     def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS", org_id: str = None):
@@ -52,16 +34,10 @@ class Installer:
         conf = Conf(username, workspace_url, org_id, pat_token)
         self.tracker = Tracker(org_id, self.get_uid())
         self.db = DBClient(conf)
+        self.report = InstallerReport(self.db.conf.workspace_url)
         self.installer_workflow = InstallerWorkflow(self)
         self.installer_repo = InstallerRepo(self)
 
-
-    def displayHTML_available(self):
-        try:
-            from dbruntime.display import displayHTML
-            return True
-        except:
-            return False
 
     #TODO replace with https://github.com/mlflow/mlflow/blob/master/mlflow/utils/databricks_utils.py#L64 ?
     def get_dbutils(self):
@@ -188,7 +164,7 @@ class Installer:
             if pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
 
-        self.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
+        self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
 
     def install_dashboards(self, demo_conf: DemoConf, install_path):
         if "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
@@ -389,120 +365,6 @@ class Installer:
         print(f"ERROR: Couldn't create endpoint.")
         return None
 
-    def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
-        if self.displayHTML_available():
-            self.display_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows)
-        else:
-            self.display_install_result_console(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows)
-
-    def display_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
-        html = f"""{CSS_REPORT}
-        <div class="dbdemos_install">
-            <img style="float:right; width: 100px; padding: 20px" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/{demo_name}.png" />
-            <h1>Your demo {title} is ready!</h1>
-            <i>{description}</i><br/><br/>
-            """
-        if cluster_id is not None:
-            cluster_section = f"""
-            <h2>Interactive cluster for the demo:</h2>
-            <a href="{self.db.conf.workspace_url}/#setting/clusters/{cluster_id}/configuration">{cluster_name}</a>. You can refresh your demo cluster with:
-            <div class="code">
-                dbdemos.create_cluster('{demo_name}')
-            </div>"""
-            cluster_instruction = f' using the cluster <a href="{self.db.conf.workspace_url}/#setting/clusters/{cluster_id}/configuration">{cluster_name}</a>'
-        else:
-            cluster_section = ""
-            cluster_instruction = ""
-        if len(notebooks) > 0:
-            first = list(filter(lambda n: "/" not in n.get_clean_path(), notebooks))
-            first.sort(key=lambda n: n.get_clean_path())
-            html += f"""Start with the first notebook <a href="{self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}">{demo_name}/{first[0].get_clean_path()}</a>{cluster_instruction}"""
-            html += """<h2>Notebook installed:</h2><ul>"""
-            for n in notebooks:
-                if "_resources" not in n.get_clean_path():
-                    html += f"""<li>{n.get_clean_path()}: <a href="{self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{n.get_clean_path()}">{n.title}</a></li>"""
-            html += """</ul>"""
-        if len(pipelines_ids) > 0:
-            html += f"""<h2>Delta Live Table Pipelines</h2><ul>"""
-            for p in pipelines_ids:
-                html += f"""<li><a href="{self.db.conf.workspace_url}/#joblist/pipelines/{p['uid']}">{p['name']}</a></li>"""
-            html +="</ul>"
-        if len(dashboards) > 0:
-            html += f"""<h2>DBSQL Dashboards</h2><ul>"""
-            for d in dashboards:
-                if "error" in d:
-                    error_already_installed  = ""
-                    if d["installed_id"] is not None:
-                        error_already_installed = f""" A dashboard with the same name exists: <a href="{self.db.conf.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a>"""
-                    html += f"""<li>ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}</li>"""
-                else:
-                    html += f"""<li><a href="{self.db.conf.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a></li>"""
-            html +="</ul>"
-        if len(workflows) > 0:
-            html += f"""<h2>Workflows</h2><ul>"""
-            for w in workflows:
-                if w['run_id'] is not None:
-                    html += f"""We created and started a <a href="{self.db.conf.workspace_url}/#job/{w['job_id']}/run/{w['run_id']}">workflow</a> as part of your demo !"""
-                else:
-                    html += f"""We created a <a href="{self.db.conf.workspace_url}/#job/{w['job_id']}">workflow</a> as part of your demo !"""
-            html +="</ul>"
-        if job_id is not None:
-            html += f"""<h2>Initialization job started</h2>
-                        We started a <a href="{self.db.conf.workspace_url}/#job/{job_id}/run/{run_id}">job</a> to initialize your demo data (for DBSQL Dashboards & Delta Live Table). 
-                        Please wait for the job completion to be able to access the dataset & dashboards..."""
-        html += cluster_section+"</div>"
-        from dbruntime.display import displayHTML
-        displayHTML(html)
-
-    def display_install_result_console(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
-        if len(notebooks) > 0:
-            print("----------------------------------------------------")
-            print("-------------- Notebook installed: -----------------")
-            for n in notebooks:
-                if "_resources" not in n.get_clean_path():
-                    print(f"   - {n.title}: {self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{n.get_clean_path()}")
-        if job_id is not None:
-            print("----------------------------------------------------")
-            print("--- Job initialization started (load demo data): ---")
-            print(f"    - Job run available under: {self.db.conf.workspace_url}/#job/{job_id}/run/{run_id}")
-        if cluster_id is not None:
-            print("----------------------------------------------------")
-            print("------------ Demo interactive cluster: -------------")
-            print(f"    - {cluster_name}: {self.db.conf.workspace_url}/#setting/clusters/{cluster_id}/configuration")
-            cluster_instruction = f" using the cluster {cluster_name}"
-        else:
-            cluster_instruction = ""
-        if len(pipelines_ids) > 0:
-            print("----------------------------------------------------")
-            print("------------ Delta Live Table available: -----------")
-            for p in pipelines_ids:
-                print(f"    - {p['name']}: {self.db.conf.workspace_url}/#joblist/pipelines/{p['uid']}")
-        if len(dashboards) > 0:
-            print("----------------------------------------------------")
-            print("------------- DBSQL Dashboard available: -----------")
-            for d in dashboards:
-                error_already_installed  = ""
-                if d["installed_id"] is not None:
-                    error_already_installed = f""" A dashboard with the same name exists: <a href="{self.db.conf.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a>"""
-                if "error" in d:
-                    print(f"    - ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}")
-                else:
-                    print(f"    - {d['name']}: {self.db.conf.workspace_url}/sql/dashboards/{d['installed_id']}")
-        if len(workflows) > 0:
-            print("----------------------------------------------------")
-            print("-------------------- Workflows: --------------------")
-            for w in workflows:
-                if w['run_id'] is not None:
-                    print(f"""We created and started a workflow as part of your demo: {self.db.conf.workspace_url}/#job/{w['uid']}/run/{w['run_id']}""")
-                else:
-                    print(f"""We created a workflow as part of your demo: {self.db.conf.workspace_url}/#job/{w['uid']}""")
-        print("----------------------------------------------------")
-        print(f"Your demo {title} is ready! ")
-        if len(notebooks) > 0:
-            first = list(filter(lambda n: "/" not in n.get_clean_path(), notebooks))
-            first.sort(key=lambda n: n.get_clean_path())
-            print(f"Start with the first notebook {demo_name}/{first[0].get_clean_path()}{cluster_instruction}: {self.db.conf.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}.")
-
     def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str, pipeline_ids, dashboards, workflows, repos, overwrite=False):
         assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
         print(f'    Installing notebooks')
@@ -510,7 +372,7 @@ class Installer:
         s = self.db.get("2.0/workspace/get-status", {"path": install_path})
         if 'object_type' in s:
             if not overwrite:
-                if self.displayHTML_available():
+                if self.report.displayHTML_available():
                     from dbruntime.display import displayHTML
                     displayHTML(f"""{CSS_REPORT}<div class="dbdemos_install">
                       <h1 style="color: red">Error!</h1>
@@ -588,6 +450,8 @@ class Installer:
                 if 'error_code' in p and p['error_code'] == 'FEATURE_DISABLED':
                     message = f'ERROR: DLT pipelines are not available in this workspace. Only Premium workspaces are supported on Azure - {p}'
                     raise Exception(message)
+                if 'error_code' in p:
+                    raise Exception(f"Error creating the DLT pipeline: {p['message']} {p}")
                 id = p['pipeline_id']
             else:
                 print("    Updating existing pipeline with last configuration")

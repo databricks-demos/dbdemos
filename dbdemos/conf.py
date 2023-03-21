@@ -133,6 +133,10 @@ class DemoNotebook():
     def __repr__(self):
         return self.path
 
+    def get_folder(self):
+        p = Path(self.get_clean_path())
+        p.parts
+
     def get_clean_path(self):
         #Some notebook path are relatives, like ../../demo-retail/lakehouse-retail/_resources/xxx
         # DThis function removes it and returns _resources/xxx

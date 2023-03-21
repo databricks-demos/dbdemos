@@ -47,7 +47,10 @@ def bundle():
 
     #bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     #bundler.load_bundles_conf()
-    bundler.add_bundle("product_demos/DBT")
+    bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
+    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
+    #bundler.add_bundle("product_demos/DBT")
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
@@ -66,17 +69,17 @@ def bundle():
 #Need to remove the dependency and fully isolate the demos.
 def bundle_with_retry(max_retry = 3):
     retry = 0
-    while retry < max_retry:
+    while retry <= max_retry:
         try:
             print(f"bundle - retry {retry}")
             bundle()
-            retry += max_retry
+            break
         except Exception as e:
             retry += 1
             traceback.print_exc()
             print(str(e))
 
-#bundle_with_retry(4)
+bundle_with_retry(0)
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -95,7 +98,7 @@ import dbdemos
 
 
 #dbdemos.list_demos(None)
-dbdemos.install("dbt-on-databricks", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("lakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("streaming-sessionization", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("uc-03-data-lineage", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
