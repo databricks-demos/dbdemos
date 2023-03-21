@@ -1,5 +1,11 @@
-## Licence
-See LICENSE file.
+Copyright (2022) Databricks, Inc.
+## License
+This Software includes software developed at Databricks (https://www.databricks.com/) and its use is subject to the included LICENSE file.
+
+This Software contains code from the following open source projects, licensed under the Apache 2.0 license:
+
+psf/requests - https://github.com/psf/requests
+Copyright 2019 Kenneth Reitz
 
 ## Data collection
 To improve users experience and dbdemos asset quality, dbdemos sends report usage and capture views in the installed notebook (usually in the first cell) and other assets like dashboards. This information is captured for product improvement only and not for marketing purpose, and doesn't contain PII information. By using `dbdemos` and the assets it provides, you consent to this data collection. If you wish to disable it, you can set `Tracker.enable_tracker` to False in the `tracker.py` file.
@@ -15,4 +21,3 @@ While `dbdemos` does its best to limit the consumption and enforce resource auto
 
 ## Support
 Databricks does not offer official support for `dbdemos` and the associated assets.
-For any issue with `dbdemos` or the demos installed, please open an issue and the demo team will have a look on a best effort basis.
