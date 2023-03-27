@@ -79,7 +79,7 @@ def bundle_with_retry(max_retry = 3):
             traceback.print_exc()
             print(str(e))
 
-bundle_with_retry(0)
+bundle_with_retry(3)
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -92,6 +92,7 @@ import dbdemos
 #dbdemos.install_all("/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards = True)
 #dbdemos.check_status_all(c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False)
+#dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False)
 #installer = Installer()
 #for d in installer.get_demos_available():
 #    dbdemos.install(d, "/Users/quentin.ambard@databricks.com/test_dbdemos", True, c['username'], c['pat_token'], c['url'], cloud="AWS")

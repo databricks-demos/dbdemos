@@ -18,47 +18,47 @@ from datetime import date
 import urllib
 import threading
 
-NOTEBOOK_SVG = """<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class=""><path fill-rule="evenodd" clip-rule="evenodd" d="M3 1.75A.75.75 0 013.75 1h10.5a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75H3.75a.75.75 0 01-.75-.75V12.5H1V11h2V8.75H1v-1.5h2V5H1V3.5h2V1.75zm1.5.75v11H6v-11H4.5zm3 0v11h6v-11h-6z" fill="currentColor"></path></svg>"""
-FOLDER_SVG = """<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class=""><path d="M.75 2a.75.75 0 00-.75.75v10.5c0 .414.336.75.75.75h14.5a.75.75 0 00.75-.75v-8.5a.75.75 0 00-.75-.75H7.81L6.617 2.805A2.75 2.75 0 004.672 2H.75z" fill="currentColor"></path></svg>"""
-DASHBOARD_SVG = """<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class=""><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1.75A.75.75 0 011.75 1h12.5a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75H1.75a.75.75 0 01-.75-.75V1.75zm1.5 8.75v3h4.75v-3H2.5zm0-1.5h4.75V2.5H2.5V9zm6.25-6.5v3h4.75v-3H8.75zm0 11V7h4.75v6.5H8.75z" fill="currentColor"></path></svg>"""
-
-CSS_REPORT = """
-<style>
-.dbdemos_install{
-                    font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji,FontAwesome;
-color: #3b3b3b;
-box-shadow: 0 .15rem 1.15rem 0 rgba(58,59,69,.15)!important;
-padding: 10px;
-margin: 10px;
-}
-.code {
-    padding: 5px;
-border: 1px solid #e4e4e4;
-font-family: monospace;
-background-color: #f5f5f5;
-margin: 5px 0px 0px 0px;
-display: inline;
-}
-.subfolder {
-    padding-left: 30px;
-}
-.notebook {
-    margin-bottom: 3px;
-}
-.dbdemos_install a {
-    color: #3835a4;
-}
-.container_dbdemos {
-    padding-left: 20px;
-}
-.path_desc {
-    color: #928e9b;
-    font-style: oblique;
-}
-</style>"""
-
 class InstallerReport:
-    
+
+    NOTEBOOK_SVG = """<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class=""><path fill-rule="evenodd" clip-rule="evenodd" d="M3 1.75A.75.75 0 013.75 1h10.5a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75H3.75a.75.75 0 01-.75-.75V12.5H1V11h2V8.75H1v-1.5h2V5H1V3.5h2V1.75zm1.5.75v11H6v-11H4.5zm3 0v11h6v-11h-6z" fill="currentColor"></path></svg>"""
+    FOLDER_SVG = """<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class=""><path d="M.75 2a.75.75 0 00-.75.75v10.5c0 .414.336.75.75.75h14.5a.75.75 0 00.75-.75v-8.5a.75.75 0 00-.75-.75H7.81L6.617 2.805A2.75 2.75 0 004.672 2H.75z" fill="currentColor"></path></svg>"""
+    DASHBOARD_SVG = """<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class=""><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1.75A.75.75 0 011.75 1h12.5a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75H1.75a.75.75 0 01-.75-.75V1.75zm1.5 8.75v3h4.75v-3H2.5zm0-1.5h4.75V2.5H2.5V9zm6.25-6.5v3h4.75v-3H8.75zm0 11V7h4.75v6.5H8.75z" fill="currentColor"></path></svg>"""
+
+    CSS_REPORT = """
+    <style>
+    .dbdemos_install{
+                        font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji,FontAwesome;
+    color: #3b3b3b;
+    box-shadow: 0 .15rem 1.15rem 0 rgba(58,59,69,.15)!important;
+    padding: 10px;
+    margin: 10px;
+    }
+    .code {
+        padding: 5px;
+    border: 1px solid #e4e4e4;
+    font-family: monospace;
+    background-color: #f5f5f5;
+    margin: 5px 0px 0px 0px;
+    display: inline;
+    }
+    .subfolder {
+        padding-left: 30px;
+    }
+    .notebook {
+        margin-bottom: 3px;
+    }
+    .dbdemos_install a {
+        color: #3835a4;
+    }
+    .container_dbdemos {
+        padding-left: 20px;
+    }
+    .path_desc {
+        color: #928e9b;
+        font-style: oblique;
+    }
+    </style>"""
+
     def __init__(self, workspace_url: str):
         self.workspace_url = workspace_url
 
@@ -76,7 +76,7 @@ class InstallerReport:
             self.display_install_result_console(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows)
 
     def get_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
-        html = f"""{CSS_REPORT}
+        html = f"""{InstallerReport.CSS_REPORT}
         <div class="dbdemos_install">
             <img style="float:right; width: 100px; padding: 20px" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/{demo_name}.png" />
             <h1>Your demo {title} is ready!</h1>
@@ -96,7 +96,7 @@ class InstallerReport:
         if len(notebooks) > 0:
             first = list(filter(lambda n: "/" not in n.get_clean_path(), notebooks))
             first.sort(key=lambda n: n.get_clean_path())
-            html += f"""Start with the first notebook {NOTEBOOK_SVG} <a href="{self.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}">{demo_name}/{first[0].get_clean_path()}</a>{cluster_instruction}\n"""
+            html += f"""Start with the first notebook {InstallerReport.NOTEBOOK_SVG} <a href="{self.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}">{demo_name}/{first[0].get_clean_path()}</a>{cluster_instruction}\n"""
             html += """<h2>Notebook installed:</h2><div class="container_dbdemos">\n """
             if len(pipelines_ids)>0 or len(dashboards)>0:
                 html += """<div style="float: right; width: 300px">"""
@@ -115,11 +115,11 @@ class InstallerReport:
                         path = str(Path(*parts[1:]))
                         if previous_folder != parts[0]:
                             div_class = "subfolder"
-                            html += f"""<div class="notebook">{FOLDER_SVG} {parts[0]}</div>\n"""
+                            html += f"""<div class="notebook">{InstallerReport.FOLDER_SVG} {parts[0]}</div>\n"""
                             previous_folder = parts[0]
                     elif len(parts) == 1:
                         div_class = ""
-                    html += f"""<div class="notebook {div_class}">{NOTEBOOK_SVG} <a href="{self.workspace_url}/#workspace{install_path}/{demo_name}/{n.get_clean_path()}">{path}</a>: <span class="path_desc">{n.title}</span></div>"""
+                    html += f"""<div class="notebook {div_class}">{InstallerReport.NOTEBOOK_SVG} <a href="{self.workspace_url}/#workspace{install_path}/{demo_name}/{n.get_clean_path()}">{path}</a>: <span class="path_desc">{n.title}</span></div>"""
             html += """</div>"""
         if len(pipelines_ids) > 0:
             html += f"""<h2>Delta Live Table Pipelines</h2><ul>"""
@@ -135,7 +135,7 @@ class InstallerReport:
                         error_already_installed = f""" A dashboard with the same name exists: <a href="{self.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a>"""
                     html += f"""<div>ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}</div>"""
                 else:
-                    html += f"""<div>{DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a></div>"""
+                    html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a></div>"""
             html +="</div>"
         if len(workflows) > 0:
             html += f"""<h2>Workflows</h2><ul>"""

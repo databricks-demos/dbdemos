@@ -374,7 +374,7 @@ class Installer:
             if not overwrite:
                 if self.report.displayHTML_available():
                     from dbruntime.display import displayHTML
-                    displayHTML(f"""{CSS_REPORT}<div class="dbdemos_install">
+                    displayHTML(f"""{InstallerReport.CSS_REPORT}<div class="dbdemos_install">
                       <h1 style="color: red">Error!</h1>
                       <bold>Folder {install_path} isn't empty</bold>. Please install demo with overwrite=True to replace the existing content: 
                       <div class="code">

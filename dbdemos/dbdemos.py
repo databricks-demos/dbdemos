@@ -76,7 +76,7 @@ CSS_LIST = """
 
 def help():
     installer = Installer()
-    if installer.displayHTML_available():
+    if installer.report.displayHTML_available():
         from dbruntime.display import displayHTML
         displayHTML("""<style>
             .dbdemos_install{
@@ -132,13 +132,12 @@ def list_demos(category = None):
     installer.tracker.track_list()
     demos = defaultdict(lambda: [])
     #Define category order
-    demos["retail"] = []
-    demos["manufacturing"] = []
+    demos["lakehouse"] = []
     for demo in installer.get_demos_available():
         conf = installer.get_demo_conf(demo)
         if category is None or conf.category == category.lower():
             demos[conf.category].append(conf)
-    if installer.displayHTML_available():
+    if installer.report.displayHTML_available():
         list_html(demos)
     else:
         list_console(demos)
