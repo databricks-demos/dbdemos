@@ -67,7 +67,7 @@ class Packager:
         if len(demo_conf.get_notebooks_to_publish()) > 0 and not self.jobBundler.staging_reseted:
             self.jobBundler.reset_staging_repo()
         if len(demo_conf.get_notebooks_to_run()) > 0:
-            run = self.db.get("2.1/jobs/runs/get", {"run_id": demo_conf.run_id})
+            run = self.db.get("2.1/jobs/runs/get", {"run_id": demo_conf.run_id, "include_history": False})
             if run['state']['result_state'] != 'SUCCESS':
                 raise Exception(f"last job {self.db.conf.workspace_url}/#job/{demo_conf.job_id}/run/{demo_conf.run_id} failed for demo {demo_conf.name}. Can't package the demo. {run['state']}")
 
@@ -86,6 +86,8 @@ class Packager:
                 if len(tasks) == 0:
                     raise Exception(f"couldn't find task for notebook {notebook.path}. Please re-run the job & make sure the stating git repo is synch / reseted.")
                 notebook_result = self.db.get("2.1/jobs/runs/export", {'run_id': tasks[0]['run_id'], 'views_to_export': 'ALL'})
+                if "views" not in notebook_result:
+                    raise Exception(f"couldn't get notebook for run {tasks[0]['run_id']} - {notebook.path}. {demo_conf.name}. You probably did a run repair. Please re run the job.")
                 html = notebook_result["views"][0]["content"]
             #Replace notebook content.
             parser = NotebookParser(html)

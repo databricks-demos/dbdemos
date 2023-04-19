@@ -63,32 +63,32 @@ class DBClient():
 
     def post(self, path: str, json: dict = {}):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
-        with requests.post(url, headers = self.conf.headers, json=json) as r:
+        with requests.post(url, headers = self.conf.headers, json=json, timeout=30) as r:
             return self.get_json_result(url, r)
 
     def put(self, path: str, json: dict = {}):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
-        with requests.put(url, headers = self.conf.headers, json=json) as r:
+        with requests.put(url, headers = self.conf.headers, json=json, timeout=30) as r:
             return self.get_json_result(url, r)
 
     def patch(self, path: str, json: dict = {}):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
-        with requests.patch(url, headers = self.conf.headers, json=json) as r:
+        with requests.patch(url, headers = self.conf.headers, json=json, timeout=30) as r:
             return self.get_json_result(url, r)
 
     def get(self, path: str, params: dict = {}):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
-        with requests.get(url, headers = self.conf.headers, params=params) as r:
+        with requests.get(url, headers = self.conf.headers, params=params, timeout=30) as r:
             return self.get_json_result(url, r)
 
     def delete(self, path: str, params: dict = {}):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
-        with requests.delete(url, headers = self.conf.headers, params=params) as r:
+        with requests.delete(url, headers = self.conf.headers, params=params, timeout=30) as r:
             return self.get_json_result(url, r)
 
     def get_json_result(self, url: str, r: Response):
         if r.status_code == 403:
-            print(f"Unauthorized call. Check your PAT token {r.text}")
+            print(f"Unauthorized call. Check your PAT token {r.text} - {r.url} - {url}")
         try:
             return r.json()
         except Exception as e:
@@ -120,7 +120,7 @@ class DBClient():
 
 class DemoNotebook():
     def __init__(self, path: str, title: str, description: str, pre_run: bool = False, publish_on_website: bool = False,
-                 add_cluster_setup_cell: bool = False, parameters: dict = {}, depends_on_previous: bool = True):
+                 add_cluster_setup_cell: bool = False, parameters: dict = {}, depends_on_previous: bool = True, libraries: list = []):
         self.path = path
         self.title = title
         self.description = description
@@ -129,6 +129,7 @@ class DemoNotebook():
         self.add_cluster_setup_cell = add_cluster_setup_cell
         self.parameters = parameters
         self.depends_on_previous = depends_on_previous
+        self.libraries = libraries
 
     def __repr__(self):
         return self.path
@@ -175,7 +176,9 @@ class DemoConf():
             add_cluster_setup_cell = n.get('add_cluster_setup_cell', False)
             params = n.get('parameters', {})
             depends_on_previous = n.get('depends_on_previous', True)
-            self.notebooks.append(DemoNotebook(n['path'], n['title'], n['description'], n['pre_run'], n['publish_on_website'], add_cluster_setup_cell, params, depends_on_previous))
+            libraries = n.get('libraries', [])
+            self.notebooks.append(DemoNotebook(n['path'], n['title'], n['description'], n['pre_run'], n['publish_on_website'],
+                                               add_cluster_setup_cell, params, depends_on_previous, libraries))
 
     def __repr__(self):
         return self.path + "("+str(self.notebooks)+")"

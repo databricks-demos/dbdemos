@@ -191,24 +191,34 @@ def list_delta_live_tables(category = None):
 def list_dashboards(category = None):
     pass
 
-def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None):
+def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None, use_current_cluster: bool = False, current_cluster_id = None):
     if demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
         demo_name = "lakehouse-retail-c360"
+    installer = Installer(username, pat_token, workspace_url, cloud, current_cluster_id = current_cluster_id)
+    if installer.get_current_cloud() == "GCP":
+        print("WARN: GCP detected, dbdemos will run the installation sequentially to avoid API timeouts, please be patient...")
+        try:
+            from dbsqlclone.utils import load_dashboard
+            load_dashboard.max_workers = 1
+            from urllib3 import Retry
+            Retry.DEFAULT = Retry(3, backoff_factor=5)
+        except Exception as e:
+            print(f"ERROR setting up GCP conf: {e}")
 
-    installer = Installer(username, pat_token, workspace_url, cloud)
-    installer.test_standard_pricing()
-    installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster)
+    if not installer.test_premium_pricing():
+        #Force dashboard skip as dbsql isn't available to avoid any error.
+        skip_dashboards = True
+    installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster)
 
 
-def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None):
+def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None, use_current_cluster = False):
     """
     Install all the bundle demos.
     """
     installer = Installer(username, pat_token, workspace_url, cloud)
-    installer.test_standard_pricing()
     for demo_name in installer.get_demos_available():
-        installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster)
+        installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster)
 
 def check_status_all(username = None, pat_token = None, workspace_url = None, cloud = "AWS"):
     """
@@ -236,11 +246,11 @@ def check_status(demo_name:str, username = None, pat_token = None, workspace_url
             raise Exception(f"Job {existing_job['job_id']} for demo {demo_name} failed: {installer.db.conf.workspace_url}/#job/{existing_job['job_id']}/run/{runs['runs'][0]['run_id']} - {runs}")
 
 
-def create_cluster(demo_name, username = None, pat_token = None, workspace_url = None):
-    installer = Installer(username, pat_token, workspace_url)
+def create_cluster(demo_name, username = None, pat_token = None, workspace_url = None, cloud = "AWS"):
+    installer = Installer(username, pat_token, workspace_url, cloud = cloud)
     installer.check_demo_name(demo_name)
     print(f"Updating cluster for demo {demo_name}...")
     demo_conf = installer.get_demo_conf(demo_name)
     installer.tracker.track_create_cluster(demo_conf.category, demo_name)
     cluster_id, cluster_name = installer.load_demo_cluster(demo_name, demo_conf, True)
-    installer.display_install_result(demo_name, demo_conf.description, demo_conf.title, cluster_id = cluster_id, cluster_name = cluster_name)
+    installer.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, cluster_id = cluster_id, cluster_name = cluster_name)

@@ -2,13 +2,16 @@ from .conf import DemoConf, merge_dict, ConfTemplate
 import json
 import time
 
+from .exceptions.dbdemos_exception import WorkflowException
+
+
 class InstallerWorkflow:
     def __init__(self, installer):
         self.installer = installer
         self.db = installer.db
 
     #Start the init job if it exists
-    def install_workflows(self, demo_conf: DemoConf):
+    def install_workflows(self, demo_conf: DemoConf, use_cluster_id = None):
         workflows = []
         if len(demo_conf.workflows) > 0:
             print(f"    Loading demo workflows")
@@ -17,23 +20,23 @@ class InstallerWorkflow:
                 definition = workflow['definition']
                 job_name = definition["settings"]["name"]
                 #add cloud specific setup
-                job_id, run_id = self.create_or_replace_job(demo_conf.name, definition, job_name, workflow['start_on_install'])
+                job_id, run_id = self.create_or_replace_job(demo_conf.name, definition, job_name, workflow['start_on_install'], use_cluster_id)
                 print(f"    Demo workflow available: {self.installer.db.conf.workspace_url}/#job/{job_id}/run/{run_id}")
                 workflows.append({"uid": job_id, "run_id": run_id, "id": workflow['id']})
         return workflows
 
     #Start the init job if it exists
-    def start_demo_init_job(self, demo_conf: DemoConf):
+    def start_demo_init_job(self, demo_conf: DemoConf, use_cluster_id = None):
         if "settings" in demo_conf.init_job:
             job_name = demo_conf.init_job["settings"]["name"]
             print(f"    Searching for existing demo initialisation job {job_name}")
             #We have an init json
-            job_id, run_id = self.create_or_replace_job(demo_conf.name, demo_conf.init_job, job_name, True)
+            job_id, run_id = self.create_or_replace_job(demo_conf.name, demo_conf.init_job, job_name, True, use_cluster_id)
             return job_id, run_id
         return None, None
 
 
-    def create_or_replace_job(self, demo_name: str, definition: dict,  job_name: str, run_now: bool):
+    def create_or_replace_job(self, demo_name: str, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None):
         cloud = self.installer.get_current_cloud()
         conf_template = ConfTemplate(self.db.conf.username, demo_name)
         cluster_conf = self.installer.get_resource("resources/default_cluster_job_config.json")
@@ -41,33 +44,45 @@ class InstallerWorkflow:
         cluster_conf_cloud = json.loads(self.installer.get_resource(f"resources/default_cluster_config-{cloud}.json"))
         merge_dict(cluster_conf, cluster_conf_cloud)
         definition = self.replace_warehouse_id(definition)
-        for cluster in definition["settings"]["job_clusters"]:
-            if "new_cluster" in cluster:
-                merge_dict(cluster["new_cluster"], cluster_conf)
-                #Let's make sure we add our dev pool for faster startup
-                if self.db.conf.is_dev_env():
-                    cluster["new_cluster"]["instance_pool_id"] = "0213-111033-rowed79-pool-zb80houq"
-                    if "node_type_id" in cluster["new_cluster"]: del cluster["new_cluster"]["node_type_id"]
-                    if "enable_elastic_disk" in cluster["new_cluster"]: del cluster["new_cluster"]["enable_elastic_disk"]
-                    if "aws_attributes" in cluster["new_cluster"]: del cluster["new_cluster"]["aws_attributes"]
+        #Use a given interactive cluster, change the job setting accordingly.
+        if use_cluster_id is not None:
+            del definition["settings"]["job_clusters"]
+            for task in definition["settings"]["tasks"]:
+                if "job_cluster_key" in task:
+                    del task["job_cluster_key"]
+                    task["existing_cluster_id"] = use_cluster_id
+        #otherwise set the job properties based on the definition & add pool for our dev workspace.
+        else:
+            for cluster in definition["settings"]["job_clusters"]:
+                if "new_cluster" in cluster:
+                    merge_dict(cluster["new_cluster"], cluster_conf)
+                    #Let's make sure we add our dev pool for faster startup
+                    if self.db.conf.is_dev_env():
+                        cluster["new_cluster"]["instance_pool_id"] = "0213-111033-rowed79-pool-zb80houq"
+                        if "node_type_id" in cluster["new_cluster"]: del cluster["new_cluster"]["node_type_id"]
+                        if "enable_elastic_disk" in cluster["new_cluster"]: del cluster["new_cluster"]["enable_elastic_disk"]
+                        if "aws_attributes" in cluster["new_cluster"]: del cluster["new_cluster"]["aws_attributes"]
         existing_job = self.installer.db.find_job(job_name)
         if existing_job is not None:
             job_id = existing_job["job_id"]
             self.installer.db.post("/2.1/jobs/runs/cancel-all", {"job_id": job_id})
             self.wait_for_run_completion(job_id)
             print("    Updating existing job")
-            r = self.installer.db.post("2.1/jobs/reset", {"job_id": job_id, "new_settings": definition["settings"]})
+            job_config = {"job_id": job_id, "new_settings": definition["settings"]}
+            r = self.installer.db.post("2.1/jobs/reset", job_config)
             if "error_code" in r:
-                raise Exception(
-                    f'ERROR setting up init job, do you have permission? please check job definition {r}, {definition["settings"]}')
+                self.installer.report.display_workflow_error(WorkflowException("Can't update the workflow",
+                                                                               f"error resetting the workflow, do you have permission?.", job_config, r), demo_name)
         else:
             print("    Creating a new job for demo initialization (data & table setup).")
             r_jobs = self.installer.db.post("2.1/jobs/create", definition["settings"])
             if "error_code" in r_jobs:
-                raise Exception(f'error setting up job, please check job definition {r_jobs}, {definition["settings"]}')
+                self.installer.report.display_workflow_error(WorkflowException("Can't create the workflow", definition["settings"], r_jobs), demo_name)
             job_id = r_jobs["job_id"]
         if run_now:
             j = self.installer.db.post("2.1/jobs/run-now", {"job_id": job_id})
+            if "error_code" in j:
+                self.installer.report.display_workflow_error(WorkflowException("Can't start the workflow", {"job_id": job_id}, j), demo_name)
             return job_id, j['run_id']
         return job_id, None
 

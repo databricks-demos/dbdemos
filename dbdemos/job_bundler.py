@@ -46,7 +46,12 @@ class JobBundler:
         path = bundle_config_paths[len(self.conf.get_repo_path()):]
         path = path[:-len("_resources/bundle_config")-1]
         print(f"add bundle under {path}")
-        self.add_bundle(path)
+        if "lakehouse-fsi-fraud-detection" in path or "lakehouse-fsi-credit-decisioning" in path:
+            print("WARNING --------------------------------------------------------------------------------")
+            print(f"TEMPORARY DISABLING FSI DEMOS DUE TO UC MATERIALIZED VIEW PREVIEW - {path}")
+            print("WARNING --------------------------------------------------------------------------------")
+        else:
+            self.add_bundle(path)
 
     def add_bundle(self, bundle_path, config_path: str = "_resources/bundle_config"):
         if not self.staging_reseted:
@@ -120,7 +125,7 @@ class JobBundler:
                             if skip_execution:
                                 execute = False
                                 demo_conf.run_id = run['run_id']
-                                print("skipping job execution as it was already run and skip_execution=True.")
+                                print(f"skipping job execution {demo_conf.name} as it was already run and skip_execution=True.")
                             else:
                                 #last run was using the same commit version.
                                 tasks_with_different_commit = [t for t in run['tasks'] if t['git_source']['git_snapshot']['used_commit'] != self.head_commit_id]
@@ -159,8 +164,14 @@ class JobBundler:
             #Update the job cluster with the specific demo setup if any
             for job_cluster in default_job_conf["job_clusters"]:
                 merge_dict(job_cluster["new_cluster"], cluster_conf)
+                # Custom instance (ex: gpu), not i3, remove the pool
+                # expected format: {"AWS": "g5.4xlarge", "AZURE": "Standard_NC8as_T4_v3", "GCP": "a2-highgpu-1g"}
+                if "node_type_id" in job_cluster["new_cluster"] and "AWS" in job_cluster["new_cluster"]["node_type_id"]:
+                    job_cluster["new_cluster"].pop('instance_pool_id', None)
+                    job_cluster["new_cluster"]["node_type_id"] = job_cluster["new_cluster"]["node_type_id"]["AWS"]
+                    job_cluster["new_cluster"]["driver_node_type_id"] = job_cluster["new_cluster"]["driver_node_type_id"]["AWS"]
                 #TODO: to be improved, we use only use AWS for now
-                if 'instance_pool_id':
+                elif 'instance_pool_id' in job_cluster["new_cluster"]:
                     job_cluster["new_cluster"].pop('node_type_id', None)
                 job_cluster["new_cluster"].pop('cluster_name', None)
                 job_cluster["new_cluster"].pop('autotermination_minutes', None)
@@ -176,6 +187,7 @@ class JobBundler:
                         "base_parameters": {"reset_all_data": "true"},
                         "source": "GIT"
                     },
+                    "libraries": notebook.libraries,
                     "job_cluster_key": default_job_conf["job_clusters"][0]["job_cluster_key"],
                     "timeout_seconds": 0,
                     "email_notifications": {}}

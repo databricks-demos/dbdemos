@@ -19,9 +19,9 @@ conf = Conf(c['username'], c['url'], c['org_id'], c['pat_token'],
 def bundle():
     bundler = JobBundler(conf)
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
-    bundler.reset_staging_repo(skip_pull=False)
+    bundler.reset_staging_repo(skip_pull=False, )
     # Discover bundles from repo:
-    #bundler.load_bundles_conf()
+    bundler.load_bundles_conf()
     # Or manually add bundle to run faster:
     """
     bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
@@ -33,7 +33,6 @@ def bundle():
     bundler.add_bundle("product_demos/Data-Science/Koalas")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-CDC")
-    bundler.add_bundle("product_demos/Delta-Sharing")
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
     bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
@@ -43,13 +42,16 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Lake-CDC-CDF")
     bundler.add_bundle("product_demos/streaming-sessionization")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
-"""
 
+"""
+    #bundler.add_bundle("product_demos/Delta-Sharing")
+    #bundler.add_bundle("product_demos/Data-Science/feature-store")
+    #bundler.add_bundle("product_demos/Data-Science/llm-dolly-chatbot")
     #bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     #bundler.load_bundles_conf()
-    bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
-    bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
+    #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
+    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("product_demos/DBT")
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
@@ -60,7 +62,7 @@ def bundle():
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
-    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False)
+    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=True)
 
     packager = Packager(conf, bundler)
     packager.package_all()
@@ -79,7 +81,8 @@ def bundle_with_retry(max_retry = 3):
             traceback.print_exc()
             print(str(e))
 
-bundle_with_retry(3)
+#bundle_with_retry(3)
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -99,18 +102,24 @@ import dbdemos
 
 
 #dbdemos.list_demos(None)
-dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+
+dbdemos.install("llm-dolly-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
+dbdemos.install("feature-store", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
+#dbdemos.install("alakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="Azure", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
+#dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="GCP")
+#dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="GCP")
+#dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="Azure", use_current_cluster=True, current_cluster_id=c["current_cluster_id"])
 #dbdemos.install("lakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
-#dbdemos.install("streaming-sessionization", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+#dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
+#dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("uc-03-data-lineage", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", skip_dashboards=True)
 #dbdemos.install("pandas-on-spark", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
-#dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("delta-sharing-airlines", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-cdc", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-unit-test", "/Users/quentin.ambard@databricks.com/test_install", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("uc-01-acl", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("uc-05-upgrade", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
-#dbdemos.create_cluster("uc-05-upgrade", c['username'], c['pat_token'], c['url'], c['current_folder'])
+#dbdemos.create_cluster("uc-05-upgrade", c['username'], c['pat_token'], c['url'], "GCP")

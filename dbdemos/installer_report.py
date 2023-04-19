@@ -1,22 +1,8 @@
-import collections
-
-import pkg_resources
-from dbdemos.packager import Packager
-
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
-from .tracker import Tracker
-from .notebook_parser import NotebookParser
-from .installer_workflows import InstallerWorkflow
-from .installer_repos import InstallerRepo
+from .exceptions.dbdemos_exception import ClusterCreationException, ExistingResourceException, FolderDeletionException, \
+    DLTException, WorkflowException, FolderCreationException
 from pathlib import Path
-import time
 import json
-import re
-import base64
-from concurrent.futures import ThreadPoolExecutor
-from datetime import date
-import urllib
-import threading
 
 class InstallerReport:
 
@@ -33,13 +19,16 @@ class InstallerReport:
     padding: 10px;
     margin: 10px;
     }
+    .dbdemos_block{
+        display: block !important;
+    }
     .code {
         padding: 5px;
-    border: 1px solid #e4e4e4;
-    font-family: monospace;
-    background-color: #f5f5f5;
-    margin: 5px 0px 0px 0px;
-    display: inline;
+        border: 1px solid #e4e4e4;
+        font-family: monospace;
+        background-color: #f5f5f5;
+        margin: 5px 0px 0px 0px;
+        display: inline;
     }
     .subfolder {
         padding-left: 30px;
@@ -68,6 +57,94 @@ class InstallerReport:
             return True
         except:
             return False
+
+    def display_cluster_creation_error(self, exception: ClusterCreationException, demo_conf: DemoConf):
+        self.display_error(exception, f"By default, dbdemos try to create a new cluster for your demo with the proper settings. <br/>"
+                                      f"If you don't have cluster creation permission, dbdemos can use the current cluster to run the content.<br/>"
+                                      f"For the demo to run properly, <strong>make sure your cluster has UC enabled and using Databricks Runtime (DBR) version {exception.cluster_conf['spark_version']}</strong>.<br/>"
+                                      f"""<div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', use_current_cluster = True)</div><br/>"""
+                                      f"<strong>Cluster creation details</strong><br/>"
+                                      f"""Full cluster configuration: <div class="code dbdemos_block">{json.dumps(exception.cluster_conf)}.</div><br/>"""
+                                      f"""Full error: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""")
+
+
+    def display_dashboard_error(self, exception: Exception, demo_conf: DemoConf):
+        self.display_error(exception, f"""Couldn't create or update a dashboard. <br/>
+                                          If this is a permission error, we recommend you to search the existing dashboard and delete it manually.<br/>
+                                          You can skip the dashboard installation with skip_dashboards = True:
+                                          <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', skip_dashboards = True)</div><br/>""")
+
+    def display_folder_already_existing(self, exception: ExistingResourceException, demo_conf: DemoConf):
+        self.display_error(exception, f"""Please install demo with overwrite=True to replace the existing folder content under {exception.install_path}:
+                                         <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', overwrite=True, path='{exception.install_path}')</div><br/>
+                                         All content under {exception.install_path} will be deleted.<br/><br/>
+                                         <strong>Details</strong><br/>
+                                         Folder list response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""")
+
+    def display_folder_permission(self, exception: FolderDeletionException, demo_conf: DemoConf):
+        self.display_error(exception, f"""Can't delete the folder {exception.install_path}. <br/>
+                                          Do you have read/write permission?<br/><br/>
+                                         <strong>Details</strong><br/>
+                                         Delete response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""")
+
+    def display_folder_creation_error(self, exception: FolderCreationException, demo_conf: DemoConf):
+        self.display_error(exception, f"""Couldn't load the model in the current folder. Do you have permissions to write in {exception.install_path}?
+                                     Please install demo with overwrite=True to replace the existing folder:
+                                     <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', overwrite=True, path='{exception.install_path}')</div><br/>
+                                     All content under {exception.install_path} will be deleted.<br/><br/>
+                                     <strong>Details</strong><br/>
+                                     Folder list response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""")
+
+    def display_non_premium_warn(self, exception: Exception, response):
+        self.display_error(exception, f"""DBSQL isn't available in this workspace. Only Premium/Enterprise workspaces are supported.<br/>
+                                          dbdemos will try its best to install the demo and load the notebooks, but some component won't be available (DLT pipelines, Dashboards etc).<br/>
+                                          Forcing skip_dashboards = True and continuing.<br/><br/>
+                                          <strong>Details</strong><br/>
+                                          API response: <div class="code dbdemos_block">{json.dumps(response)}</div>""", raise_error=False, warning=True)
+
+    def display_pipeline_error(self, exception: DLTException):
+        self.display_error(exception, f"""{exception.description}. <br/>
+                                         Skipping pipelines. Your demo will be installed without DLT pipelines.<br/><br/>
+                                         <strong>Details</strong><br/>
+                                         Pipeline configuration: <div class="code dbdemos_block">{json.dumps(exception.pipeline_conf)}</div>
+                                         API response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""", raise_error=False, warning=True)
+
+    def display_workflow_error(self, exception: WorkflowException, demo_name: str):
+        self.display_error(exception, f"""{exception.details}. <br/>
+                                         dbdemos creates jobs to load your demo data. If you don't have cluster creation permission, you can start the job using the current cluster.
+                                         <div class="code dbdemos_block">dbdemos.install('{demo_name}', use_current_cluster=True)</div><br/>
+                                         <strong>Details</strong><br/>
+                                         Pipeline configuration: <div class="code dbdemos_block">{json.dumps(exception.job_config)}</div>
+                                         API response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""")
+
+    def display_demo_name_error(self, name, demos):
+        html = "<h2>Demos available:</h2>"
+        for cat in demos:
+            html += f"<strong>{cat}</strong>"
+            for demo in demos[cat]:
+                html += f"""<div style="padding-left: 40px">{demo.name}: <span class="path_desc">{demo.description}</span></div>"""
+        self.display_error(Exception(f"Demo '{name}' doesn't exist"),
+                                    f"""This demo doesn't exist, please check your demo name and re-run the installation.<br/>
+                                    {html}                
+                                    <br/><br/>
+                                     To get a full demo list, please run
+                                     <div class="code dbdemos_block">dbdemos.list_demos()</div>""")
+
+    def display_error(self, exception, message, raise_error = True, warning = False):
+        color = "#d18b2a" if warning else "#eb0707"
+        level = "warning" if warning else "error"
+        error = f"""{InstallerReport.CSS_REPORT}<div class="dbdemos_install">
+                      <h1 style="color: {color}">Installation {level}: {exception}</h1> 
+                        {message}
+                      </div>"""
+        if self.displayHTML_available():
+            from dbruntime.display import displayHTML
+            displayHTML(error)
+        else:
+            print(error)
+        if raise_error:
+            raise exception
+
 
     def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
         if self.displayHTML_available():
@@ -124,7 +201,10 @@ class InstallerReport:
         if len(pipelines_ids) > 0:
             html += f"""<h2>Delta Live Table Pipelines</h2><ul>"""
             for p in pipelines_ids:
-                html += f"""<li><a href="{self.workspace_url}/#joblist/pipelines/{p['uid']}">{p['name']}</a></li>"""
+                if 'error' in p:
+                    html += f"""<li>{p['name']}: Installation error</li>"""
+                else:
+                    html += f"""<li><a href="{self.workspace_url}/#joblist/pipelines/{p['uid']}">{p['name']}</a></li>"""
             html +="</ul>"
         if len(dashboards) > 0:
             html += f"""<h2>DBSQL Dashboards</h2><div class="container_dbdemos">"""
@@ -179,7 +259,10 @@ class InstallerReport:
             print("----------------------------------------------------")
             print("------------ Delta Live Table available: -----------")
             for p in pipelines_ids:
-                print(f"    - {p['name']}: {self.workspace_url}/#joblist/pipelines/{p['uid']}")
+                if 'error' in p:
+                    print(f"    - {p['name']}: Installation error")
+                else:
+                    print(f"    - {p['name']}: {self.workspace_url}/#joblist/pipelines/{p['uid']}")
         if len(dashboards) > 0:
             print("----------------------------------------------------")
             print("------------- DBSQL Dashboard available: -----------")

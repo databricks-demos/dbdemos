@@ -19,5 +19,10 @@ To simplify your experience, `dbdemos` will create and start for you resources. 
 
 While `dbdemos` does its best to limit the consumption and enforce resource auto-termination, you remain responsible for the resources created and the potential consumption associated.
 
+## Catalog/Database created
+dbdemos will try to create catalogs & databases (schemas). Demos are using the hive_metastore or UC catalogs. dbdemos will try to use the dbdemos catalog when possible.
+
+Permissions / ownership can be granted to all users (account users) in these datasets.
+
 ## Support
 Databricks does not offer official support for `dbdemos` and the associated assets.

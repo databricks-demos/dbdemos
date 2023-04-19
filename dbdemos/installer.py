@@ -4,6 +4,9 @@ import pkg_resources
 from dbdemos.packager import Packager
 
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
+from .exceptions.dbdemos_exception import ClusterPermissionException, ClusterCreationException, ClusterException, \
+    ExistingResourceException, FolderDeletionException, DLTNotAvailableException, DLTCreationException, DLTException, \
+    FolderCreationException
 from .installer_report import InstallerReport
 from .tracker import Tracker
 from .notebook_parser import NotebookParser
@@ -20,7 +23,7 @@ import urllib
 import threading
 
 class Installer:
-    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS", org_id: str = None):
+    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS", org_id: str = None, current_cluster_id: str = None):
         self.cloud = cloud
         self.dbutils = None
         if username is None:
@@ -31,12 +34,17 @@ class Installer:
             pat_token = self.get_current_pat_token()
         if org_id is None:
             org_id = self.get_org_id()
+        self.current_cluster_id = current_cluster_id
+        if self.current_cluster_id is None:
+            self.current_cluster_id = self.get_current_cluster_id()
         conf = Conf(username, workspace_url, org_id, pat_token)
         self.tracker = Tracker(org_id, self.get_uid())
         self.db = DBClient(conf)
         self.report = InstallerReport(self.db.conf.workspace_url)
         self.installer_workflow = InstallerWorkflow(self)
         self.installer_repo = InstallerRepo(self)
+        #Slows down on GCP as the dashboard API is very sensitive to back-pressure
+        self.max_workers = 1 if self.get_current_cloud() == "GCP" else 3
 
 
     #TODO replace with https://github.com/mlflow/mlflow/blob/master/mlflow/utils/databricks_utils.py#L64 ?
@@ -55,6 +63,12 @@ class Installer:
     def get_current_url(self):
         try:
             return "https://"+self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
+        except:
+            return "local"
+
+    def get_current_cluster_id(self):
+        try:
+            return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().tags().apply('clusterId')
         except:
             return "local"
 
@@ -115,11 +129,15 @@ class Installer:
 
 
     def check_demo_name(self, demo_name):
+        demos = collections.defaultdict(lambda: [])
+        #Define category order
+        demos["lakehouse"] = []
         demo_availables = self.get_demos_available()
-        # TODO: where should we store the bundle, as .zip in the wheel and extract them locally?
         if demo_name not in demo_availables:
-            demos = '\n  - '.join(demo_availables)
-            raise Exception(f"The demo {demo_name} doesn't exist. \nDemos currently available: \n  - {demos}")
+            for demo in demo_availables:
+                conf = self.get_demo_conf(demo)
+                demos[conf.category].append(conf)
+            self.report.display_demo_name_error(demo_name, demos)
 
     def get_demos_available(self):
         return set(pkg_resources.resource_listdir("dbdemos", "bundles"))
@@ -132,13 +150,15 @@ class Installer:
     def get_resource(self, path):
         return pkg_resources.resource_string("dbdemos", path).decode('UTF-8')
 
-    def test_standard_pricing(self):
-        w = self.db.get("2.0/sq/config/warehouses", {"limit": 1})
-        if "error_code" in w and w["error_code"] == "FEATURE_DISABLED":
-            raise Exception(f"ERROR: DBSQL isn't available in this workspace. Only Premium workspaces are supported - {w}")
+    def test_premium_pricing(self):
+        w = self.db.get("2.0/sql/config/warehouses", {"limit": 1})
+        if "error_code" in w and (w["error_code"] == "FEATURE_DISABLED" or w["error_code"] == "ENDPOINT_NOT_FOUND"):
+            self.report.display_non_premium_warn(Exception(f"DBSQL not available"), w)
+            return False
+        return True
 
 
-    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True):
+    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -153,15 +173,19 @@ class Installer:
         demo_conf = self.get_demo_conf(demo_name, install_path+"/"+demo_name)
         self.tracker.track_install(demo_conf.category, demo_name)
         self.get_current_username()
-        cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists, start_cluster)
+        use_cluster_id = self.current_cluster_id if use_current_cluster else None
+        try:
+            cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists, start_cluster, use_cluster_id)
+        except ClusterException as e:
+            self.report.display_cluster_creation_error(e, demo_conf)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf)
         dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path)
         repos = self.installer_repo.install_repos(demo_conf)
-        workflows = self.installer_workflow.install_workflows(demo_conf)
-        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, workflows, repos, overwrite)
-        job_id, run_id = self.installer_workflow.start_demo_init_job(demo_conf)
+        workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id)
+        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, workflows, repos, overwrite, use_current_cluster)
+        job_id, run_id = self.installer_workflow.start_demo_init_job(demo_conf, use_cluster_id)
         for pipeline in pipeline_ids:
-            if pipeline["run_after_creation"]:
+            if "run_after_creation" in pipeline and pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
 
         self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
@@ -174,9 +198,12 @@ class Installer:
             dashboards = pkg_resources.resource_listdir("dbdemos", "bundles/" + demo_conf.name + "/dashboards")
             #filter out new import/export api:
             dashboards = filter(lambda n: Packager.DASHBOARD_IMPORT_API not in n, dashboards)
-            # Parallelize dashboard install, 3 by 3.
-            with ThreadPoolExecutor(max_workers=3) as executor:
-                return [n for n in executor.map(install_dash, dashboards)]
+            try:
+                # Parallelize dashboard install, 3 by 3. Not on GCP as it's failing
+                with ThreadPoolExecutor(max_workers=self.workers) as executor:
+                    return [n for n in executor.map(install_dash, dashboards)]
+            except Exception as e:
+                self.report.display_dashboard_error(e, demo_conf)
         return []
 
     def install_dashboard(self, demo_conf, install_path, dashboard):
@@ -218,7 +245,7 @@ class Installer:
             if f["object_type"] == "DIRECTORY" and f["path"] == path:
                 parent_folder_id = f["object_id"]
         if parent_folder_id is None:
-            print(f"ERROR: couldn't find dashboard folder {path}. Do you have permission?")
+            raise Exception(f"ERROR: couldn't find dashboard folder {path}. Do you have permission?")
 
         # ------- LEGACY IMPORT/EXPORT DASHBOARD - TO BE REPLACED ONCE IMPORT/EXPORT API IS PUBLIC PREVIEW
         from dbsqlclone.utils.client import Client
@@ -243,7 +270,6 @@ class Installer:
         except Exception as e:
             print(f"    ERROR loading dashboard {dashboard_name} - {str(e)}")
             raise e
-            return {"id": id, "name": dashboard_name, "error": str(e), "existing_dashboard": existing_dashboard['id']}
 
         """
         # ------- NEW IMPORT/EXPORT API
@@ -365,27 +391,19 @@ class Installer:
         print(f"ERROR: Couldn't create endpoint.")
         return None
 
-    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str, pipeline_ids, dashboards, workflows, repos, overwrite=False):
+    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str, pipeline_ids, dashboards, workflows, repos, overwrite=False, use_current_cluster=False):
         assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
         print(f'    Installing notebooks')
         install_path = install_path+"/"+demo_name
         s = self.db.get("2.0/workspace/get-status", {"path": install_path})
         if 'object_type' in s:
             if not overwrite:
-                if self.report.displayHTML_available():
-                    from dbruntime.display import displayHTML
-                    displayHTML(f"""{InstallerReport.CSS_REPORT}<div class="dbdemos_install">
-                      <h1 style="color: red">Error!</h1>
-                      <bold>Folder {install_path} isn't empty</bold>. Please install demo with overwrite=True to replace the existing content: 
-                      <div class="code">
-                              dbdemos.install('{demo_name}', overwrite=True)
-                      </div>
-                    </div>""")
-                raise Exception(f"Folder {install_path} isn't empty. Please install demo with overwrite=True to replace the existing content")
+                self.report.display_folder_already_existing(ExistingResourceException(install_path, s), demo_conf)
             print(f"    Folder {install_path} already exists. Deleting the existing content...")
+            assert install_path not in ['/Users', '/Repos', '/Shared'], "Demo name is missing, shouldn't happen. Fail to prevent main deletion."
             d = self.db.post("2.0/workspace/delete", {"path": install_path, 'recursive': True})
             if 'error_code' in d:
-                raise Exception(f"Couldn't erase folder {install_path}. Do you have permission? Error: {d}")
+                self.report.display_folder_permission(FolderDeletionException(install_path, d), demo_conf)
 
         folders_created = set()
         #Avoid multiple mkdirs in parallel as it's creating error.
@@ -395,7 +413,7 @@ class Installer:
 
         def load_notebook_path(notebook: DemoNotebook, template_path):
             parser = NotebookParser(self.get_resource(template_path))
-            if notebook.add_cluster_setup_cell:
+            if notebook.add_cluster_setup_cell and not use_current_cluster:
                 self.add_cluster_setup_cell(parser, demo_name, cluster_name, cluster_id, self.db.conf.workspace_url)
             parser.replace_dashboard_links(dashboards)
             parser.remove_automl_result_links()
@@ -412,16 +430,14 @@ class Installer:
                     folders_created.add(parent)
                     if 'error_code' in r:
                         if r['error_code'] == "RESOURCE_ALREADY_EXISTS":
-                            print(f"ERROR: A folder already exists under {install_path}. Add the overwrite option to replace the content:")
-                            print(f"dbdemos.install('{demo_name}', overwrite=True)")
-                        raise Exception(f"Couldn't create folder under {install_path}. Import error: {r}")
+                            self.report.display_folder_creation_error(FolderCreationException(install_path, r), demo_conf)
             r = self.db.post("2.0/workspace/import", {"path": install_path+"/"+notebook.get_clean_path(), "content": content, "format": "HTML"})
             if 'error_code' in r:
-                raise Exception(f"Couldn't install demo under {install_path}/{notebook.get_clean_path()}. Do you have permission?. Import error: {r}")
+                self.report.display_folder_creation_error(FolderCreationException(f"{install_path}/{notebook.get_clean_path()}", r), demo_conf)
             return notebook
 
         #Always adds the licence notebooks
-        with ThreadPoolExecutor(max_workers=3) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             notebooks = [
                 DemoNotebook("_resources/LICENSE", "LICENSE", "Demo License"),
                 DemoNotebook("_resources/NOTICE", "NOTICE", "Demo Notice"),
@@ -430,7 +446,7 @@ class Installer:
             def load_notebook_templet(notebook):
                 load_notebook_path(notebook, f"template/{notebook.title}.html")
             collections.deque(executor.map(load_notebook_templet, notebooks))
-        with ThreadPoolExecutor(max_workers=3) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
 
 
@@ -448,21 +464,31 @@ class Installer:
             if existing_pipeline == None:
                 p = self.db.post("2.0/pipelines", definition)
                 if 'error_code' in p and p['error_code'] == 'FEATURE_DISABLED':
-                    message = f'ERROR: DLT pipelines are not available in this workspace. Only Premium workspaces are supported on Azure - {p}'
-                    raise Exception(message)
+                    message = f'DLT pipelines are not available in this workspace. Only Premium workspaces are supported on Azure.'
+                    pipeline_ids.append({"name": pipeline["definition"]["name"], "uid": "INSTALLATION_ERROR", "id": pipeline["id"], "error": True})
+                    self.report.display_pipeline_error(DLTNotAvailableException(message, definition, p))
+                    continue
                 if 'error_code' in p:
-                    raise Exception(f"Error creating the DLT pipeline: {p['message']} {p}")
+                    pipeline_ids.append({"name": pipeline["definition"]["name"], "uid": "INSTALLATION_ERROR", "id": pipeline["id"], "error": True})
+                    self.report.display_pipeline_error(DLTCreationException(f"Error creating the DLT pipeline: {p['error_code']}", definition, p))
+                    continue
                 id = p['pipeline_id']
             else:
                 print("    Updating existing pipeline with last configuration")
                 id = existing_pipeline['pipeline_id']
-                self.db.put("2.0/pipelines/"+id, definition)
+                p = self.db.put("2.0/pipelines/"+id, definition)
+                if 'error_code' in p:
+                    pipeline_ids.append({"name": pipeline["definition"]["name"], "uid": "INSTALLATION_ERROR", "id": pipeline["id"], "error": True})
+                    self.report.display_pipeline_error(DLTCreationException(f"Error updating the DLT pipeline {id}: {p['error_code']}", definition, p))
+                    continue
             pipeline_ids.append({"name": definition['name'], "uid": id, "id": pipeline["id"], "run_after_creation": pipeline["run_after_creation"] or existing_pipeline is not None})
             #Update the demo conf tags {{}} with the actual id (to be loaded as a job for example)
             demo_conf.set_pipeline_id(pipeline["id"], id)
         return pipeline_ids
 
-    def load_demo_cluster(self, demo_name, demo_conf: DemoConf, update_cluster_if_exists, start_cluster = True):
+    def load_demo_cluster(self, demo_name, demo_conf: DemoConf, update_cluster_if_exists, start_cluster = True, use_cluster_id: str = None):
+        if use_cluster_id is not None:
+            return (use_cluster_id, "Interactive cluster you used for installation - make sure the cluster configuration matches.")
         #Do not start clusters by default in Databricks FE clusters to avoid costs as we have shared clusters for demos
         if start_cluster is None:
             start_cluster = not (self.db.conf.is_dev_env() or self.db.conf.is_fe_env())
@@ -477,6 +503,13 @@ class Installer:
         cluster_conf_cloud = json.loads(conf_template.replace_template_key(cluster_conf_cloud))
         merge_dict(cluster_conf, cluster_conf_cloud)
         merge_dict(cluster_conf, demo_conf.cluster)
+
+        if "driver_node_type_id" in cluster_conf:
+            if cloud not in cluster_conf["driver_node_type_id"] or cloud not in cluster_conf["node_type_id"]:
+                raise Exception(f"""ERROR CREATING CLUSTER FOR DEMO {demo_name}. You need to speficy the cloud type for all clouds:  "node_type_id": {"AWS": "g5.4xlarge", "AZURE": "Standard_NC8as_T4_v3", "GCP": "a2-highgpu-1g"} and "driver_node_type_id" """)
+            cluster_conf["node_type_id"] = cluster_conf["node_type_id"][cloud]
+            cluster_conf["driver_node_type_id"] = cluster_conf["driver_node_type_id"][cloud]
+
         if "spark.databricks.cluster.profile" in cluster_conf["spark_conf"] and cluster_conf["spark_conf"]["spark.databricks.cluster.profile"] == "singleNode":
             del cluster_conf["autoscale"]
             cluster_conf["num_workers"] = 0
@@ -484,9 +517,11 @@ class Installer:
         existing_cluster = self.find_cluster(cluster_conf["cluster_name"])
         if existing_cluster == None:
             cluster = self.db.post("2.0/clusters/create", json = cluster_conf)
-            if "cluster_id" not in cluster:
+            if "error_code" in cluster and cluster["error_code"] == "PERMISSION_DENIED":
+                raise ClusterPermissionException(f"Can't create cluster for demo {demo_name}", cluster_conf, cluster)
+            if "cluster_id" not in cluster or "error_code" in cluster:
                 print(f"    WARN: couldn't create the cluster for the demo: {cluster}")
-                return "CLUSTER_CREATION_ERROR", "CLUSTER_CREATION_ERROR"
+                raise ClusterCreationException(f"Can't create cluster for demo {demo_name}", cluster_conf, cluster)
             else:
                 cluster_conf["cluster_id"] = cluster["cluster_id"]
         else:
@@ -507,8 +542,13 @@ class Installer:
                     if cluster["state"] != "TERMINATED":
                         print(f"    WARNING: Couldn't stop the demo cluster properly. Unknown state. Please stop your cluster {cluster_conf['cluster_name']} before.")
                     self.db.post("2.0/clusters/edit", json = cluster_conf)
+                elif "error_code" in cluster:
+                    raise ClusterCreationException(f"couldn't edit the cluster conf for {demo_name}", cluster_conf, cluster)
             if start_cluster:
-                self.db.post("2.0/clusters/start", json = cluster_conf)
+                start = self.db.post("2.0/clusters/start", json = cluster_conf)
+                if "error_code" in start:
+                    raise ClusterCreationException(f"Couldn't start the cluster conf for {demo_name}", cluster_conf, start)
+
         return cluster_conf['cluster_id'], cluster_conf['cluster_name']
 
     #return the cluster with the given name or none
