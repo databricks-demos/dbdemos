@@ -200,7 +200,7 @@ class Installer:
             dashboards = filter(lambda n: Packager.DASHBOARD_IMPORT_API not in n, dashboards)
             try:
                 # Parallelize dashboard install, 3 by 3. Not on GCP as it's failing
-                with ThreadPoolExecutor(max_workers=self.workers) as executor:
+                with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                     return [n for n in executor.map(install_dash, dashboards)]
             except Exception as e:
                 self.report.display_dashboard_error(e, demo_conf)
