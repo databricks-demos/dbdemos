@@ -526,30 +526,40 @@ class Installer:
                 cluster_conf["cluster_id"] = cluster["cluster_id"]
         else:
             cluster_conf["cluster_id"] = existing_cluster["cluster_id"]
+            cluster = self.db.get("2.0/clusters/get", params = {"cluster_id": cluster_conf["cluster_id"]})
+            self.wait_for_cluster_to_stop(cluster_conf, cluster)
             if update_cluster_if_exists:
                 cluster = self.db.post("2.0/clusters/edit", json = cluster_conf)
-                if "error_code" in cluster and cluster["error_code"] == "INVALID_STATE":
-                    print(f"    Demo cluster {cluster_conf['cluster_name']} in invalid state. Stopping it...")
-                    cluster = self.db.post("2.0/clusters/delete", json = {"cluster_id": cluster_conf["cluster_id"]})
-                    i = 0
-                    while i < 30:
-                        i += 1
-                        cluster = self.db.get("2.0/clusters/get", params = {"cluster_id": cluster_conf["cluster_id"]})
-                        if cluster["state"] == "TERMINATED":
-                            print("    Cluster properly stopped.")
-                            break
-                        time.sleep(2)
-                    if cluster["state"] != "TERMINATED":
-                        print(f"    WARNING: Couldn't stop the demo cluster properly. Unknown state. Please stop your cluster {cluster_conf['cluster_name']} before.")
-                    self.db.post("2.0/clusters/edit", json = cluster_conf)
-                elif "error_code" in cluster:
+                if "error_code" in cluster and cluster["error_code"] != "INVALID_STATE":
                     raise ClusterCreationException(f"couldn't edit the cluster conf for {demo_name}", cluster_conf, cluster)
-            if start_cluster:
-                start = self.db.post("2.0/clusters/start", json = cluster_conf)
-                if "error_code" in start:
-                    raise ClusterCreationException(f"Couldn't start the cluster conf for {demo_name}", cluster_conf, start)
+                self.wait_for_cluster_to_stop(cluster_conf, cluster)
+
+        if len(demo_conf.cluster_libraries) > 0:
+            install = self.db.post("2.0/libraries/install", json = {"cluster_id": cluster_conf["cluster_id"], "libraries": demo_conf.cluster_libraries})
+            if "error_code" in install:
+                print(f"WARN: Couldn't install the libs: {cluster_conf}, libraries={demo_conf.cluster_libraries}")
+
+        if start_cluster:
+            start = self.db.post("2.0/clusters/start", json = {"cluster_id": cluster_conf["cluster_id"]})
+            if "error_code" in start:
+                raise ClusterCreationException(f"Couldn't start the cluster conf for {demo_name}", cluster_conf, start)
 
         return cluster_conf['cluster_id'], cluster_conf['cluster_name']
+
+    def wait_for_cluster_to_stop(self, cluster_conf, cluster):
+        if "error_code" in cluster and cluster["error_code"] == "INVALID_STATE":
+            print(f"    Demo cluster {cluster_conf['cluster_name']} in invalid state. Stopping it...")
+            cluster = self.db.post("2.0/clusters/delete", json = {"cluster_id": cluster_conf["cluster_id"]})
+            i = 0
+            while i < 30:
+                i += 1
+                cluster = self.db.get("2.0/clusters/get", params = {"cluster_id": cluster_conf["cluster_id"]})
+                if cluster["state"] == "TERMINATED":
+                    print("    Cluster properly stopped.")
+                    break
+                time.sleep(2)
+            if cluster["state"] != "TERMINATED":
+                print(f"    WARNING: Couldn't stop the demo cluster properly. Unknown state. Please stop your cluster {cluster_conf['cluster_name']} before.")
 
     #return the cluster with the given name or none
     def find_cluster(self, cluster_name):

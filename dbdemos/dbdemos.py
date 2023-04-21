@@ -197,10 +197,17 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
         demo_name = "lakehouse-retail-c360"
     installer = Installer(username, pat_token, workspace_url, cloud, current_cluster_id = current_cluster_id)
     if installer.get_current_cloud() == "GCP":
-        print("WARN: GCP detected, dbdemos will run the installation sequentially to avoid API timeouts, please be patient...")
+        print("WARN: GCP detected, dbdemos will slow down and run the dashboard installation sequentially to avoid API timeouts, please be patient...")
+        print("You can skip the dashboard installation adding: skip_dashboards=True")
+        print("--- details: changing dbdsql clone loader settings as following: ---")
+        print("from dbsqlclone.utils import load_dashboard")
+        print("load_dashboard.max_workers = 1")
+        print("load_dashboard.sleep_between_queries = 2 #Reduce to 1 or 0sec for faster installation")
+        print("----")
         try:
             from dbsqlclone.utils import load_dashboard
             load_dashboard.max_workers = 1
+            load_dashboard.sleep_between_queries = 2
             from urllib3 import Retry
             Retry.DEFAULT = Retry(3, backoff_factor=5)
         except Exception as e:

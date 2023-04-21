@@ -156,6 +156,7 @@ class DemoConf():
         self.json_conf = json_conf
         self.notebooks = []
         self.cluster = json_conf.get('cluster', {})
+        self.cluster_libraries = json_conf.get('cluster_libraries', [])
         self.workflows = json_conf.get('workflows', [])
         self.pipelines = json_conf.get('pipelines', [])
         self.repos = json_conf.get('repos', [])
