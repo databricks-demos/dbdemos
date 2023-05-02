@@ -221,9 +221,9 @@ class InstallerReport:
             html += f"""<h2>Workflows</h2><ul>"""
             for w in workflows:
                 if w['run_id'] is not None:
-                    html += f"""We created and started a <a href="{self.workspace_url}/#job/{w['job_id']}/run/{w['run_id']}">workflow</a> as part of your demo !"""
+                    html += f"""We created and started a <a href="{self.workspace_url}/#job/{w['uid']}/run/{w['run_id']}">workflow</a> as part of your demo !"""
                 else:
-                    html += f"""We created a <a href="{self.workspace_url}/#job/{w['job_id']}">workflow</a> as part of your demo !"""
+                    html += f"""We created a <a href="{self.workspace_url}/#job/{w['uid']}">workflow</a> as part of your demo !"""
             html +="</ul>"
         if job_id is not None:
             html += f"""<h2>Initialization job started</h2>
@@ -281,7 +281,7 @@ class InstallerReport:
                 if w['run_id'] is not None:
                     print(f"""We created and started a workflow as part of your demo: {self.workspace_url}/#job/{w['uid']}/run/{w['run_id']}""")
                 else:
-                    print(f"""We created a workflow as part of your demo: {self.workspace_url}/#job/{w['uid']}""")
+                    print(f"""We created a workflow as part of your demo: {self.workspace_url}/#job/{w['uid']}/tasks""")
         print("----------------------------------------------------")
         print(f"Your demo {title} is ready! ")
         if len(notebooks) > 0:

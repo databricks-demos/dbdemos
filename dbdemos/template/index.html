@@ -95,6 +95,21 @@
 
 <script>
 (function() {
+    function updateMenu() {
+        iframe = document.getElementById("_iframe")
+        if (iframe) {
+            iframeLink = iframe.contentWindow.location.href
+            const name = iframeLink.split("/").pop();
+            const selection = $('a[iframe-src="./'+name+'"]')
+            if (selection.length > 0) {
+                $('._left_menu').removeClass('active')
+                $(selection[0]).addClass('active')
+            }
+        }
+    }
+    //For some reason capturing the change on location doesn't work, instead check every sec :/
+    setInterval(updateMenu, 1000);
+
     $($('._left_menu')[0]).addClass('active')
 
     $('._left_menu').click(function(e) {

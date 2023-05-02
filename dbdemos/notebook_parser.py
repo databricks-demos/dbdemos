@@ -109,6 +109,37 @@ class NotebookParser:
         self.content = json.dumps(content)
 
 
+    #Will change the content to
+    def change_relative_links_for_minisite(self):
+        #self.replace_in_notebook("""<a\s*(?:target="_blank")?\s*(?:rel="noopener noreferrer")?\s*href="\$\.\/(.*)">""", """<a href="./$1">""", True)
+        self.replace_in_notebook("""\]\(\$\.\/(.*?)\)""", """](./\g<1>.html)""", True)
+
+
+    def add_javascript_to_minisite_relative_links(self):
+        self.html = re.sub("""</body>""",
+            """<script type="text/javascript">
+                function removeDollarFromLinks() {
+                  const links = document.getElementsByTagName("a");
+            
+                  for (let i = 0; i < links.length; i++) {
+                    const href = links[i].getAttribute("href");
+            
+                    if (href && href.includes("$")) {
+                      const newHref = href.replace(/\$/g, "");
+                      links[i].setAttribute("href", newHref+".html");
+            
+                      if (links[i].hasAttribute("target")) {
+                        links[i].removeAttribute("target");
+                      }
+                    }
+                  }
+                }
+                window.addEventListener('load', function(event) {
+                    removeDollarFromLinks()
+                });
+            </script>
+            </body>""", self.html)
+
     def add_ga_website_tracker(self):
         if False: #Tracker.enable_tracker:
             tracker = """

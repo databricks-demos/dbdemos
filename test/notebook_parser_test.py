@@ -25,6 +25,13 @@ def test_automl():
         #print(p.get_html())
         #p.hide_command_result(0)
 
+def test_change_relative_links_for_minisite():
+    with open("../dbdemos/bundles/llm-dolly-chatbot/install_package/01-Dolly-Introduction.html", "r") as f:
+        p = NotebookParser(f.read())
+        assert p.contains("""n the next [03-Q&A-prompt-engineering-for-dolly]($./03-Q&A-prompt-engineering-for-dolly) not""")
+        p.change_relative_links_for_minisite()
+        assert p.contains("""n the next [03-Q&A-prompt-engineering-for-dolly](./03-Q&A-prompt-engineering-for-dolly) not""")
+
 def test_parser_contains():
     with open("../dbdemos/bundles/mlops-end2end/install_package/_resources/00-setup.html", "r") as f:
         p = NotebookParser(f.read())
@@ -66,3 +73,4 @@ test_close_cell()
 test_automl()
 test_parser_contains()
 test_parser_notebook()
+test_change_relative_links_for_minisite()

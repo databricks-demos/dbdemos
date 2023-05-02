@@ -21,7 +21,7 @@ def bundle():
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
     bundler.reset_staging_repo(skip_pull=False, )
     # Discover bundles from repo:
-    #bundler.load_bundles_conf()
+    # bundler.load_bundles_conf()
     # Or manually add bundle to run faster:
     """
     bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
@@ -44,9 +44,9 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
 
 """
-    #bundler.add_bundle("product_demos/Delta-Sharing")
-    bundler.add_bundle("product_demos/Data-Science/feature-store")
-    bundler.add_bundle("product_demos/Data-Science/llm-dolly-chatbot")
+    bundler.add_bundle("demo-FSI/lakehouse-fsi-credit-decisioning")
+    #bundler.add_bundle("product_demos/Data-Science/feature-store")
+    #bundler.add_bundle("product_demos/Data-Science/llm-dolly-chatbot")
     #bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     #bundler.load_bundles_conf()
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
@@ -85,7 +85,7 @@ def bundle_with_retry(max_retry = 3):
 #bundle()
 
 #Loads conf to install on cse2.
-with open("local_conf_E2FE.json", "r") as r:
+with open("local_conf_azure.json", "r") as r:
     c = json.loads(r.read())
 
 from dbdemos.installer import Installer
@@ -103,8 +103,8 @@ import dbdemos
 
 #dbdemos.list_demos(None)
 
-dbdemos.install("llm-dolly-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False)
-dbdemos.install("feature-store", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
+dbdemos.install("lakehouse-fsi-credit-decisioning", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AZURE", use_current_cluster=False, skip_dashboards=True)
+#dbdemos.install("feature-store", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
 #dbdemos.install("alakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="Azure", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="GCP")
 #dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster=True)

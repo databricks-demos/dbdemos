@@ -21,7 +21,7 @@ class InstallerWorkflow:
                 job_name = definition["settings"]["name"]
                 #add cloud specific setup
                 job_id, run_id = self.create_or_replace_job(demo_conf.name, definition, job_name, workflow['start_on_install'], use_cluster_id)
-                print(f"    Demo workflow available: {self.installer.db.conf.workspace_url}/#job/{job_id}/run/{run_id}")
+                print(f"    Demo workflow available: {self.installer.db.conf.workspace_url}/#job/{job_id}/tasks")
                 workflows.append({"uid": job_id, "run_id": run_id, "id": workflow['id']})
         return workflows
 
@@ -62,6 +62,11 @@ class InstallerWorkflow:
                         if "node_type_id" in cluster["new_cluster"]: del cluster["new_cluster"]["node_type_id"]
                         if "enable_elastic_disk" in cluster["new_cluster"]: del cluster["new_cluster"]["enable_elastic_disk"]
                         if "aws_attributes" in cluster["new_cluster"]: del cluster["new_cluster"]["aws_attributes"]
+        # Add support for clsuter specific task
+        for task in definition["settings"]["tasks"]:
+            if "new_cluster" in task:
+                merge_dict(task["new_cluster"], cluster_conf)
+
         existing_job = self.installer.db.find_job(job_name)
         if existing_job is not None:
             job_id = existing_job["job_id"]
@@ -77,7 +82,7 @@ class InstallerWorkflow:
             print("    Creating a new job for demo initialization (data & table setup).")
             r_jobs = self.installer.db.post("2.1/jobs/create", definition["settings"])
             if "error_code" in r_jobs:
-                self.installer.report.display_workflow_error(WorkflowException("Can't create the workflow", definition["settings"], r_jobs), demo_name)
+                self.installer.report.display_workflow_error(WorkflowException("Can't create the workflow", {}, definition["settings"], r_jobs), demo_name)
             job_id = r_jobs["job_id"]
         if run_now:
             j = self.installer.db.post("2.1/jobs/run-now", {"job_id": job_id})

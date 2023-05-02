@@ -481,6 +481,11 @@ class Installer:
                     pipeline_ids.append({"name": pipeline["definition"]["name"], "uid": "INSTALLATION_ERROR", "id": pipeline["id"], "error": True})
                     self.report.display_pipeline_error(DLTCreationException(f"Error updating the DLT pipeline {id}: {p['error_code']}", definition, p))
                     continue
+            permissions = self.db.patch(f"2.0/preview/permissions/pipelines/{id}", {
+                "access_control_list": [{"group_name": "users", "permission_level": "CAN_MANAGE"}]
+            })
+            if 'error_code' in permissions:
+                print(f"WARN: Couldn't update the pipeline permission for all users to access: {permissions}. Try deleting the pipeline first?")
             pipeline_ids.append({"name": definition['name'], "uid": id, "id": pipeline["id"], "run_after_creation": pipeline["run_after_creation"] or existing_pipeline is not None})
             #Update the demo conf tags {{}} with the actual id (to be loaded as a job for example)
             demo_conf.set_pipeline_id(pipeline["id"], id)
