@@ -80,19 +80,19 @@ def help():
         from dbruntime.display import displayHTML
         displayHTML("""<style>
             .dbdemos_install{
-            font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji,FontAwesome;
-            color: #3b3b3b;
-            box-shadow: 0 .15rem 1.15rem 0 rgba(58,59,69,.15)!important;
-            padding: 10px;
-            margin: 10px;
+                font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji,FontAwesome;
+                color: #3b3b3b;
+                box-shadow: 0 .15rem 1.15rem 0 rgba(58,59,69,.15)!important;
+                padding: 10px;
+                margin: 10px;
             }
             .code {
-                padding: 5px;
-            border: 1px solid #e4e4e4;
-            font-family: monospace;
-            background-color: #f5f5f5;
-            margin: 5px 0px 0px 0px;
-            display: inline;
+                padding: 0px 5px;
+                border: 1px solid #e4e4e4;
+                font-family: monospace;
+                background-color: #f5f5f5;
+                margin: 5px 0px 0px 0px;
+                display: inline;
             }
             </style>
             <div class="dbdemos_install">

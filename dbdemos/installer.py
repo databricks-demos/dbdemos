@@ -172,7 +172,6 @@ class Installer:
         self.check_demo_name(demo_name)
         demo_conf = self.get_demo_conf(demo_name, install_path+"/"+demo_name)
         self.tracker.track_install(demo_conf.category, demo_name)
-        self.get_current_username()
         use_cluster_id = self.current_cluster_id if use_current_cluster else None
         try:
             cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists, start_cluster, use_cluster_id)
@@ -369,6 +368,7 @@ class Installer:
                     "project": "dbdemos"
                 },
                 "spot_instance_policy": "COST_OPTIMIZED",
+                "warehouse_type": "PRO",
                 "enable_photon": "true",
                 "enable_serverless_compute": serverless,
                 "channel": { "name": "CHANNEL_NAME_CURRENT" }

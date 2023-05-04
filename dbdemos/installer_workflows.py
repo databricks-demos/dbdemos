@@ -15,13 +15,13 @@ class InstallerWorkflow:
         workflows = []
         if len(demo_conf.workflows) > 0:
             print(f"    Loading demo workflows")
-            #We have an init jon
+            # We have an init jon
             for workflow in demo_conf.workflows:
                 definition = workflow['definition']
                 job_name = definition["settings"]["name"]
-                #add cloud specific setup
+                # add cloud specific setup
                 job_id, run_id = self.create_or_replace_job(demo_conf.name, definition, job_name, workflow['start_on_install'], use_cluster_id)
-                print(f"    Demo workflow available: {self.installer.db.conf.workspace_url}/#job/{job_id}/tasks")
+                # print(f"    Demo workflow available: {self.installer.db.conf.workspace_url}/#job/{job_id}/tasks")
                 workflows.append({"uid": job_id, "run_id": run_id, "id": workflow['id']})
         return workflows
 
@@ -55,7 +55,7 @@ class InstallerWorkflow:
         else:
             for cluster in definition["settings"]["job_clusters"]:
                 if "new_cluster" in cluster:
-                    merge_dict(cluster["new_cluster"], cluster_conf)
+                    merge_dict(cluster["new_cluster"], cluster_conf, override=False)
                     #Let's make sure we add our dev pool for faster startup
                     if self.db.conf.is_dev_env():
                         cluster["new_cluster"]["instance_pool_id"] = "0213-111033-rowed79-pool-zb80houq"
@@ -65,7 +65,7 @@ class InstallerWorkflow:
         # Add support for clsuter specific task
         for task in definition["settings"]["tasks"]:
             if "new_cluster" in task:
-                merge_dict(task["new_cluster"], cluster_conf)
+                merge_dict(task["new_cluster"], cluster_conf, override=False)
 
         existing_job = self.installer.db.find_job(job_name)
         if existing_job is not None:

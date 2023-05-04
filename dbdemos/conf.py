@@ -9,14 +9,14 @@ import re
 from requests import Response
 
 
-def merge_dict(a, b, path=None):
+def merge_dict(a, b, path=None, override = True):
     """merges dict b into a. Mutate a"""
     if path is None: path = []
     for key in b:
         if key in a:
             if isinstance(a[key], dict) and isinstance(b[key], dict):
                 merge_dict(a[key], b[key], path + [str(key)])
-            else:
+            elif override:
                 a[key] = b[key]
         else:
             a[key] = b[key]
@@ -193,6 +193,9 @@ class DemoConf():
         j = json.dumps(self.init_job)
         j = j.replace("{{DYNAMIC_DLT_ID_"+id+"}}", uid)
         self.init_job = json.loads(j)
+        j = json.dumps(self.workflows)
+        j = j.replace("{{DYNAMIC_DLT_ID_"+id+"}}", uid)
+        self.workflows = json.loads(j)
 
     def get_job_name(self):
         return "field-bundle_"+self.name
