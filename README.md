@@ -68,15 +68,23 @@ DBdemos will dynamically override the link to point to the resources created.
 **Always use links relative to the local path to support multi workspaces. Do not add the workspace id.**
 
 #### DLT pipelines:
-Your DLT pipeline must be added in the bundle file.
-Within your notebook, to identify your pipeline with the une in the bundle file, specify the id `dbdemos-pipeline-id="<id>"`as following:
+Your DLT pipeline must be added in the bundle file (see below).
+Within your notebook, to identify your pipeline using the id in the bundle file, specify the id `dbdemos-pipeline-id="<id>"`as following:
 
 `<a dbdemos-pipeline-id="dlt-churn" href="#joblist/pipelines/a6ba1d12-74d7-4e2d-b9b7-ca53b655f39d" target="_blank">Delta Live Table pipeline</a>`
+
+#### Workflows:
+Your workflows must be added in the bundle file (see below).
+Within your notebook, to identify your workflow using the id in the bundle file, specify the id `dbdemos-workflow-id="<id>"`as following:
+
+`<a dbdemos-workflow-id="credit-job" href="#joblist/pipelines/a6ba1d12-74d7-4e2d-b9b7-ca53b655f39d" target="_blank">Access your workflow</a>`
+
 
 #### DBSQL dashboards:
 DBSQL dashboard are automatically downloaded during the process. No need to add them in the bundle file. Simply use links as following:
 
 ` <a href="/sql/dashboards/19394330-2274-4b4b-90ce-d415a7ff2130" target="_blank">Churn Analysis Dashboard</a>`
+
 
 
 ### bundle_config
@@ -144,7 +152,15 @@ This need to be a notebook & not a .json file (due to current api limitation).
         "target": "demos_dlt_cdc_{{CURRENT_USER_NAME}}"
       }
     }
-  ]
+  ],
+  "workflows": [{
+    "start_on_install": False,
+    "id": "credit-job",
+    "definition": {
+        "settings": {
+        ... full pipeline settings
+    }
+  }]  
 }
 ```
 
