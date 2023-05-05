@@ -520,7 +520,7 @@ class Installer:
             cluster_conf["num_workers"] = 0
 
         existing_cluster = self.find_cluster(cluster_conf["cluster_name"])
-        if existing_cluster == None:
+        if existing_cluster is None:
             cluster = self.db.post("2.0/clusters/create", json = cluster_conf)
             if "error_code" in cluster and cluster["error_code"] == "PERMISSION_DENIED":
                 raise ClusterPermissionException(f"Can't create cluster for demo {demo_name}", cluster_conf, cluster)
@@ -544,10 +544,14 @@ class Installer:
             if "error_code" in install:
                 print(f"WARN: Couldn't install the libs: {cluster_conf}, libraries={demo_conf.cluster_libraries}")
 
-        if start_cluster:
+        # Only start if the cluster already exists (it's starting by default for new cluster)
+        if existing_cluster is not None and start_cluster:
             start = self.db.post("2.0/clusters/start", json = {"cluster_id": cluster_conf["cluster_id"]})
             if "error_code" in start:
-                raise ClusterCreationException(f"Couldn't start the cluster conf for {demo_name}", cluster_conf, start)
+                if start["error_code"] == "INVALID_STATE" and "unexpected state Pending" in start["message"]:
+                    print(f"INFO: looks like the cluster is already starting... full answer: {start}")
+                else:
+                    raise ClusterCreationException(f"Couldn't start the cluster for {demo_name}", cluster_conf, start)
 
         return cluster_conf['cluster_id'], cluster_conf['cluster_name']
 
