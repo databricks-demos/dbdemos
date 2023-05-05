@@ -34,7 +34,6 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-CDC")
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
     bundler.add_bundle("product_demos/Delta-Lake")
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
@@ -44,8 +43,9 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
 
 """
-    bundler.add_bundle("product_demos/DBSQL-Datawarehousing/sql-ai-functions")
-    #bundler.add_bundle("demo-FSI/lakehouse-fsi-credit-decisioning")
+    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/sql-ai-functions")
+    #bundler.add_bundle("product_demos/streaming-sessionization")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
     #bundler.add_bundle("product_demos/Data-Science/feature-store")
     #bundler.add_bundle("product_demos/Data-Science/llm-dolly-chatbot")
@@ -59,11 +59,10 @@ def bundle():
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
-    #bundler.add_bundle("product_demos/streaming-sessionization")
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
-    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False)
+    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=True)
 
     packager = Packager(conf, bundler)
     packager.package_all()

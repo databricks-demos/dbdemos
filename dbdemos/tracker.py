@@ -31,7 +31,7 @@ class Tracker:
             return {}
         if len(notebook) > 0:
             notebook = '/'+notebook
-        params = {"v": 1, "gtm": Tracker.GTM, "tid": Tracker.TID, "cid": 555, "aip": 1, "t": "event",
+        params = {"v": 1, "gtm": Tracker.GTM, "tid": Tracker.TID, "aip": 1, "t": "event",
                   "ec":"dbdemos", "ea":"display", "dp": f"/_dbdemos/{category}/{demo_name}{notebook}",
                   "cid": self.org_id, "uid": self.uid, "ea": event}
         return params
