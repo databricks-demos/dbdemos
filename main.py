@@ -44,6 +44,9 @@ def bundle():
 
 """
     bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    bundler.add_bundle("product_demos/Delta-Lake")
+    bundler.add_bundle("product_demos/Data-Science/llm-dolly-chatbot")
+    bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/sql-ai-functions")
     #bundler.add_bundle("product_demos/streaming-sessionization")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
@@ -52,7 +55,7 @@ def bundle():
     #bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     #bundler.load_bundles_conf()
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
-    #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
+
     #bundler.add_bundle("product_demos/DBT")
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")

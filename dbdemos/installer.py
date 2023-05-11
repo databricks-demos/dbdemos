@@ -486,7 +486,7 @@ class Installer:
             })
             if 'error_code' in permissions:
                 print(f"WARN: Couldn't update the pipeline permission for all users to access: {permissions}. Try deleting the pipeline first?")
-            pipeline_ids.append({"name": definition['name'], "uid": id, "id": pipeline["id"], "run_after_creation": pipeline["run_after_creation"] or existing_pipeline is not None})
+            pipeline_ids.append({"name": definition['name'], "uid": id, "id": pipeline["id"], "run_after_creation": pipeline["run_after_creation"]})
             #Update the demo conf tags {{}} with the actual id (to be loaded as a job for example)
             demo_conf.set_pipeline_id(pipeline["id"], id)
         return pipeline_ids

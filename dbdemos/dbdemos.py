@@ -191,12 +191,12 @@ def list_delta_live_tables(category = None):
 def list_dashboards(category = None):
     pass
 
-def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None, use_current_cluster: bool = False, current_cluster_id = None):
+def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None, use_current_cluster: bool = False, current_cluster_id = None, install_dashboard_sequentially = None):
     if demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
         demo_name = "lakehouse-retail-c360"
     installer = Installer(username, pat_token, workspace_url, cloud, current_cluster_id = current_cluster_id)
-    if installer.get_current_cloud() == "GCP":
+    if (installer.get_current_cloud() == "GCP" and install_dashboard_sequentially is None) or install_dashboard_sequentially:
         print("WARN: GCP detected, dbdemos will slow down and run the dashboard installation sequentially to avoid API timeouts, please be patient...")
         print("You can skip the dashboard installation adding: skip_dashboards=True")
         print("--- details: changing dbdsql clone loader settings as following: ---")
