@@ -106,8 +106,9 @@ def help():
                   <div class="code">dbdemos.list_demos(category: str = None)</div>: list all demos available, can filter per category (ex: 'governance').<br/><br/>
                 </li>
                 <li>
-                  <div class="code">dbdemos.install_demo(demo_name: str, path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS")</div>: install the given demo to the given path.<br/><br/>
+                  <div class="code">dbdemos.install(demo_name: str, path: str = "./", overwrite: bool = False, use_current_cluster = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS")</div>: install the given demo to the given path.<br/><br/>
                   If overwrite is True, will delete the given folder and re-install the notebooks.<br/>
+                  use_current_cluster = True will not start a new cluster to init the demo but use the current cluster instead. <strong>Set it to True it if you don't have cluster creation permission</strong>.<br/>
                   skip_dashboards = True will not load the DBSQL dashboard if any (faster, use it if the dashboard generation creates some issue).<br/>                  
                   If no authentication are provided, will use the current user credential & workspace + cloud to install the demo.<br/><br/>
                 </li>
@@ -123,7 +124,7 @@ def help():
         print("------------ DBDemos ------------------")
         print("""dbdemos.help(): display help.""")
         print("""dbdemos.list_demos(category: str = None): list all demos available, can filter per category (ex: 'governance').""")
-        print("""dbdemos.install_demo(demo_name: str, path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS"): install the given demo to the given path.""")
+        print("""dbdemos.install(demo_name: str, path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS"): install the given demo to the given path.""")
         print("""dbdemos.create_cluster(demo_name: str): install update the interactive cluster for the demo (scoped to the user).""")
         print("""dbdemos.install_all(path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS")</div>: install all the demos to the given path.""")
 

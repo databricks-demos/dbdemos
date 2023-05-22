@@ -43,12 +43,16 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
 
 """
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
-    bundler.add_bundle("product_demos/Delta-Lake")
+    #bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
+    #bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
+    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    #bundler.add_bundle("product_demos/Delta-Lake")
     bundler.add_bundle("product_demos/Data-Science/llm-dolly-chatbot")
-    bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
+    #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/sql-ai-functions")
     #bundler.add_bundle("product_demos/streaming-sessionization")
+
+    bundler.add_bundle("demo-FSI/lakehouse-fsi-credit-decisioning")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
     #bundler.add_bundle("product_demos/Data-Science/feature-store")
     #bundler.add_bundle("product_demos/Data-Science/llm-dolly-chatbot")
@@ -109,7 +113,7 @@ import dbdemos
 #dbdemos.install("sql-ai-functions", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
 
 #dbdemos.install("lakehouse-fsi-credit", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AZURE", use_current_cluster=False, skip_dashboards=True)
-#dbdemos.install("lakehouse-fsi-credit", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, skip_dashboards=True)
+dbdemos.install("lakehouse-fsi-credit", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, skip_dashboards=True)
 
 #dbdemos.install("feature-store", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
 #dbdemos.install("alakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="Azure", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
