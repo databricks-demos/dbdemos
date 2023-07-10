@@ -1,6 +1,8 @@
 import collections
 
 import pkg_resources
+from dbsqlclone.utils.load_dashboard import DashboardWidgetException
+
 from dbdemos.packager import Packager
 
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
@@ -158,7 +160,7 @@ class Installer:
         return True
 
 
-    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False):
+    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False, debug = False):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -168,7 +170,8 @@ class Installer:
             install_path = self.get_current_folder()+"/"+install_path
         if install_path.endswith("/"):
             install_path = install_path[:-1]
-        print(f"Installing demo {demo_name} under {install_path}...")
+        print(f"Installing demo {demo_name} under {install_path}, please wait...")
+        print(f"Something not working during the install? Help us improving dbdemos and create an issue: https://github.com/databricks-demos/dbdemos")
         self.check_demo_name(demo_name)
         demo_conf = self.get_demo_conf(demo_name, install_path+"/"+demo_name)
         self.tracker.track_install(demo_conf.category, demo_name)
@@ -177,23 +180,24 @@ class Installer:
             cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists, start_cluster, use_cluster_id)
         except ClusterException as e:
             self.report.display_cluster_creation_error(e, demo_conf)
-        pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf)
-        dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path)
-        repos = self.installer_repo.install_repos(demo_conf)
-        workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id)
-        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, workflows, repos, overwrite, use_current_cluster)
-        job_id, run_id = self.installer_workflow.start_demo_init_job(demo_conf, use_cluster_id)
+        pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug)
+        dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path, debug)
+        repos = self.installer_repo.install_repos(demo_conf, debug)
+        workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, debug)
+        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, workflows, repos, overwrite, use_current_cluster, debug)
+        job_id, run_id = self.installer_workflow.start_demo_init_job(demo_conf, use_cluster_id, debug)
         for pipeline in pipeline_ids:
             if "run_after_creation" in pipeline and pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
 
         self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
 
-    def install_dashboards(self, demo_conf: DemoConf, install_path):
+    def install_dashboards(self, demo_conf: DemoConf, install_path, debug=True):
         if "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
-            print(f'    Installing dashboards')
+            if debug:
+                print(f'    Installing dashboards')
             def install_dash(dashboard):
-                return self.install_dashboard(demo_conf, install_path, dashboard)
+                return self.install_dashboard(demo_conf, install_path, dashboard, debug)
             dashboards = pkg_resources.resource_listdir("dbdemos", "bundles/" + demo_conf.name + "/dashboards")
             #filter out new import/export api:
             dashboards = filter(lambda n: Packager.DASHBOARD_IMPORT_API not in n, dashboards)
@@ -201,15 +205,18 @@ class Installer:
                 # Parallelize dashboard install, 3 by 3. Not on GCP as it's failing
                 with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                     return [n for n in executor.map(install_dash, dashboards)]
+            except DashboardWidgetException as e:
+                self.report.display_dashboard_widget_exception(e, demo_conf)
             except Exception as e:
                 self.report.display_dashboard_error(e, demo_conf)
         return []
 
-    def install_dashboard(self, demo_conf, install_path, dashboard):
+    def install_dashboard(self, demo_conf, install_path, dashboard, debug=True):
         definition = json.loads(self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard))
         id = dashboard[:dashboard.rfind(".json")]
         dashboard_name = definition['dashboard']['name']
-        print(f"     Installing dashboard {dashboard_name} - {id}...")
+        if debug:
+            print(f"     Installing dashboard {dashboard_name} - {id}...")
         from dbsqlclone.utils import dump_dashboard
         from dbsqlclone.utils.client import Client
         client = Client(self.db.conf.workspace_url, self.db.conf.pat_token)
@@ -226,8 +233,9 @@ class Installer:
                 #TODO: legacy import/export
                 definition['name'] = dashboard_name
                 #definition['dashboard']['name'] = dashboard_name
-                print(
-                    f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
+                if debug:
+                    print(
+                        f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
                 existing_dashboard = self.get_dashboard_by_name(dashboard_name)
                 if existing_dashboard is not None:
                     existing_dashboard = dump_dashboard.get_dashboard_definition_by_id(client, existing_dashboard['id'])
@@ -257,9 +265,10 @@ class Installer:
             endpoint = self.get_or_create_endpoint(self.db.conf.name)
             if endpoint is None:
                 print(
-                    "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without endoint (import will pick the first available if any)")
+                    "WARN: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? dbdemos will continue trying to import the dashboard without endoint (import will pick the first available if any)")
             else:
                 client.data_source_id = endpoint['id']
+                client.endpoint_id = endpoint['warehouse_id']
             if existing_dashboard is not None:
                 load_dashboard.clone_dashboard_without_saved_state(definition, client, existing_dashboard['id'], parent=f'folders/{parent_folder_id}')
                 return {"id": id, "name": dashboard_name, "installed_id": existing_dashboard['id']}
@@ -379,7 +388,10 @@ class Installer:
                 w = self.db.post("2.0/sql/warehouses", json=get_definition(serverless, endpoint_name+"-"+username))
             if "id" in w:
                 return w
-            print(f"WARN: Couldn't create endpoint with serverless = {endpoint_name} and endpoint name: {endpoint_name} and {endpoint_name}-{username}. Creation response: {w}")
+            if serverless:
+                print(f"WARN: Couldn't create serverless warehouse ({endpoint_name}). Will fallback to standard SQL warehouse. Creation response: {w}")
+            else:
+                print(f"WARN: Couldn't create warehouse: {endpoint_name} and {endpoint_name}-{username}. Creation response: {w}. Use another warehouse to view your dashboard.")
             return None
 
         if try_create_endpoint(True) is None:
@@ -391,15 +403,17 @@ class Installer:
         print(f"ERROR: Couldn't create endpoint.")
         return None
 
-    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str, pipeline_ids, dashboards, workflows, repos, overwrite=False, use_current_cluster=False):
+    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str, pipeline_ids, dashboards, workflows, repos, overwrite=False, use_current_cluster=False, debug=False):
         assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
-        print(f'    Installing notebooks')
+        if debug:
+            print(f'    Installing notebooks')
         install_path = install_path+"/"+demo_name
         s = self.db.get("2.0/workspace/get-status", {"path": install_path})
         if 'object_type' in s:
             if not overwrite:
                 self.report.display_folder_already_existing(ExistingResourceException(install_path, s), demo_conf)
-            print(f"    Folder {install_path} already exists. Deleting the existing content...")
+            if debug:
+                print(f"    Folder {install_path} already exists. Deleting the existing content...")
             assert install_path not in ['/Users', '/Repos', '/Shared'], "Demo name is missing, shouldn't happen. Fail to prevent main deletion."
             d = self.db.post("2.0/workspace/delete", {"path": install_path, 'recursive': True})
             if 'error_code' in d:
@@ -450,7 +464,7 @@ class Installer:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
 
 
-    def load_demo_pipelines(self, demo_name, demo_conf: DemoConf):
+    def load_demo_pipelines(self, demo_name, demo_conf: DemoConf, debug=False):
         #default cluster conf
         pipeline_ids = []
         for pipeline in demo_conf.pipelines:
@@ -460,7 +474,8 @@ class Installer:
             for cluster in definition["clusters"]:
                 merge_dict(cluster, {"custom_tags": {"project": "dbdemos", "demo": demo_name, "demo_install_date": today}})
             existing_pipeline = self.get_pipeline(definition["name"])
-            print(f'    Installing pipeline {definition["name"]}')
+            if debug:
+                print(f'    Installing pipeline {definition["name"]}')
             if existing_pipeline == None:
                 p = self.db.post("2.0/pipelines", definition)
                 if 'error_code' in p and p['error_code'] == 'FEATURE_DISABLED':
@@ -474,7 +489,8 @@ class Installer:
                     continue
                 id = p['pipeline_id']
             else:
-                print("    Updating existing pipeline with last configuration")
+                if debug:
+                    print("    Updating existing pipeline with last configuration")
                 id = existing_pipeline['pipeline_id']
                 p = self.db.put("2.0/pipelines/"+id, definition)
                 if 'error_code' in p:

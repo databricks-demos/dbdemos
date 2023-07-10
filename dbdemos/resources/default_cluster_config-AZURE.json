@@ -1,5 +1,5 @@
 {
-  "node_type_id": "Standard_DS4_v2",
+  "node_type_id": "Standard_D8ds_v4",
   "azure_attributes": {
     "first_on_demand": 1,
     "availability": "ON_DEMAND_AZURE",

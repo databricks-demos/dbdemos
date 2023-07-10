@@ -30,7 +30,7 @@ def test_change_relative_links_for_minisite():
         p = NotebookParser(f.read())
         assert p.contains("""n the next [03-Q&A-prompt-engineering-for-dolly]($./03-Q&A-prompt-engineering-for-dolly) not""")
         p.change_relative_links_for_minisite()
-        assert p.contains("""n the next [03-Q&A-prompt-engineering-for-dolly](./03-Q&A-prompt-engineering-for-dolly) not""")
+        assert p.contains("""n the next [03-Q&A-prompt-engineering-for-dolly](./03-Q&A-prompt-engineering-for-dolly.html) not""")
 
 def test_parser_contains():
     with open("../dbdemos/bundles/mlops-end2end/install_package/_resources/00-setup.html", "r") as f:
@@ -69,6 +69,7 @@ def test_parser_notebook():
 
 
 
+test_automl()
 test_close_cell()
 test_automl()
 test_parser_contains()

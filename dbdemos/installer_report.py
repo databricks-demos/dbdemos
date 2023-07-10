@@ -1,3 +1,5 @@
+from dbsqlclone.utils.load_dashboard import DashboardWidgetException
+
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .exceptions.dbdemos_exception import ClusterCreationException, ExistingResourceException, FolderDeletionException, \
     DLTException, WorkflowException, FolderCreationException
@@ -67,6 +69,14 @@ class InstallerReport:
                                       f"""Full cluster configuration: <div class="code dbdemos_block">{json.dumps(exception.cluster_conf)}.</div><br/>"""
                                       f"""Full error: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""")
 
+
+    def display_dashboard_widget_exception(self, exception: DashboardWidgetException, demo_conf: DemoConf):
+        self.display_error(exception, f"""The dashboard has widget queries, and these queries need to be run before importing other queries.<br/>
+                                          dbdemo started a job to run these queries but it failed with the following error<br/>
+                                          <div class="code dbdemos_block">{exception.error}</div><br/>
+                                          For more details, open the job run page: {exception.run_url}<br/>
+                                          You can skip the dashboard installation with skip_dashboards = True:
+                                          <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', skip_dashboards = True)</div><br/>""")
 
     def display_dashboard_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"""Couldn't create or update a dashboard. <br/>
@@ -227,8 +237,10 @@ class InstallerReport:
             html +="</ul>"
         if job_id is not None:
             html += f"""<h2>Initialization job started</h2>
-                        We started a <a href="{self.workspace_url}/#job/{job_id}/run/{run_id}">job</a> to initialize your demo data (for DBSQL Dashboards & Delta Live Table). 
-                        Please wait for the job completion to be able to access the dataset & dashboards..."""
+                        <div style="background-color: #e8f1ff; padding: 10px">
+                            We started a <a href="{self.workspace_url}/#job/{job_id}/run/{run_id}">job to initialize your demo data</a> (for DBSQL Dashboards & Delta Live Table). 
+                            <strong>Please wait for the job completion to be able to access the dataset & dashboards...</strong>
+                        </div>"""
         html += cluster_section+"</div>"
         return html
 

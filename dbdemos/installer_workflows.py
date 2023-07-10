@@ -11,32 +11,34 @@ class InstallerWorkflow:
         self.db = installer.db
 
     #Start the init job if it exists
-    def install_workflows(self, demo_conf: DemoConf, use_cluster_id = None):
+    def install_workflows(self, demo_conf: DemoConf, use_cluster_id = None, debug = False):
         workflows = []
         if len(demo_conf.workflows) > 0:
-            print(f"    Loading demo workflows")
+            if debug:
+                print(f"    Loading demo workflows")
             # We have an init jon
             for workflow in demo_conf.workflows:
                 definition = workflow['definition']
                 job_name = definition["settings"]["name"]
                 # add cloud specific setup
-                job_id, run_id = self.create_or_replace_job(demo_conf.name, definition, job_name, workflow['start_on_install'], use_cluster_id)
+                job_id, run_id = self.create_or_replace_job(demo_conf.name, definition, job_name, workflow['start_on_install'], use_cluster_id, debug)
                 # print(f"    Demo workflow available: {self.installer.db.conf.workspace_url}/#job/{job_id}/tasks")
                 workflows.append({"uid": job_id, "run_id": run_id, "id": workflow['id']})
         return workflows
 
     #Start the init job if it exists
-    def start_demo_init_job(self, demo_conf: DemoConf, use_cluster_id = None):
+    def start_demo_init_job(self, demo_conf: DemoConf, use_cluster_id = None, debug = False):
         if "settings" in demo_conf.init_job:
             job_name = demo_conf.init_job["settings"]["name"]
-            print(f"    Searching for existing demo initialisation job {job_name}")
+            if debug:
+                print(f"    Searching for existing demo initialisation job {job_name}")
             #We have an init json
             job_id, run_id = self.create_or_replace_job(demo_conf.name, demo_conf.init_job, job_name, True, use_cluster_id)
             return job_id, run_id
         return None, None
 
 
-    def create_or_replace_job(self, demo_name: str, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None):
+    def create_or_replace_job(self, demo_name: str, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None, debug = False):
         cloud = self.installer.get_current_cloud()
         conf_template = ConfTemplate(self.db.conf.username, demo_name)
         cluster_conf = self.installer.get_resource("resources/default_cluster_job_config.json")
@@ -71,15 +73,17 @@ class InstallerWorkflow:
         if existing_job is not None:
             job_id = existing_job["job_id"]
             self.installer.db.post("/2.1/jobs/runs/cancel-all", {"job_id": job_id})
-            self.wait_for_run_completion(job_id)
-            print("    Updating existing job")
+            self.wait_for_run_completion(job_id, debug)
+            if debug:
+                print("    Updating existing job")
             job_config = {"job_id": job_id, "new_settings": definition["settings"]}
             r = self.installer.db.post("2.1/jobs/reset", job_config)
             if "error_code" in r:
                 self.installer.report.display_workflow_error(WorkflowException("Can't update the workflow",
                                                                                f"error resetting the workflow, do you have permission?.", job_config, r), demo_name)
         else:
-            print("    Creating a new job for demo initialization (data & table setup).")
+            if debug:
+                print("    Creating a new job for demo initialization (data & table setup).")
             r_jobs = self.installer.db.post("2.1/jobs/create", definition["settings"])
             if "error_code" in r_jobs:
                 self.installer.report.display_workflow_error(WorkflowException("Can't create the workflow", {}, definition["settings"], r_jobs), demo_name)
@@ -104,11 +108,12 @@ class InstallerWorkflow:
                 definition = json.loads(json.dumps(definition).replace("{{SHARED_WAREHOUSE_ID}}", endpoint['warehouse_id']))
         return definition
 
-    def wait_for_run_completion(self, job_id, max_retry=10):
+    def wait_for_run_completion(self, job_id, max_retry=10, debug = False):
         def is_still_running(job_id):
             runs = self.installer.db.get("2.1/jobs/runs/list", {"job_id": job_id, "active_only": "true"})
             return "runs" in runs and len(runs["runs"]) > 0
         i = 0
         while i <= max_retry and is_still_running(job_id):
-            print(f"      A run is still running for job {job_id}, waiting for termination...")
+            if debug:
+                print(f"      A run is still running for job {job_id}, waiting for termination...")
             time.sleep(5)

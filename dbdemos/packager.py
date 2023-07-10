@@ -46,7 +46,7 @@ class Packager:
             dashboard = self.db.get(f"2.0/preview/sql/dashboards/{id}/export")
             if "message" in dashboard:
                 raise Exception(f"Error exporting dashboard id {id} in demo {demo_conf.name}. "
-                                f"Ids are extracted from links in notebooks, please review & correct your notebook template.")
+                                f"Ids are extracted from links in notebooks, please review & correct your notebook template. Export answer: {dashboard}")
             dashboard = cleanup_names_import_bug(dashboard)
             dashboard_path = demo_conf.get_bundle_dashboard_path()
             Path(dashboard_path).mkdir(parents=True, exist_ok=True)

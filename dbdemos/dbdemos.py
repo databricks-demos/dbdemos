@@ -192,7 +192,7 @@ def list_delta_live_tables(category = None):
 def list_dashboards(category = None):
     pass
 
-def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None, use_current_cluster: bool = False, current_cluster_id = None, install_dashboard_sequentially = None):
+def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None, use_current_cluster: bool = False, current_cluster_id = None, install_dashboard_sequentially = None, debug = False):
     if demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
         demo_name = "lakehouse-retail-c360"
@@ -217,7 +217,7 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
     if not installer.test_premium_pricing():
         #Force dashboard skip as dbsql isn't available to avoid any error.
         skip_dashboards = True
-    installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster)
+    installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster, debug = debug)
 
 
 def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None, use_current_cluster = False):
@@ -248,7 +248,7 @@ def check_status(demo_name:str, username = None, pat_token = None, workspace_url
         existing_job = installer.db.find_job(job_name)
         if existing_job == None:
             raise Exception(f"Couldn't find job for demo {demo_name}. Did you install it first?")
-        installer.installer_workflow.wait_for_run_completion(existing_job['job_id'])
+        installer.installer_workflow.wait_for_run_completion(existing_job['job_id'], True)
         runs = installer.db.get("2.1/jobs/runs/list", {"job_id": existing_job['job_id'], "limit": 1})
         if runs['runs'][0]['state']['result_state'] != "SUCCESS":
             raise Exception(f"Job {existing_job['job_id']} for demo {demo_name} failed: {installer.db.conf.workspace_url}/#job/{existing_job['job_id']}/run/{runs['runs'][0]['run_id']} - {runs}")

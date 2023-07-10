@@ -8,10 +8,11 @@ class InstallerRepo:
         self.db = installer.db
 
     #Start the init job if it exists
-    def install_repos(self, demo_conf: DemoConf):
+    def install_repos(self, demo_conf: DemoConf, debug = False):
         repos = []
         if len(demo_conf.repos) > 0:
-            print(f"    Loading demo repos")
+            if debug:
+                print(f"    Loading demo repos")
             #We have an init jon
             for repo in demo_conf.repos:
                 repo_id = self.update_or_create_repo(repo)

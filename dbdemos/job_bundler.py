@@ -46,9 +46,9 @@ class JobBundler:
         path = bundle_config_paths[len(self.conf.get_repo_path()):]
         path = path[:-len("_resources/bundle_config")-1]
         print(f"add bundle under {path}")
-        if "lakehouse-fsi-fraud-detection" in path or "lakehouse-fsi-credit-decisioning" in path:
+        if "xxxxx" in path:
             print("WARNING --------------------------------------------------------------------------------")
-            print(f"TEMPORARY DISABLING FSI DEMOS DUE TO UC MATERIALIZED VIEW PREVIEW - {path}")
+            print(f"TEMPORARY DISABLING CV DEMOS - {path}")
             print("WARNING --------------------------------------------------------------------------------")
         else:
             self.add_bundle(path)
