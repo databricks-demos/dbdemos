@@ -171,7 +171,7 @@ class Installer:
         if install_path.endswith("/"):
             install_path = install_path[:-1]
         print(f"Installing demo {demo_name} under {install_path}, please wait...")
-        print(f"Something not working during the install? Help us improving dbdemos and create an issue: https://github.com/databricks-demos/dbdemos")
+        print(f"Help us improving dbdemos, share your feedback and create an issue if something isn't working: https://github.com/databricks-demos/dbdemos")
         self.check_demo_name(demo_name)
         demo_conf = self.get_demo_conf(demo_name, install_path+"/"+demo_name)
         self.tracker.track_install(demo_conf.category, demo_name)

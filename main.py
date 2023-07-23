@@ -25,7 +25,7 @@ def bundle():
     # Or manually add bundle to run faster:
     #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
     #bundler.add_bundle("product_demos/Unity-Catalog/04-Audit-log")
-    #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
+    bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
     """0
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
@@ -43,15 +43,16 @@ def bundle():
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-CDC")
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
-    bundler.add_bundle("product_demos/Delta-Lake")
     bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
     bundler.add_bundle("product_demos/Unity-Catalog/03-Data-lineage")
     bundler.add_bundle("product_demos/Delta-Lake-CDC-CDF")
     bundler.add_bundle("product_demos/streaming-sessionization")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
 """
-    bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
-    bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
+    #bundler.add_bundle("product_demos/Delta-Lake")
+    #bundler.add_bundle("product_demos/Data-Science/computer-vision-dl")
+    #bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
+    #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     #bundler.add_bundle("product_demos/streaming-sessionization")
     #bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
@@ -99,7 +100,7 @@ def bundle_with_retry(max_retry = 3):
             print(str(e))
 
 #bundle_with_retry(3)
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -111,9 +112,9 @@ import dbdemos
 
 #dbdemos.install_all("/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards = True)
 #dbdemos.check_status_all(c['username'], c['pat_token'], c['url'], cloud="AWS")
-dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False)
-dbdemos.install("uc-01-acl", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False)
-dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False)
+#dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False)
+#dbdemos.install("uc-01-acl", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False)
+#dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False)
 #dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False)
 #installer = Installer()
 #for d in installer.get_demos_available():
