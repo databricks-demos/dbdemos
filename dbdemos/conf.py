@@ -171,6 +171,10 @@ class DemoConf():
         self.title = json_conf['title']
         self.description = json_conf['description']
         self.tags = json_conf.get('tags', [])
+        self.custom_schema_supported = json_conf.get('custom_schema_supported', False)
+        self.default_schema = json_conf.get('default_schema', "")
+        self.default_catalog = json_conf.get('default_catalog', "")
+        self.custom_message = json_conf.get('custom_message', "")
         assert "bundle" in json_conf and json_conf["bundle"], "This demo isn't flaged for bundle. Please set bunde = True in the config file"
 
         for n in json_conf['notebooks']:

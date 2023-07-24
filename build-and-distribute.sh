@@ -2,6 +2,7 @@
 bump
 #pachage
 rm -rf ./dist/*
+rm -rf ./dbdemos/bundles/.DS_Store
 python3 setup.py clean --all bdist_wheel
 echo "Package built under dist/ - updating pypi with new version..."
 ls -alh ./dist

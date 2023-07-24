@@ -8,7 +8,7 @@ from dbdemos.packager import Packager
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .exceptions.dbdemos_exception import ClusterPermissionException, ClusterCreationException, ClusterException, \
     ExistingResourceException, FolderDeletionException, DLTNotAvailableException, DLTCreationException, DLTException, \
-    FolderCreationException
+    FolderCreationException, TokenException
 from .installer_report import InstallerReport
 from .tracker import Tracker
 from .notebook_parser import NotebookParser
@@ -102,12 +102,10 @@ class Installer:
     def get_current_pat_token(self):
         try:
             token = self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
-        except:
-            return "local"
+        except Exception as e:
+            raise TokenException("Couldn't get a PAT Token: "+str(e))
         if len(token) == 0:
-            raise Exception("Couldn't get a token to call Databricks API to create demo resources. " +
-                            "This is likely due to legacy cluster being used with admin protection for “No isolation shared” https://docs.databricks.com/administration-guide/account-settings/no-isolation-shared.html (account level setting)." +
-                            "\nPlease use a cluser with Access mode set to Isolation to Single User or Shared instead and re-run your dbdemos command.")
+            raise TokenException("Empty PAT Token.")
         return token
 
     def get_current_username(self):
@@ -160,7 +158,7 @@ class Installer:
         return True
 
 
-    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False, debug = False):
+    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False, debug = False, catalog = None, schema = None):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -170,10 +168,13 @@ class Installer:
             install_path = self.get_current_folder()+"/"+install_path
         if install_path.endswith("/"):
             install_path = install_path[:-1]
-        print(f"Installing demo {demo_name} under {install_path}, please wait...")
-        print(f"Help us improving dbdemos, share your feedback and create an issue if something isn't working: https://github.com/databricks-demos/dbdemos")
         self.check_demo_name(demo_name)
         demo_conf = self.get_demo_conf(demo_name, install_path+"/"+demo_name)
+        if (schema is not  None or catalog is not None) and not demo_conf.custom_schema_supported:
+            self.report.display_custom_schema_not_supported_error(Exception('Custom schema not supported'), demo_conf)
+        if (schema is not None and catalog is None) or (schema is None and catalog is not None):
+            self.report.display_custom_schema_missing_error(Exception('Catalog and Schema must both be defined.'), demo_conf)
+        self.report.display_install_info(demo_conf, install_path, catalog, schema)
         self.tracker.track_install(demo_conf.category, demo_name)
         use_cluster_id = self.current_cluster_id if use_current_cluster else None
         try:
@@ -181,10 +182,10 @@ class Installer:
         except ClusterException as e:
             self.report.display_cluster_creation_error(e, demo_conf)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug)
-        dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path, debug)
+        dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path, catalog, schema, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
         workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, debug)
-        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, workflows, repos, overwrite, use_current_cluster, debug)
+        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, workflows, repos, catalog, schema, overwrite, use_current_cluster, debug)
         job_id, run_id = self.installer_workflow.start_demo_init_job(demo_conf, use_cluster_id, debug)
         for pipeline in pipeline_ids:
             if "run_after_creation" in pipeline and pipeline["run_after_creation"]:
@@ -192,12 +193,12 @@ class Installer:
 
         self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
 
-    def install_dashboards(self, demo_conf: DemoConf, install_path, debug=True):
+    def install_dashboards(self, demo_conf: DemoConf, install_path, catalog, schema, debug=True):
         if "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
             if debug:
                 print(f'    Installing dashboards')
             def install_dash(dashboard):
-                return self.install_dashboard(demo_conf, install_path, dashboard, debug)
+                return self.install_dashboard(demo_conf, install_path, dashboard, catalog, schema, debug)
             dashboards = pkg_resources.resource_listdir("dbdemos", "bundles/" + demo_conf.name + "/dashboards")
             #filter out new import/export api:
             dashboards = filter(lambda n: Packager.DASHBOARD_IMPORT_API not in n, dashboards)
@@ -211,10 +212,23 @@ class Installer:
                 self.report.display_dashboard_error(e, demo_conf)
         return []
 
-    def install_dashboard(self, demo_conf, install_path, dashboard, debug=True):
-        definition = json.loads(self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard))
+    def replace_schema(self, demo_conf: DemoConf, definition: str, catalog: str, schema: str):
+        if catalog is not None or schema is not None:
+            assert schema is not None and catalog is not None, f"both catalog={catalog} and schema={schema} must be set"
+            return definition.replace(demo_conf.default_catalog+"."+demo_conf.default_schema, f"`{catalog}`.`{schema}`")
+        return definition
+
+    def install_dashboard(self, demo_conf, install_path, dashboard, catalog, schema, debug=True):
+        definition = self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard)
+        definition = self.replace_schema(demo_conf, definition, catalog, schema)
+        definition = json.loads(definition)
         id = dashboard[:dashboard.rfind(".json")]
         dashboard_name = definition['dashboard']['name']
+        name = self.db.conf.username[:self.db.conf.username.rfind('@')]
+        name = re.sub("[^A-Za-z0-9]", '_', name)
+        dashboard_name = dashboard_name + " - " + name
+        definition['dashboard']['name'] = dashboard_name
+
         if debug:
             print(f"     Installing dashboard {dashboard_name} - {id}...")
         from dbsqlclone.utils import dump_dashboard
@@ -227,18 +241,9 @@ class Installer:
             could_change_owner_changed = self.change_dashboard_ownership(existing_dashboard)
             # Can't change ownership, we won't be able to override the dashboard. Create a new one with your name.
             if not could_change_owner_changed:
-                name = self.db.conf.username[:self.db.conf.username.rfind('@')]
-                name = re.sub("[^A-Za-z0-9]", '_', name)
-                dashboard_name = dashboard_name + " - " + name
-                #TODO: legacy import/export
-                definition['name'] = dashboard_name
                 #definition['dashboard']['name'] = dashboard_name
-                if debug:
-                    print(
-                        f"     Could not change ownership. Searching dashboard with current username instead: {dashboard_name}")
-                existing_dashboard = self.get_dashboard_by_name(dashboard_name)
-                if existing_dashboard is not None:
-                    existing_dashboard = dump_dashboard.get_dashboard_definition_by_id(client, existing_dashboard['id'])
+                print(
+                    f"WARNING:  Could not change dashboard ownership {dashboard_name}. Import might fail. Check dashboard {self.db.conf.workspace_url}/sql/dashboards/{existing_dashboard['id']}")
         # Create the folder where to save the queries
         path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
         f = self.db.post("2.0/workspace/mkdirs", {"path": path})
@@ -403,7 +408,8 @@ class Installer:
         print(f"ERROR: Couldn't create endpoint.")
         return None
 
-    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str, pipeline_ids, dashboards, workflows, repos, overwrite=False, use_current_cluster=False, debug=False):
+    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str,
+                          pipeline_ids, dashboards, workflows, repos, catalog, schema, overwrite=False, use_current_cluster=False, debug=False):
         assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
         if debug:
             print(f'    Installing notebooks')
@@ -431,6 +437,7 @@ class Installer:
                 self.add_cluster_setup_cell(parser, demo_name, cluster_name, cluster_id, self.db.conf.workspace_url)
             parser.replace_dashboard_links(dashboards)
             parser.remove_automl_result_links()
+            parser.replace_schema(catalog, schema)
             parser.replace_dynamic_links_pipeline(pipeline_ids)
             parser.replace_dynamic_links_repo(repos)
             parser.replace_dynamic_links_workflow(workflows)
@@ -564,10 +571,11 @@ class Installer:
         if existing_cluster is not None and start_cluster:
             start = self.db.post("2.0/clusters/start", json = {"cluster_id": cluster_conf["cluster_id"]})
             if "error_code" in start:
-                if start["error_code"] == "INVALID_STATE" and "unexpected state Pending" in start["message"]:
+                if start["error_code"] == "INVALID_STATE" and \
+                        ("unexpected state Pending" in start["message"] or "unexpected state Restarting" in start["message"]):
                     print(f"INFO: looks like the cluster is already starting... full answer: {start}")
                 else:
-                    raise ClusterCreationException(f"Couldn't start the cluster for {demo_name}", cluster_conf, start)
+                    raise ClusterCreationException(f"Couldn't start the cluster for {demo_name}: {start['error_code']} - {start['message']}", cluster_conf, start)
 
         return cluster_conf['cluster_id'], cluster_conf['cluster_name']
 

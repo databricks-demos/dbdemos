@@ -75,6 +75,11 @@ class NotebookParser:
                                                         "};"
                                                       "});", 1)
 
+    def replace_schema(self, catalog, schema):
+        if catalog is not None or schema is not None:
+            assert catalog is not None and schema is not None, f"Both catalog={catalog} and schema={schema} must be defined"
+            self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$schema=[0-9a-z_]*", f"$catalog={catalog} $schema={schema}", True)
+
     def replace_in_notebook(self, old, new, regex = False):
         if regex:
             self.content = re.sub(old, new, self.content)

@@ -1,4 +1,8 @@
 
+class TokenException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
 
 class ClusterException(Exception):
     def __init__(self, message, cluster_conf, response):

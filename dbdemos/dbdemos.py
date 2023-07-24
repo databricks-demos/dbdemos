@@ -1,5 +1,8 @@
+from .exceptions.dbdemos_exception import TokenException
 from .installer import Installer
 from collections import defaultdict
+
+from .installer_report import InstallerReport
 
 CSS_LIST = """
 <style>
@@ -106,11 +109,14 @@ def help():
                   <div class="code">dbdemos.list_demos(category: str = None)</div>: list all demos available, can filter per category (ex: 'governance').<br/><br/>
                 </li>
                 <li>
-                  <div class="code">dbdemos.install(demo_name: str, path: str = "./", overwrite: bool = False, use_current_cluster = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS")</div>: install the given demo to the given path.<br/><br/>
-                  If overwrite is True, will delete the given folder and re-install the notebooks.<br/>
-                  use_current_cluster = True will not start a new cluster to init the demo but use the current cluster instead. <strong>Set it to True it if you don't have cluster creation permission</strong>.<br/>
-                  skip_dashboards = True will not load the DBSQL dashboard if any (faster, use it if the dashboard generation creates some issue).<br/>                  
-                  If no authentication are provided, will use the current user credential & workspace + cloud to install the demo.<br/><br/>
+                  <div class="code">dbdemos.install(demo_name: str, path: str = "./", overwrite: bool = False, use_current_cluster = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS", catalog: str = None, schema: str = None)</div>: install the given demo to the given path.<br/><br/>
+                  <ul>
+                  <li>If overwrite is True, dbdemos will delete the given path folder and re-install the notebooks.</li>
+                  <li>use_current_cluster = True will not start a new cluster to init the demo but use the current cluster instead. <strong>Set it to True it if you don't have cluster creation permission</strong>.</li>
+                  <li>skip_dashboards = True will not load the DBSQL dashboard if any (faster, use it if the dashboard generation creates some issue).</li>                  
+                  <li>If no authentication are provided, dbdemos will use the current user credential & workspace + cloud to install the demo.</li>
+                  <li>catalog and schema options are in beta and not supported for all demos (a message appears when the option is available)</li>
+                  </ul><br/>
                 </li>
                 <li>
                   <div class="code">dbdemos.create_cluster(demo_name: str)</div>: install update the interactive cluster for the demo (scoped to the user).<br/><br/>
@@ -192,11 +198,17 @@ def list_delta_live_tables(category = None):
 def list_dashboards(category = None):
     pass
 
-def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None, use_current_cluster: bool = False, current_cluster_id = None, install_dashboard_sequentially = None, debug = False):
+def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None,
+            use_current_cluster: bool = False, current_cluster_id = None, install_dashboard_sequentially = None, debug = False, catalog = None, schema = None):
     if demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
         demo_name = "lakehouse-retail-c360"
-    installer = Installer(username, pat_token, workspace_url, cloud, current_cluster_id = current_cluster_id)
+    try:
+        installer = Installer(username, pat_token, workspace_url, cloud, current_cluster_id = current_cluster_id)
+    except TokenException as e:
+        report = InstallerReport(workspace_url)
+        report.display_token_error(e, demo_name)
+
     if (installer.get_current_cloud() == "GCP" and install_dashboard_sequentially is None) or install_dashboard_sequentially:
         print("WARN: GCP detected, dbdemos will slow down and run the dashboard installation sequentially to avoid API timeouts, please be patient...")
         print("You can skip the dashboard installation adding: skip_dashboards=True")
@@ -217,7 +229,7 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
     if not installer.test_premium_pricing():
         #Force dashboard skip as dbsql isn't available to avoid any error.
         skip_dashboards = True
-    installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster, debug = debug)
+    installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster, debug = debug, catalog = catalog, schema = schema)
 
 
 def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None, use_current_cluster = False):

@@ -2,7 +2,7 @@ from dbsqlclone.utils.load_dashboard import DashboardWidgetException
 
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .exceptions.dbdemos_exception import ClusterCreationException, ExistingResourceException, FolderDeletionException, \
-    DLTException, WorkflowException, FolderCreationException
+    DLTException, WorkflowException, FolderCreationException, TokenException
 from pathlib import Path
 import json
 
@@ -69,6 +69,14 @@ class InstallerReport:
                                       f"""Full cluster configuration: <div class="code dbdemos_block">{json.dumps(exception.cluster_conf)}.</div><br/>"""
                                       f"""Full error: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""")
 
+    def display_custom_schema_not_supported_error(self, exception: Exception, demo_conf: DemoConf):
+        self.display_error(exception, f"This demo doesn't support custom catalog/schema yet.<br/>"
+                                      f"Please open a Github issue to accelerate the support for this demo.<br/>"
+                                      f"Remove the 'catalog' and 'schema' option from your installation.<br/>")
+
+    def display_custom_schema_missing_error(self, exception: Exception, demo_conf: DemoConf):
+        self.display_error(exception, f"Both schema and catalog option must be defined.<br/>"
+                                      f"""<div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', catalog = 'xxx', schema = 'xxx')</div><br/>""")
 
     def display_dashboard_widget_exception(self, exception: DashboardWidgetException, demo_conf: DemoConf):
         self.display_error(exception, f"""The dashboard has widget queries, and these queries need to be run before importing other queries.<br/>
@@ -127,6 +135,19 @@ class InstallerReport:
                                          Pipeline configuration: <div class="code dbdemos_block">{json.dumps(exception.job_config)}</div>
                                          API response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""")
 
+    def display_token_error(self, exception: TokenException, demo_name: str):
+        self.display_error(exception, f"""dbdemos couldn't not programmatically acquire a pat token to call the API to install the demo.<br/>
+                                         This can be due to the following:
+                                         <ul><li>Legacy cluster being used with admin protection for “<a href="https://docs.databricks.com/administration-guide/account-settings/no-isolation-shared.html">No isolation shared</a>” (account level setting)."</li>
+                                         <li>Restriction on Shared cluster</li></ul>
+                                         Please use a cluster with Access mode set to Isolation, Single User and re-run your dbdemos command.<br/>
+                                         Alternatively, you can use a PAT token in the install:
+                                         <div class="code dbdemos_block">#Get pat token from the UI and save it as a token.<br/>
+                                         pat_token = dbutils.secrets.get(scope="my_scope", key="dbdemos_token")<br/>
+                                         dbdemos.install('{demo_name}', pat_token=pat_token)</div><br/>
+                                         <strong>Details</strong><br/>
+                                         Error: <div class="code dbdemos_block">{exception.message}</div>""")
+
     def display_demo_name_error(self, name, demos):
         html = "<h2>Demos available:</h2>"
         for cat in demos:
@@ -155,6 +176,33 @@ class InstallerReport:
         if raise_error:
             raise exception
 
+    def display_install_info(self, demo_conf: DemoConf, install_path, catalog: str, schema: str):
+        info = f"Installing demo {demo_conf.name} under {install_path}, please wait...<br/>"
+        info += f"""<strong>Help us improving dbdemos,</strong> Share your feedback and create an issue if something isn't working: <a href="https://github.com/databricks-demos/dbdemos">https://github.com/databricks-demos/dbdemos</a>"""
+        if demo_conf.custom_schema_supported:
+            if catalog is None:
+                info += f"""<br/><br/>This demo supports custom UC schema! The default schema is {demo_conf.default_catalog}.{demo_conf.default_schema}.
+                To install it somewhere else, run <div class="code dbdemos_block">dbdemos.install_demo('{demo_conf.name}', catalog='xxx', schema='xxx')</div>"""
+            else:
+                info += f"""<br/><br/>This demo content will be installed in the schema `{catalog}`.`{schema}`"""
+        if len(demo_conf.custom_message) > 0:
+            info += "<br/><br/>"+demo_conf.custom_message
+        info += "<br/>"
+        self.display_info(info, "Installation in progress...")
+
+    def display_info(self, info: str, title: str=""):
+        if len(info) > 0:
+            if len(title) > 0:
+                title = f"""<h2 style="color: #4875c2">{title}</h2>"""
+            html = f"""{InstallerReport.CSS_REPORT}
+                        <div class="dbdemos_install">{title}
+                            {info}
+                        </div>"""
+            if self.displayHTML_available():
+                from dbruntime.display import displayHTML
+                displayHTML(html)
+            else:
+                print(html)
 
     def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
         if self.displayHTML_available():
