@@ -169,6 +169,8 @@ class Packager:
         menu_keys.sort()
         template = template.replace("{{LEFT_MENU}}", ' '.join([html_menu[k] for k in menu_keys]))
         template = template.replace("{{TITLE}}", demo_conf.title)
+        template = template.replace("{{DESCRIPTION}}", demo_conf.description)
+        template = template.replace("{{DEMO_NAME}}", demo_conf.name)
         with open(minisite_path+"/index.html", "w") as f:
             f.write(template)
         #dump the conf

@@ -100,7 +100,7 @@ def bundle_with_retry(max_retry = 3):
             print(str(e))
 
 #bundle_with_retry(3)
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -112,7 +112,7 @@ import dbdemos
 
 #dbdemos.install_all("/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards = True)
 #dbdemos.check_status_all(c['username'], c['pat_token'], c['url'], cloud="AWS")
-dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False, catalog="dbdemos", schema="billing_forecast")
+#dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False, catalog="dbdemos", schema="billing_forecast")
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = True, skip_dashboards=False)
 #dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False)
 #dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False)

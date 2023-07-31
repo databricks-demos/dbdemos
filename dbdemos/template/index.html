@@ -67,14 +67,28 @@
     <link href="sidebars.css" rel="stylesheet">
 </head>
 <body>
-<!--
-<div style="height: 8vh;" class="border-bottom">
+
+<div style="padding: 10px; min-height: 130px; " class="border-bottom">
+    <div style="float: right; background-color:#f9f7f4; border: 1px solid #eee; padding: 5px">
+        <div style="float: right; margin: 00px 0px 0px 30px;">
+            <pre style="margin-bottom: 8px;border: 1px solid #e4e4e4;display:block;overflow-x:auto;padding:5px 10px;color:#000;background:#F3F3F3;border-radius:8px"><code style="white-space:pre">%pip install dbdemos</code></pre>
+            <pre style="margin-bottom: 0px;border: 1px solid #e4e4e4;display:block;overflow-x:auto;padding:5px 10px;color:#000;background:#F3F3F3;border-radius:8px"><code style="white-space:pre"><span></span><span></span><span style="color:#a71d5d">import</span><span> dbdemos
+</span><span>dbdemos.install(</span><span style="color:#183691">'{{DEMO_NAME}}'</span><span>)</span></code></pre>
+        </div>
+
+        <div style="text-align: right; float: right; padding: 6px 10px 10px 10px;"><h5>Try this demo in your workspace!</h5> Run the following in your notebook:<br/><small style="color:#8d8d8d"><a  style="color:#8d8d8d" href="https://github.com/databricks-demos/dbdemos/blob/main/LICENSE"  target="_blank">License</a> | <a  style="color:#8d8d8d" target="_blank" href="https://github.com/databricks-demos/dbdemos/blob/main/NOTICE" >Notice</a></small>
+        </div>
+    </div>
+
     <a style="float: left" href="https://databricks.com" class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none">
         <img src="https://databricks-prod-cloudfront.cloud.databricks.com/static/ddd080df888c63d3c68438635badd32f0c91e40f31fe8fa2ed73da63df3598e3/js/../media/databricks.a424ad6e.svg" alt="databricks-logo" style="width: 200px">
     </a>
-    <h1 style="font-size: 30px; text-align: center; padding-top: 20px">{{TITLE}}</h1>
+    <div style="width: 40%;margin-left: 250px;">
+        <h1 style="font-size: 30px; padding-top: 0px">{{TITLE}}</h1>
+        {{DESCRIPTION}}
+    </div>
 </div>
--->
+
 <main class="d-flex flex-nowrap">
     <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white" style="width: 350px; overflow: auto; height: 91.4vh;">
         <div class="list-group list-group-flush border-bottom scrollarea">
