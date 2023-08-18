@@ -142,10 +142,13 @@ class Installer:
     def get_demos_available(self):
         return set(pkg_resources.resource_listdir("dbdemos", "bundles"))
 
-    def get_demo_conf(self, demo_name:str, demo_folder: str = ""):
+    def get_demo_conf(self, demo_name:str, catalog:str = None, schema:str = None, demo_folder: str = ""):
         demo = self.get_resource(f"bundles/{demo_name}/conf.json")
-        conf_template = ConfTemplate(self.db.conf.username, demo_name, demo_folder)
-        return DemoConf(demo_name, json.loads(conf_template.replace_template_key(demo)))
+        raw_demo = json.loads(demo)
+        catalog = catalog if catalog is not None else raw_demo.get('default_catalog', None)
+        schema = schema if schema is not None else raw_demo.get('default_schema', None)
+        conf_template = ConfTemplate(self.db.conf.username, demo_name, catalog, schema, demo_folder)
+        return DemoConf(demo_name, json.loads(conf_template.replace_template_key(demo)), catalog, schema)
 
     def get_resource(self, path):
         return pkg_resources.resource_string("dbdemos", path).decode('UTF-8')
@@ -169,11 +172,12 @@ class Installer:
         if install_path.endswith("/"):
             install_path = install_path[:-1]
         self.check_demo_name(demo_name)
-        demo_conf = self.get_demo_conf(demo_name, install_path+"/"+demo_name)
+        demo_conf = self.get_demo_conf(demo_name, catalog, schema, install_path+"/"+demo_name)
         if (schema is not  None or catalog is not None) and not demo_conf.custom_schema_supported:
             self.report.display_custom_schema_not_supported_error(Exception('Custom schema not supported'), demo_conf)
         if (schema is not None and catalog is None) or (schema is None and catalog is not None):
             self.report.display_custom_schema_missing_error(Exception('Catalog and Schema must both be defined.'), demo_conf)
+
         self.report.display_install_info(demo_conf, install_path, catalog, schema)
         self.tracker.track_install(demo_conf.category, demo_name)
         use_cluster_id = self.current_cluster_id if use_current_cluster else None
@@ -182,23 +186,24 @@ class Installer:
         except ClusterException as e:
             self.report.display_cluster_creation_error(e, demo_conf)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug)
-        dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path, catalog, schema, debug)
+        dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
         workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, debug)
-        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, workflows, repos, catalog, schema, overwrite, use_current_cluster, debug)
-        job_id, run_id = self.installer_workflow.start_demo_init_job(demo_conf, use_cluster_id, debug)
+        init_job = self.installer_workflow.start_demo_init_job(demo_conf, use_cluster_id, debug)
+        all_workflows = workflows if init_job["id"] is None else workflows + [init_job]
+        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, all_workflows, repos, overwrite, use_current_cluster, debug)
         for pipeline in pipeline_ids:
             if "run_after_creation" in pipeline and pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
 
-        self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
+        self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, init_job['uid'], init_job['run_id'], cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
 
-    def install_dashboards(self, demo_conf: DemoConf, install_path, catalog, schema, debug=True):
+    def install_dashboards(self, demo_conf: DemoConf, install_path, debug=True):
         if "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
             if debug:
                 print(f'    Installing dashboards')
             def install_dash(dashboard):
-                return self.install_dashboard(demo_conf, install_path, dashboard, catalog, schema, debug)
+                return self.install_dashboard(demo_conf, install_path, dashboard, debug)
             dashboards = pkg_resources.resource_listdir("dbdemos", "bundles/" + demo_conf.name + "/dashboards")
             #filter out new import/export api:
             dashboards = filter(lambda n: Packager.DASHBOARD_IMPORT_API not in n, dashboards)
@@ -212,21 +217,18 @@ class Installer:
                 self.report.display_dashboard_error(e, demo_conf)
         return []
 
-    def replace_schema(self, demo_conf: DemoConf, definition: str, catalog: str, schema: str):
-        if catalog is not None or schema is not None:
-            assert schema is not None and catalog is not None, f"both catalog={catalog} and schema={schema} must be set"
-            return definition.replace(demo_conf.default_catalog+"."+demo_conf.default_schema, f"`{catalog}`.`{schema}`")
+    def replace_schema(self, demo_conf: DemoConf, definition: str):
+        if demo_conf.custom_schema_supported:
+            return definition.replace(demo_conf.default_catalog+"."+demo_conf.default_schema, f"`{demo_conf.catalog}`.`{demo_conf.schema}`")
         return definition
 
-    def install_dashboard(self, demo_conf, install_path, dashboard, catalog, schema, debug=True):
+    def install_dashboard(self, demo_conf, install_path, dashboard, debug=True):
         definition = self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard)
-        definition = self.replace_schema(demo_conf, definition, catalog, schema)
+        definition = self.replace_schema(demo_conf, definition)
         definition = json.loads(definition)
         id = dashboard[:dashboard.rfind(".json")]
         dashboard_name = definition['dashboard']['name']
-        name = self.db.conf.username[:self.db.conf.username.rfind('@')]
-        name = re.sub("[^A-Za-z0-9]", '_', name)
-        dashboard_name = dashboard_name + " - " + name
+        dashboard_name = dashboard_name + " - " + self.db.conf.name
         definition['dashboard']['name'] = dashboard_name
 
         if debug:
@@ -409,7 +411,7 @@ class Installer:
         return None
 
     def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str,
-                          pipeline_ids, dashboards, workflows, repos, catalog, schema, overwrite=False, use_current_cluster=False, debug=False):
+                          pipeline_ids, dashboards, workflows, repos, overwrite=False, use_current_cluster=False, debug=False):
         assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
         if debug:
             print(f'    Installing notebooks')
@@ -437,7 +439,7 @@ class Installer:
                 self.add_cluster_setup_cell(parser, demo_name, cluster_name, cluster_id, self.db.conf.workspace_url)
             parser.replace_dashboard_links(dashboards)
             parser.remove_automl_result_links()
-            parser.replace_schema(catalog, schema)
+            parser.replace_schema(demo_conf)
             parser.replace_dynamic_links_pipeline(pipeline_ids)
             parser.replace_dynamic_links_repo(repos)
             parser.replace_dynamic_links_workflow(workflows)

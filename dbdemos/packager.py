@@ -124,21 +124,15 @@ class Packager:
                     f.write(html)
         return dashboard_ids
 
-    def get_html_menu(self, title: str, description: str, notebook_link: str):
+    def get_html_menu(self, path: str, title: str, description: str, notebook_link: str):
         # Add padding for subfolder for better visualization
-        padding = title.count("/")*20
-        i = title.rfind("/")
-        if i > 0:
-            folder = title[:i+1]
-            title = title[i+1:]
-        else:
-            folder = ""
+        padding = path.count("/")*20+10
         return f"""
-                <a href="#" class="_left_menu list-group-item list-group-item-action py-3 lh-sm" iframe-src="{notebook_link}">
+                <a href="#" class="_left_menu list-group-item list-group-item-action py-3 lh-sm" iframe-src="{notebook_link}" style="padding: 2px 2px 2px {padding}px;">
                     <div class="d-flex w-100 align-items-center justify-content-between">
-                        <span class="notebook_path">{folder}<strong class="mb-1">{title}</strong></span>
+                        <span class="notebook_path"><strong class="mb-1">{title}</strong></span>
                     </div>
-                    <div class="small notebook_description" style="padding-left: {padding}px;">{description}</div>
+                    <div class="small notebook_description">{description}</div>
                 </a>"""
 
     #Build HTML pages with index.
@@ -149,6 +143,7 @@ class Packager:
         print(f"Build minisite for demo {demo_conf.name} ({demo_conf.path}) - {notebooks_to_publish}")
         minisite_path = demo_conf.get_minisite_path()
         html_menu = {}
+        previous_folder = ""
         for notebook in notebooks_to_publish:
             Path(minisite_path).mkdir(parents=True, exist_ok=True)
             full_path = minisite_path+"/"+notebook.get_clean_path()+".html"
@@ -160,7 +155,23 @@ class Packager:
                 parser.add_cell_as_html_for_seo()
                 parser.add_javascript_to_minisite_relative_links()
                 f.write(parser.get_html())
-            html_menu[notebook.get_clean_path()] = self.get_html_menu(notebook.get_clean_path(), notebook.description, iframe_root_src+notebook.get_clean_path()+".html")
+            menu_entry = ""
+            title = notebook.get_clean_path()
+            i = title.rfind("/")
+            if i > 0:
+                folder = title[:i+1]
+                title = title[i+1:]
+            else:
+                folder = ""
+            if folder != previous_folder:
+                previous_folder = folder
+                if len(folder) > 0:
+                    menu_entry = f"""<div style="padding: 2px 0px 2px 10px; border-bottom: 1px solid rgba(0,0,0,.125);">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class=""><path fill="currentColor" d="M.75 2a.75.75 0 0 0-.75.75v10.5c0 .414.336.75.75.75h14.5a.75.75 0 0 0 .75-.75v-8.5a.75.75 0 0 0-.75-.75H7.81L6.617 2.805A2.75 2.75 0 0 0 4.672 2H.75Z"></path></svg>
+                                        {folder[:-1]}</div>"""
+
+            menu_entry += self.get_html_menu(notebook.get_clean_path(), title, notebook.description, iframe_root_src+notebook.get_clean_path()+".html")
+            html_menu[notebook.get_clean_path()] = menu_entry
 
         #create the index file
         template = pkg_resources.resource_string("dbdemos", "template/index.html").decode('UTF-8')

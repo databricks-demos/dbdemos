@@ -152,7 +152,7 @@ class DemoNotebook():
         return json.dumps(self, default=lambda o: o.__dict__)
 
 class DemoConf():
-    def __init__(self, path: str, json_conf: dict):
+    def __init__(self, path: str, json_conf: dict, catalog:str = None, schema: str = None):
         self.json_conf = json_conf
         self.notebooks = []
         self.cluster = json_conf.get('cluster', {})
@@ -172,6 +172,8 @@ class DemoConf():
         self.description = json_conf['description']
         self.tags = json_conf.get('tags', [])
         self.custom_schema_supported = json_conf.get('custom_schema_supported', False)
+        self.schema = schema
+        self.catalog = catalog
         self.default_schema = json_conf.get('default_schema', "")
         self.default_catalog = json_conf.get('default_catalog', "")
         self.custom_message = json_conf.get('custom_message', "")
@@ -224,7 +226,9 @@ class DemoConf():
 
 
 class ConfTemplate:
-    def __init__(self, username, demo_name, demo_folder = ""):
+    def __init__(self, username, demo_name, catalog = None, schema = None, demo_folder = ""):
+        self.catalog = catalog
+        self.schema = schema
         self.username = username
         self.demo_name = demo_name
         self.demo_folder = demo_folder
@@ -234,6 +238,12 @@ class ConfTemplate:
 
     def template_CURRENT_USER(self):
         return self.username
+
+    def template_CATALOG(self):
+        return self.catalog
+
+    def template_SCHEMA(self):
+        return self.schema
 
     def template_CURRENT_USER_NAME(self):
         name = self.username[:self.username.rfind('@')]

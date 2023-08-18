@@ -34,8 +34,8 @@ class InstallerWorkflow:
                 print(f"    Searching for existing demo initialisation job {job_name}")
             #We have an init json
             job_id, run_id = self.create_or_replace_job(demo_conf.name, demo_conf.init_job, job_name, True, use_cluster_id)
-            return job_id, run_id
-        return None, None
+            return {"uid": job_id, "run_id": run_id, "id": "init-job"}
+        return {"uid": None, "run_id": None, "id": None}
 
 
     def create_or_replace_job(self, demo_name: str, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None, debug = False):

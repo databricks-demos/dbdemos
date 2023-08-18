@@ -1,4 +1,4 @@
-from dbsqlclone.utils.load_dashboard import DashboardWidgetException
+@from dbsqlclone.utils.load_dashboard import DashboardWidgetException
 
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .exceptions.dbdemos_exception import ClusterCreationException, ExistingResourceException, FolderDeletionException, \
@@ -177,17 +177,17 @@ class InstallerReport:
             raise exception
 
     def display_install_info(self, demo_conf: DemoConf, install_path, catalog: str, schema: str):
-        info = f"Installing demo {demo_conf.name} under {install_path}, please wait...<br/>"
-        info += f"""<strong>Help us improving dbdemos,</strong> Share your feedback and create an issue if something isn't working: <a href="https://github.com/databricks-demos/dbdemos">https://github.com/databricks-demos/dbdemos</a>"""
+        print(f"Installing demo {demo_conf.name} under {install_path}, please wait...")
+        print(f"""Help us improving dbdemos, share your feedback or create an issue if something isn't working: https://github.com/databricks-demos/dbdemos""")
+        info = ""
         if demo_conf.custom_schema_supported:
             if catalog is None:
-                info += f"""<br/><br/>This demo supports custom UC schema! The default schema is {demo_conf.default_catalog}.{demo_conf.default_schema}.
-                To install it somewhere else, run <div class="code dbdemos_block">dbdemos.install_demo('{demo_conf.name}', catalog='xxx', schema='xxx')</div>"""
+                info += f"""This demo supports custom UC schema! The default schema is {demo_conf.default_catalog}.{demo_conf.default_schema}.
+                To install it somewhere else, run <div class="code dbdemos_block">dbdemos.install_demo('{demo_conf.name}', catalog='xxx', schema='xxx')</div><br/>"""
             else:
-                info += f"""<br/><br/>This demo content will be installed in the schema `{catalog}`.`{schema}`"""
+                info += f"""This demo content will be installed in the schema `{catalog}`.`{schema}`<br/>"""
         if len(demo_conf.custom_message) > 0:
-            info += "<br/><br/>"+demo_conf.custom_message
-        info += "<br/>"
+            info += "<br/>"+demo_conf.custom_message+"<br/>"
         self.display_info(info, "Installation in progress...")
 
     def display_info(self, info: str, title: str=""):
