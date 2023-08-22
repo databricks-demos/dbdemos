@@ -1,0 +1,469 @@
+<style>
+.dbdemo {
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji,FontAwesome;
+  color: #3b3b3b;
+  padding: 0px 0px 20px 0px;
+}
+.dbdemo_box {
+  width: 400px;
+  padding: 10px;
+  box-shadow: 0 .15rem 1.15rem 0 rgba(58,59,69,.15)!important;
+  float: left;
+  min-height: 170px;
+  margin: 0px 20px 20px 20px;
+}
+.dbdemo_category {
+  clear: both;
+}
+.category {
+  margin-left: 20px;
+  margin-bottom: 5px;
+
+}
+.dbdemo_logo {
+  width: 100%;
+  height: 200px;
+}
+.code {
+  padding: 5px;
+  border: 1px solid #e4e4e4;
+  font-family: monospace;
+  background-color: #f5f5f5;
+  margin: 5px 0px 0px 0px;
+}
+.dbdemo_tag {
+    display: inline;
+    border-radius: 5px;
+    color: white;
+    padding: 3px;
+}
+
+.dbdemo_tag.dbdemo_delta {
+    background-color: #00b7dc;
+}
+.dbdemo_tag.dbdemo_dbsql {
+    background-color: #bf49e8;
+}
+.dbdemo_tag.dbdemo_ds {
+    background-color: #4ab970;
+}
+.dbdemo_tag.dbdemo_uc {
+    background-color: #3664ff;
+}
+
+.dbdemo_tag.dbdemo_delta-sharing {
+    background-color: #3664ff;
+}
+.dbdemo_tag.dbdemo_dlt {
+    background-color: #f58742;
+}
+.dbdemo_tag.dbdemo_autoloader {
+    background-color: #e36132;
+}
+.dbdemo_tags {
+  padding-top: 10px;
+}
+.dbdemo_description {
+  height: 140px;
+}
+
+.menu_button {
+  font-size: 15px;
+  cursor: pointer;
+  border: 0px;
+  padding: 10px 20px 10px 20px;
+  margin-right: 10px;
+  background-color: rgb(238, 237, 233);
+  border-radius: 20px;
+}
+
+.menu_button:hover {
+  background-color: rgb(245, 244, 242)
+}
+
+.menu_button.selected {
+  background-color: rgb(158, 214, 196)
+}
+</style>
+
+<div class="dbdemo">
+
+    <div style="padding: 10px 0px 20px 20px">
+        <button category="lakehouse" class="menu_button selected" type="button"><span>Lakehouse Platform</span></button>
+        <button category="data-engineering" class="menu_button" type="button"><span>Data engineering</span></button>
+        <button category="ds" class="menu_button" type="button"><span>DS</span></button>
+        <button category="bi" class="menu_button" type="button"><span>BI DW</span></button>
+        <button category="gov" class="menu_button" type="button"><span>Governance and Security</span></button>
+    </div>
+
+
+
+    <div class="dbdemo_category" id="category-lakehouse" style="min-height: 200px">
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/lakehouse-fsi-credit.png" />
+        <div class="dbdemo_description">
+            <h2>Lakehouse - Credit Decisioning</h2>
+            Build your banking data platform and identify credit worthy customers
+        </div>
+        <div class="code">
+            dbdemos.install('lakehouse-fsi-credit')
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/lakehouse-fsi-fraud.png" />
+        <div class="dbdemo_description">
+            <h2>Retail Banking - Fraud Detection</h2>
+            Build your Banking platform and detect Fraud in real-time. End 2 End demo, with Model Serving & realtime fraud inference A/B testing.
+        </div>
+        <div class="code">
+            dbdemos.install('lakehouse-fsi-fraud')
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/lakehouse-hls-readmission.png" />
+        <div class="dbdemo_description">
+            <h2>Lakehouse for HLS: Patient readmission</h2>
+            Build your data platform and personalized health care to reduce readmission risk
+        </div>
+        <div class="code">
+            dbdemos.install('lakehouse-hls-readmission')
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/lakehouse-iot-platform.png" />
+        <div class="dbdemo_description">
+            <h2>Lakehouse for IoT & Predictive Maintenance</h2>
+            Detect faulty wind turbine: Ingestion (DLT), BI, Predictive Maintenance (ML), Governance (UC), Orchestration
+        </div>
+        <div class="code">
+            dbdemos.install('lakehouse-iot-platform')
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/lakehouse-retail-c360.png" />
+        <div class="dbdemo_description">
+            <h2>Lakehouse for C360: Reducing Customer Churn</h2>
+            Centralize customer data and reduce churn: Ingestion (DLT), BI, Predictive Maintenance (ML), Governance (UC), Orchestration.
+        </div>
+        <div class="code">
+            dbdemos.install('lakehouse-retail-c360')
+        </div>
+    </div>
+</div>
+
+    <div id="category-bi" class="dbdemo_category" style="min-height: 200px; display: none">
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/identity-pk-fk.png" />
+        <div class="dbdemo_description">
+            <h2>Data Warehousing with Identity, Primary Key & Foreign Key</h2>
+            Define your schema with auto incremental column and Primary + Foreign Key. Ideal for Data Warehouse & BI support!
+        </div>
+        <div class="code">
+            dbdemos.install('identity-pk-fk')
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/sql-ai-functions.png" />
+        <div class="dbdemo_description">
+            <h2>AI Functions: query LLM with DBSQL</h2>
+            Call Azure OpenAI's model from your Lakehouse data using AI_GENERATE_TEXT()
+        </div>
+        <div class="code">
+            dbdemos.install('sql-ai-functions')
+        </div>
+    </div>
+</div>
+
+<div id="category-data-engineering" class="dbdemo_category" style="min-height: 200px; display: none">
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/auto-loader.png" />
+        <div class="dbdemo_description">
+            <h2>Databricks Autoloader (cloudfile)</h2>
+            Incremental ingestion on your cloud storage folder.
+        </div>
+        <div class="code">
+            dbdemos.install('auto-loader')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_autoloader">Auto Loader</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/cdc-pipeline.png" />
+        <div class="dbdemo_description">
+            <h2>CDC Pipeline with Delta</h2>
+            Process CDC data to build an entire pipeline and materialize your operational tables in your lakehouse.
+        </div>
+        <div class="code">
+            dbdemos.install('cdc-pipeline')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_delta">Delta Lake</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/dbt-on-databricks.png" />
+        <div class="dbdemo_description">
+            <h2>Orchestrate and run your dbt jobs</h2>
+            Launch your dbt pipelines in production using a SQL Warehouse. Leverage Databricks Workflow (orchestration) and add a dbt task in your transformation pipeline.
+        </div>
+        <div class="code">
+            dbdemos.install('dbt-on-databricks')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_delta">Delta Lake</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/delta-lake.png" />
+        <div class="dbdemo_description">
+            <h2>Delta Lake</h2>
+            Store your table with Delta Lake & discover how Delta Lake can simplify your Data Pipelines.
+        </div>
+        <div class="code">
+            dbdemos.install('delta-lake')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_delta">Delta Lake</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/dlt-cdc.png" />
+        <div class="dbdemo_description">
+            <h2>CDC pipeline with Delta Live Table.</h2>
+            Ingest Change Data Capture flow with APPLY INTO and simplify SCDT2 implementation.
+        </div>
+        <div class="code">
+            dbdemos.install('dlt-cdc')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_dlt">Delta Live Table</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/dlt-loans.png" />
+        <div class="dbdemo_description">
+            <h2>Full Delta Live Tables Pipeline - Loan</h2>
+            Ingest loan data and implement a DLT pipeline with quarantine.
+        </div>
+        <div class="code">
+            dbdemos.install('dlt-loans')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_dlt">Delta Live Tables</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/dlt-unit-test.png" />
+        <div class="dbdemo_description">
+            <h2>Unit Testing Delta Live Table (DLT) for production-grade pipelines</h2>
+            Deploy robust Delta Live Table pipelines with unit tests leveraging expectation.
+        </div>
+        <div class="code">
+            dbdemos.install('dlt-unit-test')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_dlt">Delta Live Table</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/streaming-sessionization.png" />
+        <div class="dbdemo_description">
+            <h2>Spark Streaming - Advanced</h2>
+            Deep dive on Spark Streaming with Delta to build webapp user sessions from clicks, with custom aggregation state management.
+        </div>
+        <div class="code">
+            dbdemos.install('streaming-sessionization')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_delta">Delta Lake</div>
+        </div>
+    </div></div>
+    <div id="category-gov" class="dbdemo_category" style="min-height: 200px; display: none">
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/delta-sharing-airlines.png" />
+        <div class="dbdemo_description">
+            <h2>Delta Sharing - Airlines</h2>
+            Share your data to external organization using Delta Sharing.
+        </div>
+        <div class="code">
+            dbdemos.install('delta-sharing-airlines')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_delta-sharing">Delta Sharing</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/uc-01-acl.png" />
+        <div class="dbdemo_description">
+            <h2>Table ACL & Dynamic Views with UC</h2>
+            Discover to GRANT permission on your table with UC and implement more advanced control such as data masking at row-level, based on each user.
+        </div>
+        <div class="code">
+            dbdemos.install('uc-01-acl')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_uc">Unity Catalog</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/uc-02-external-location.png" />
+        <div class="dbdemo_description">
+            <h2>Access data on External Location</h2>
+            Discover how you can secure files/table in external location (cloud storage like S3/ADLS/GCS) with simple GRANT command.
+        </div>
+        <div class="code">
+            dbdemos.install('uc-02-external-location')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_uc">Unity Catalog</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/uc-03-data-lineage.png" />
+        <div class="dbdemo_description">
+            <h2>Data Lineage with Unity Catalog</h2>
+            Discover data lineage with Unity Catalog: table to table and column to column
+        </div>
+        <div class="code">
+            dbdemos.install('uc-03-data-lineage')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_uc">Unity Catalog</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/uc-04-audit-log.png" />
+        <div class="dbdemo_description">
+            <h2>Audit-log with Databricks</h2>
+            [DEPRECATED - prefer uc-04-system-tables] Track usage with Audit-log.
+        </div>
+        <div class="code">
+            dbdemos.install('uc-04-audit-log')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_uc">Unity Catalog</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/uc-04-system-tables.png" />
+        <div class="dbdemo_description">
+            <h2>System Tables: Billing Forecast, Usage and Audit</h2>
+            Track and analysis usage, billing & access with UC System tables.
+        </div>
+        <div class="code">
+            dbdemos.install('uc-04-system-tables')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_uc">Unity Catalog</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/uc-05-upgrade.png" />
+        <div class="dbdemo_description">
+            <h2>Upgrade table to Unity Catalog</h2>
+            Discover how to upgrade your hive_metastore tables to Unity Catalog to benefit from UC capabilities: Security/ACL/Row-level/Lineage/Audit...
+        </div>
+        <div class="code">
+            dbdemos.install('uc-05-upgrade')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_uc">Unity Catalog</div>
+        </div>
+    </div></div>
+
+    <div id="category-ds"  class="dbdemo_category" style="min-height: 200px; display: none">
+
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/computer-vision-pcb.png" />
+        <div class="dbdemo_description">
+            <h2>Image classification - Default detection</h2>
+            Deep Learning using Databricks Lakehouse: detect defaults in PCBs with Hugging Face transformers and PyTorch Lightning.
+        </div>
+        <div class="code">
+            dbdemos.install('computer-vision-pcb')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_ds">Data Science</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/feature-store.png" />
+        <div class="dbdemo_description">
+            <h2>Feature Store and Online Inference</h2>
+            Leverage Databricks Feature Store with streaming and online store.
+        </div>
+        <div class="code">
+            dbdemos.install('feature-store')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_ds">Data Science</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/llm-dolly-chatbot.png" />
+        <div class="dbdemo_description">
+            <h2>Build your Chat Bot with Dolly</h2>
+            Democratizing the magic of ChatGPT with open models and Databricks Lakehouse (starts GPU)
+        </div>
+        <div class="code">
+            dbdemos.install('llm-dolly-chatbot')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_ds">Data Science</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/mlops-end2end.png" />
+        <div class="dbdemo_description">
+            <h2>MLOps - End 2 end pipeline</h2>
+            Automate your model deployment with MLFlow webhook & repo, end 2 end!
+        </div>
+        <div class="code">
+            dbdemos.install('mlops-end2end')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_ds">Data Science</div>
+        </div>
+    </div>
+    <div class="dbdemo_box">
+        <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/pandas-on-spark.png" />
+        <div class="dbdemo_description">
+            <h2>Pandas API with spark backend (Koalas)</h2>
+            Let you Data Science team scale to TB of data while working with Pandas API, without having to learn & move to another framework.
+        </div>
+        <div class="code">
+            dbdemos.install('pandas-on-spark')
+        </div>
+        <div class="dbdemo_tags">
+            <div class="dbdemo_tag dbdemo_ds">Data Science</div>
+        </div>
+    </div></div></div>
+
+
+<script>
+    const buttons = document.querySelectorAll('.menu_button');
+    const sections = document.querySelectorAll('.dbdemo_category');
+
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedCategory = button.getAttribute('category');
+
+            sections.forEach(section => {
+                if (section.id === `category-${selectedCategory}`) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+
+            buttons.forEach(btn => {
+                if (btn === button) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        });
+    });
+</script>

@@ -25,12 +25,11 @@ CSS_LIST = """
 .category {
   margin-left: 20px;
   margin-bottom: 5px;
-  
+
 }
 .dbdemo_logo {
-  float: right;
-  width: 50px;
-  height: 50px;
+  width: 100%;
+  height: 225px;
 }
 .code {
   padding: 5px;
@@ -39,44 +38,53 @@ CSS_LIST = """
   background-color: #f5f5f5;
   margin: 5px 0px 0px 0px;
 }
-.dbdemo_tag {
-    display: inline;
-    border-radius: 5px;
-    color: white;
-    padding: 3px;
-}
-
-.dbdemo_tag.dbdemo_delta {
-    background-color: #00b7dc;
-}
-.dbdemo_tag.dbdemo_dbsql {
-    background-color: #bf49e8;
-}
-.dbdemo_tag.dbdemo_ds {
-    background-color: #4ab970;
-}
-.dbdemo_tag.dbdemo_uc {
-    background-color: #3664ff;
-}
-
-.dbdemo_tag.dbdemo_delta-sharing {
-    background-color: #3664ff;
-}
-.dbdemo_tag.dbdemo_dlt {
-    background-color: #f58742;
-}
-.dbdemo_tag.dbdemo_autoloader {
-    background-color: #e36132;
-}
-.dbdemo_tags {
-  padding-top: 10px;
-}
 .dbdemo_description {
-  height: 95px;
+  height: 100px;
+}
+.menu_button {
+  font-size: 15px;
+  cursor: pointer;
+  border: 0px;
+  padding: 10px 20px 10px 20px;
+  margin-right: 10px;
+  background-color: rgb(238, 237, 233);
+  border-radius: 20px;
+}
+.menu_button:hover {
+  background-color: rgb(245, 244, 242)
+}
+.menu_button.selected {
+  background-color: rgb(158, 214, 196)
 }
 </style>
 """
 
+JS_LIST = """<script>
+    const buttons = document.querySelectorAll('.menu_button');
+    const sections = document.querySelectorAll('.dbdemo_category');
+
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedCategory = button.getAttribute('category');
+
+            sections.forEach(section => {
+                if (section.id === `category-${selectedCategory}`) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+
+            buttons.forEach(btn => {
+                if (btn === button) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        });
+    });
+</script>"""
 def help():
     installer = Installer()
     if installer.report.displayHTML_available():
@@ -134,8 +142,9 @@ def help():
         print("""dbdemos.create_cluster(demo_name: str): install update the interactive cluster for the demo (scoped to the user).""")
         print("""dbdemos.install_all(path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS")</div>: install all the demos to the given path.""")
 
-def list_demos(category = None):
-    installer = Installer()
+def list_demos(category = None, installer = None):
+    if installer == None:
+        installer = Installer()
     installer.tracker.track_list()
     demos = defaultdict(lambda: [])
     #Define category order
@@ -150,17 +159,20 @@ def list_demos(category = None):
         list_console(demos)
 
 def list_html(demos):
-    content = f"""{CSS_LIST}<div class="dbdemo">"""
     categories = list(demos.keys())
-    for cat in categories:
-        content += f"""<div class="dbdemo_category" style="min-height: 200px">
-                       <h1 class="category">{cat.capitalize()}</h1>"""
+    content = f"""{CSS_LIST}<div class="dbdemo">
+     <div style="padding: 10px 0px 20px 20px">"""
+    for i, cat in enumerate(categories):
+        content += f"""<button category="{cat}" class="menu_button {"selected" if i == 0 else ""}" type="button"><span>{cat.capitalize()}</span></button>"""
+    content += """</div>"""
+    for i, cat in enumerate(categories):
+        content += f"""<div class="dbdemo_category" style="min-height: 200px; display: {"block" if i == 0 else "none"}" id="category-{cat}">"""
         ds = list(demos[cat])
         ds.sort(key=lambda d: d.name)
         for demo in ds:
             content += f"""
             <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/{demo.name}.png" />
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/{demo.name}.jpg" />
               <div class="dbdemo_description">
                 <h2>{demo.title}</h2>
                 {demo.description}
@@ -168,12 +180,9 @@ def list_html(demos):
               <div class="code"> 
                 dbdemos.install('{demo.name}')
               </div>
-              <div class="dbdemo_tags">
-                {" ".join([f'<div class="dbdemo_tag dbdemo_{list(t.keys())[0]}">{t[list(t.keys())[0]]}</div>' for t in demo.tags])}
-              </div>
             </div>"""
         content += """</div>"""
-    content += """</div>"""
+    content += f"""</div>{JS_LIST}"""
     from dbruntime.display import displayHTML
     displayHTML(content)
 

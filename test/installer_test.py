@@ -1,7 +1,9 @@
+import dbdemos
 from dbdemos.conf import DemoNotebook
 
 from dbdemos.installer import Installer
 from dbdemos.installer_report import InstallerReport
+
 
 
 def test_html():
@@ -42,4 +44,9 @@ def test_html():
         text_file.write(html)
     print(html)
 
-test_html()
+def test_list():
+    i = Installer("test","test","test","test","test","test")
+    dbdemos.list_demos(None, i)
+
+test_list()
+#test_html()

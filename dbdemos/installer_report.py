@@ -1,4 +1,4 @@
-@from dbsqlclone.utils.load_dashboard import DashboardWidgetException
+from dbsqlclone.utils.load_dashboard import DashboardWidgetException
 
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .exceptions.dbdemos_exception import ClusterCreationException, ExistingResourceException, FolderDeletionException, \
@@ -183,7 +183,7 @@ class InstallerReport:
         if demo_conf.custom_schema_supported:
             if catalog is None:
                 info += f"""This demo supports custom UC schema! The default schema is {demo_conf.default_catalog}.{demo_conf.default_schema}.
-                To install it somewhere else, run <div class="code dbdemos_block">dbdemos.install_demo('{demo_conf.name}', catalog='xxx', schema='xxx')</div><br/>"""
+                To install it somewhere else, run <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', catalog='xxx', schema='xxx')</div><br/>"""
             else:
                 info += f"""This demo content will be installed in the schema `{catalog}`.`{schema}`<br/>"""
         if len(demo_conf.custom_message) > 0:

@@ -111,8 +111,12 @@ class Installer:
     def get_current_username(self):
         try:
             return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().tags().apply('user')
-        except:
-            return "local"
+        except Exception as e2:
+            try:
+                return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().userName().get()
+            except Exception as e:
+                print(f"WARN: couldn't get current username. This shouldn't happen - unpredictable behavior - 2 errors: {e2} - {e} - will return 'unknown'")
+                return "unknown"
 
     def get_current_cloud(self):
         try:
