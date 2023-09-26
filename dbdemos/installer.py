@@ -72,7 +72,10 @@ class Installer:
         try:
             return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().tags().apply('clusterId')
         except:
-            return "local"
+            try:
+                return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().clusterId().get()
+            except:
+                return "local"
 
     def get_org_id(self):
         try:
