@@ -161,11 +161,16 @@ class Installer:
         return pkg_resources.resource_string("dbdemos", path).decode('UTF-8')
 
     def test_premium_pricing(self):
-        w = self.db.get("2.0/sql/config/warehouses", {"limit": 1})
-        if "error_code" in w and (w["error_code"] == "FEATURE_DISABLED" or w["error_code"] == "ENDPOINT_NOT_FOUND"):
-            self.report.display_non_premium_warn(Exception(f"DBSQL not available"), w)
+        try:
+            w = self.db.get("2.0/sql/config/warehouses", {"limit": 1})
+            if "error_code" in w and (w["error_code"] == "FEATURE_DISABLED" or w["error_code"] == "ENDPOINT_NOT_FOUND"):
+                self.report.display_non_premium_warn(Exception(f"DBSQL not available"), w)
+                return False
+            return True
+        except Exception as e:
+            print(e)
+            self.report.display_non_premium_warn(Exceptixon(f"DBSQL not available"), str(e))
             return False
-        return True
 
 
     def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False, debug = False, catalog = None, schema = None):
@@ -196,9 +201,10 @@ class Installer:
         dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
         workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, debug)
-        init_job = self.installer_workflow.start_demo_init_job(demo_conf, use_cluster_id, debug)
+        init_job = self.installer_workflow.create_demo_init_job(demo_conf, use_cluster_id, debug)
         all_workflows = workflows if init_job["id"] is None else workflows + [init_job]
         notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, all_workflows, repos, overwrite, use_current_cluster, debug)
+        self.installer_workflow.start_demo_init_job(init_job, debug)
         for pipeline in pipeline_ids:
             if "run_after_creation" in pipeline and pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
@@ -224,14 +230,14 @@ class Installer:
                 self.report.display_dashboard_error(e, demo_conf)
         return []
 
-    def replace_schema(self, demo_conf: DemoConf, definition: str):
+    def replace_dashboard_schema(self, demo_conf: DemoConf, definition: str):
         if demo_conf.custom_schema_supported:
             return definition.replace(demo_conf.default_catalog+"."+demo_conf.default_schema, f"`{demo_conf.catalog}`.`{demo_conf.schema}`")
         return definition
 
     def install_dashboard(self, demo_conf, install_path, dashboard, debug=True):
         definition = self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard)
-        definition = self.replace_schema(demo_conf, definition)
+        definition = self.replace_dashboard_schema(demo_conf, definition)
         definition = json.loads(definition)
         id = dashboard[:dashboard.rfind(".json")]
         dashboard_name = definition['dashboard']['name']
@@ -473,12 +479,11 @@ class Installer:
                 DemoNotebook("_resources/NOTICE", "NOTICE", "Demo Notice"),
                 DemoNotebook("_resources/README", "README", "Readme")
             ]
-            def load_notebook_templet(notebook):
+            def load_notebook_template(notebook):
                 load_notebook_path(notebook, f"template/{notebook.title}.html")
-            collections.deque(executor.map(load_notebook_templet, notebooks))
+            collections.deque(executor.map(load_notebook_template, notebooks))
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
-
 
     def load_demo_pipelines(self, demo_name, demo_conf: DemoConf, debug=False):
         #default cluster conf
@@ -489,6 +494,12 @@ class Installer:
             #enforce demo tagging in the cluster
             for cluster in definition["clusters"]:
                 merge_dict(cluster, {"custom_tags": {"project": "dbdemos", "demo": demo_name, "demo_install_date": today}})
+                if self.db.conf.get_demo_pool() is not None:
+                    cluster["instance_pool_id"] = self.db.conf.get_demo_pool()
+                    if "node_type_id" in cluster: del cluster["node_type_id"]
+                    if "enable_elastic_disk" in cluster: del cluster["enable_elastic_disk"]
+                    if "aws_attributes" in cluster: del cluster["aws_attributes"]
+
             existing_pipeline = self.get_pipeline(definition["name"])
             if debug:
                 print(f'    Installing pipeline {definition["name"]}')

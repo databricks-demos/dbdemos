@@ -213,7 +213,7 @@ class InstallerReport:
     def get_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
         html = f"""{InstallerReport.CSS_REPORT}
         <div class="dbdemos_install">
-            <img style="float:right; width: 100px; padding: 20px" src="https://github.com/QuentinAmbard/databricks-demo/raw/main/resources/{demo_name}.png" />
+            <img style="float:right; width: 180px; padding: 10px" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/{demo_name}.jpg" />
             <h1>Your demo {title} is ready!</h1>
             <i>{description}</i><br/><br/>
             """

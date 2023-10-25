@@ -20,7 +20,7 @@
         "spark_conf": {
           "spark.databricks.dataLineage.enabled": "true"
         },
-        "instance_pool_id": "0316-143449-album120-pool-zglfkqfm",
+        "instance_pool_id": "1025-140806-yup112-pool-yz565bma",
         "data_security_mode": "NONE",
         "runtime_engine": "STANDARD",
         "num_workers": 1

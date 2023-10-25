@@ -26,17 +26,27 @@ class InstallerWorkflow:
                 workflows.append({"uid": job_id, "run_id": run_id, "id": workflow['id']})
         return workflows
 
-    #Start the init job if it exists
-    def start_demo_init_job(self, demo_conf: DemoConf, use_cluster_id = None, debug = False):
+    #create or update the init job if it exists
+    def create_demo_init_job(self, demo_conf: DemoConf, use_cluster_id = None, debug = False):
         if "settings" in demo_conf.init_job:
             job_name = demo_conf.init_job["settings"]["name"]
             if debug:
                 print(f"    Searching for existing demo initialisation job {job_name}")
             #We have an init json
-            job_id, run_id = self.create_or_replace_job(demo_conf.name, demo_conf.init_job, job_name, True, use_cluster_id)
+            job_id, run_id = self.create_or_replace_job(demo_conf.name, demo_conf.init_job, job_name, False, use_cluster_id)
             return {"uid": job_id, "run_id": run_id, "id": "init-job"}
         return {"uid": None, "run_id": None, "id": None}
 
+    #Start the init job if it exists.
+    def start_demo_init_job(self, init_job, debug = False):
+        if init_job['uid'] is not None:
+            j = self.installer.db.post("2.1/jobs/run-now", {"job_id": init_job['uid']})
+            if debug:
+                print(f'Starting init job {init_job}: {j}')
+            if "error_code" in j:
+                self.installer.report.display_workflow_error(WorkflowException("Can't start the workflow", {"job_id": job_id}, j), demo_name)
+            init_job['run_id'] = j['run_id']
+            return j['run_id']
 
     def create_or_replace_job(self, demo_name: str, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None, debug = False):
         cloud = self.installer.get_current_cloud()
@@ -59,11 +69,12 @@ class InstallerWorkflow:
                 if "new_cluster" in cluster:
                     merge_dict(cluster["new_cluster"], cluster_conf, override=False)
                     #Let's make sure we add our dev pool for faster startup
-                    if self.db.conf.is_dev_env():
-                        cluster["new_cluster"]["instance_pool_id"] = "0213-111033-rowed79-pool-zb80houq"
+                    if self.db.conf.get_demo_pool() is not None:
+                        cluster["new_cluster"]["instance_pool_id"] = self.db.conf.get_demo_pool()
                         if "node_type_id" in cluster["new_cluster"]: del cluster["new_cluster"]["node_type_id"]
                         if "enable_elastic_disk" in cluster["new_cluster"]: del cluster["new_cluster"]["enable_elastic_disk"]
                         if "aws_attributes" in cluster["new_cluster"]: del cluster["new_cluster"]["aws_attributes"]
+
         # Add support for clsuter specific task
         for task in definition["settings"]["tasks"]:
             if "new_cluster" in task:

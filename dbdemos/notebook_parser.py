@@ -80,6 +80,10 @@ class NotebookParser:
     def replace_schema(self, demo_conf: DemoConf):
         if demo_conf.custom_schema_supported:
             self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$schema=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $schema={demo_conf.schema}", True)
+            if demo_conf.default_catalog != demo_conf.catalog or demo_conf.default_schema != demo_conf.schema:
+                self.replace_in_notebook(f"{demo_conf.default_catalog}.{demo_conf.default_schema}", f"{demo_conf.catalog}.{demo_conf.schema}")
+                self.replace_in_notebook(f'dbutils.widgets.text("catalog", "{demo_conf.default_catalog}"', f'dbutils.widgets.text("catalog", "{demo_conf.catalog}"')
+                self.replace_in_notebook(f'dbutils.widgets.text("db", "{demo_conf.default_schema}"', f'dbutils.widgets.text("db", "{demo_conf.schema}"')
 
     def replace_in_notebook(self, old, new, regex = False):
         if regex:

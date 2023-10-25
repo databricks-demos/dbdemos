@@ -1,6 +1,6 @@
 #increase the release (needs pip install bump)
 bump
-#pachage
+#package
 rm -rf ./dist/*
 rm -rf ./dbdemos/bundles/.DS_Store
 python3 setup.py clean --all bdist_wheel

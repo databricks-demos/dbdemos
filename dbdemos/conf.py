@@ -41,8 +41,25 @@ class Conf():
     def get_repo_path(self):
         return self.repo_staging_path+"/"+self.repo_name
 
+    #Add internal pool id to accelerate our demos & unit tests
+    def get_demo_pool(self):
+        if self.org_id == "1444828305810485" or "e2-demo-field-eng" in self.workspace_url:
+            return "0727-104344-hauls13-pool-uftxk0r6"
+        if self.org_id == "1660015457675682" or self.is_dev_env():
+            return "0213-111033-rowed79-pool-zb80houq"
+        if self.org_id == "5206439413157315":
+            return "1010-172835-slues66-pool-7dhzc23j"
+        if self.org_id == "984752964297111":
+            return "1010-173019-honor44-pool-ksw4stjz"
+        if self.org_id == "2556758628403379":
+            return "1010-173021-dance560-pool-hl7wefwy"
+        return None
+
     def is_dev_env(self):
         return "e2-demo-tools" in self.workspace_url
+
+    def is_demo_env(self):
+        return "e2-demo-field-eng" in self.workspace_url or "eastus2" or self.org_id in ["1444828305810485"]
 
     def is_fe_env(self):
         return "e2-demo-field-eng" in self.workspace_url or "eastus2" in self.workspace_url or \
