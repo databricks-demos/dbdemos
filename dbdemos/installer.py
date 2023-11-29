@@ -46,7 +46,8 @@ class Installer:
         self.installer_workflow = InstallerWorkflow(self)
         self.installer_repo = InstallerRepo(self)
         #Slows down on GCP as the dashboard API is very sensitive to back-pressure
-        self.max_workers = 1 if self.get_current_cloud() == "GCP" else 3
+        # 1 dashboard at a time to reduce import pression as it seems to be creating new errors.
+        self.max_workers = 1 if self.get_current_cloud() == "GCP" else 1
 
 
     #TODO replace with https://github.com/mlflow/mlflow/blob/master/mlflow/utils/databricks_utils.py#L64 ?
@@ -164,12 +165,12 @@ class Installer:
         try:
             w = self.db.get("2.0/sql/config/warehouses", {"limit": 1})
             if "error_code" in w and (w["error_code"] == "FEATURE_DISABLED" or w["error_code"] == "ENDPOINT_NOT_FOUND"):
-                self.report.display_non_premium_warn(Exception(f"DBSQL not available"), w)
+                self.report.display_non_premium_warn(Exception(f"DBSQL not available, either at workspace level or user entitlement."), w)
                 return False
             return True
         except Exception as e:
             print(e)
-            self.report.display_non_premium_warn(Exceptixon(f"DBSQL not available"), str(e))
+            self.report.display_non_premium_warn(Exception(f"DBSQL not available"), str(e))
             return False
 
 

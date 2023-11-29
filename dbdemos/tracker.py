@@ -4,10 +4,7 @@ import urllib.parse
 class Tracker:
     #Set this value to false to disable dbdemo toolkit tracker.
     enable_tracker = True
-    website_tracker_id = "G-6YMJB8VLT3"
-    TID = "UA-163989034-1"
-    GTM = "GTM-NKQ8TT7"
-    URL = "https://www.google-analytics.com/collect"
+    URL = "https://ppxrzfxige.execute-api.us-west-2.amazonaws.com/v1/analytics"
 
     def __init__(self, org_id, uid):
         self.org_id = org_id
@@ -31,9 +28,13 @@ class Tracker:
             return {}
         if len(notebook) > 0:
             notebook = '/'+notebook
-        params = {"v": 1, "gtm": Tracker.GTM, "tid": Tracker.TID, "aip": 1, "t": "event",
-                  "ec":"dbdemos", "ea":"display", "dp": f"/_dbdemos/{category}/{demo_name}{notebook}",
-                  "cid": self.org_id, "uid": self.uid, "ea": event}
+        params = {"category": category,
+                  "org_id": self.org_id, #legacy "cid" -- ignore "uid": self.uid
+                  "notebook": notebook,
+                  "demo_name": demo_name,
+                  "event": event,
+                  "path": f"/_dbdemos/{category}/{demo_name}{notebook}", #legacy tracking "dp"
+                  "version": 1}
         return params
 
 
@@ -47,8 +48,8 @@ class Tracker:
                         "cache-control": "max-age=0",
                         "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"}
             try:
-                with requests.get(Tracker.URL, params = self.get_track_params(category, demo_name, event), headers=headers, timeout=5) as t:
+                with requests.post(Tracker.URL, json = self.get_track_params(category, demo_name, event), headers=headers, timeout=5) as t:
                     if t.status_code != 200:
-                        print(f"Usage report error. See readme to disable it. {t.text}")
+                        print(f"Info - Usage report error (internet access not available?). See readme to disable it, you can ignore safely this. Details: {t.text}")
             except Exception as e:
                 print("Usage report error. See readme to disable it. "+(str(e)))

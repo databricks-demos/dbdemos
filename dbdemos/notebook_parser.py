@@ -36,15 +36,25 @@ class NotebookParser:
             tracker = Tracker(org_id, uid)
             #Our demos in the repo already have tags used when we clone the notebook directly.
             #We need to update the tracker with the demo configuration & dbdemos setup.
-            r = r"""(<img\s*width=\\?"1px\\?"\s*src=\\?")(https:\/\/www\.google-analytics\.com\/collect.*?)(\\?"\s?\/?>)"""
             tracker_url = tracker.get_track_url(category, demo_name, "VIEW", notebook)
+            r = r"""(<img\s*width=\\?"1px\\?"\s*src=\\?")(https:\/\/ppxrzfxige\.execute-api\.us-west-2\.amazonaws\.com\/v1\/analytics.*?)(\\?"\s?\/?>)"""
+            self.content = re.sub(r, rf'\1{tracker_url}\3', self.content)
+
+            #old legacy tracker, to be migrted & emoved
+            r = r"""(<img\s*width=\\?"1px\\?"\s*src=\\?")(https:\/\/www\.google-analytics\.com\/collect.*?)(\\?"\s?\/?>)"""
             self.content = re.sub(r, rf'\1{tracker_url}\3', self.content)
         else:
             #Remove all the tracker from the notebook
             self.replace_in_notebook(r"""<img\s*width=\\?"1px\\?"\s*src=\\?"https:\/\/www\.google-analytics\.com\/collect.*?\\?"\s?\/?>""", "", True)
+            self.replace_in_notebook(r"""<img\s*width=\\?"1px\\?"\s*src=\\?"https:\/\/ppxrzfxige\.execute-api\.us-west-2\.amazonaws\.com\/v1\/analytics.*?\\?"\s?\/?>""", "", True)
 
     def remove_uncomment_tag(self):
         self.replace_in_notebook('[#-]{1,2}\s*UNCOMMENT_FOR_DEMO ?', '', True)
+
+    ##Remove the __build to avoid catalog conflict during build vs test
+    # TODO: improve build and get a separate metastore for tests vs build.
+    def remove_dbdemos_build(self):
+        self.replace_in_notebook('dbdemos__build', 'dbdemos')
 
     def remove_robots_meta(self):
         #Drop the noindex tag
@@ -80,10 +90,11 @@ class NotebookParser:
     def replace_schema(self, demo_conf: DemoConf):
         if demo_conf.custom_schema_supported:
             self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$schema=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $schema={demo_conf.schema}", True)
-            if demo_conf.default_catalog != demo_conf.catalog or demo_conf.default_schema != demo_conf.schema:
-                self.replace_in_notebook(f"{demo_conf.default_catalog}.{demo_conf.default_schema}", f"{demo_conf.catalog}.{demo_conf.schema}")
-                self.replace_in_notebook(f'dbutils.widgets.text("catalog", "{demo_conf.default_catalog}"', f'dbutils.widgets.text("catalog", "{demo_conf.catalog}"')
-                self.replace_in_notebook(f'dbutils.widgets.text("db", "{demo_conf.default_schema}"', f'dbutils.widgets.text("db", "{demo_conf.schema}"')
+            self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$db=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $db={demo_conf.schema}", True)
+            self.replace_in_notebook(f"{demo_conf.default_catalog}.{demo_conf.default_schema}", f"{demo_conf.catalog}.{demo_conf.schema}")
+            self.replace_in_notebook(f'dbutils.widgets.text(\\"catalog\\", \\"{demo_conf.default_catalog}\\"', f'dbutils.widgets.text(\\"catalog\\", \\"{demo_conf.catalog}\\"')
+            self.replace_in_notebook(f'dbutils.widgets.text(\\"schema\\", \\"{demo_conf.default_schema}\\"', f'dbutils.widgets.text(\\"schema\\", \\"{demo_conf.schema}\\"')
+            self.replace_in_notebook(f'dbutils.widgets.text(\\"db\\", \\"{demo_conf.default_schema}\\"', f'dbutils.widgets.text(\\"db\\", \\"{demo_conf.schema}\\"')
 
     def replace_in_notebook(self, old, new, regex = False):
         if regex:

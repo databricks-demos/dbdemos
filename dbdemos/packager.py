@@ -92,6 +92,7 @@ class Packager:
             #Replace notebook content.
             parser = NotebookParser(html)
             parser.remove_uncomment_tag()
+            parser.remove_dbdemos_build()
             #parser.remove_static_settings()
             parser.hide_commands_and_results()
             parser.add_ga_website_tracker()
