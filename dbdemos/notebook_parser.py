@@ -88,6 +88,7 @@ class NotebookParser:
                                                       "});", 1)
 
     def replace_schema(self, demo_conf: DemoConf):
+        self.replace_in_notebook(f'catalog = \\"main__build\\"', f'catalog = \\"main\\"')
         if demo_conf.custom_schema_supported:
             self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$schema=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $schema={demo_conf.schema}", True)
             self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$db=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $db={demo_conf.schema}", True)
@@ -95,6 +96,10 @@ class NotebookParser:
             self.replace_in_notebook(f'dbutils.widgets.text(\\"catalog\\", \\"{demo_conf.default_catalog}\\"', f'dbutils.widgets.text(\\"catalog\\", \\"{demo_conf.catalog}\\"')
             self.replace_in_notebook(f'dbutils.widgets.text(\\"schema\\", \\"{demo_conf.default_schema}\\"', f'dbutils.widgets.text(\\"schema\\", \\"{demo_conf.schema}\\"')
             self.replace_in_notebook(f'dbutils.widgets.text(\\"db\\", \\"{demo_conf.default_schema}\\"', f'dbutils.widgets.text(\\"db\\", \\"{demo_conf.schema}\\"')
+
+            self.replace_in_notebook(f'catalog = \\"{demo_conf.default_catalog}\\"', f'catalog = \\"{demo_conf.catalog}\\"')
+            self.replace_in_notebook(f'dbName = db = \\"{demo_conf.default_schema}\\"', f'dbName = db = \\"{demo_conf.schema}\\"')
+            self.replace_in_notebook(f'db = \\"{demo_conf.default_schema}\\"', f'db = \\"{demo_conf.schema}\\"')
 
     def replace_in_notebook(self, old, new, regex = False):
         if regex:
@@ -194,8 +199,13 @@ class NotebookParser:
             if "%run " in c["command"]:
                 c["hideCommandResult"] = True
             if "results" in c and  c["results"] is not None and "data" in c["results"] and c["results"]["data"] is not None and \
-                c["results"]["type"] == "table" and len(c["results"]["data"])>0 and str(c["results"]["data"][0][0]).startswith("This Delta Live Tables query is syntactically valid"):
+                    c["results"]["type"] == "table" and len(c["results"]["data"])>0 and str(c["results"]["data"][0][0]).startswith("This Delta Live Tables query is syntactically valid"):
                 c["hideCommandResult"] = True
+        self.content = json.dumps(content)
+
+    def remove_delete_cell(self):
+        content = json.loads(self.content)
+        content["commands"] = [c for c in content["commands"] if "#dbdemos__delete_this_cell" not in c["command"].lower()]
         self.content = json.dumps(content)
 
     def replace_dashboard_links(self, dashboards):

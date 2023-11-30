@@ -35,9 +35,9 @@ def bundle():
     #bundler.add_bundle("product_demos/Data-Science/computer-vision-dl")
     #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
-    #bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
+    bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
     #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     """0
     lakehouse-patient-readmission
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
@@ -113,7 +113,7 @@ def bundle_with_retry(max_retry = 3):
             print(str(e))
 
 #bundle_with_retry(3)
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -128,7 +128,7 @@ import dbdemos
 #dbdemos.install("lakehouse-hls-readmission", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False)
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = True, skip_dashboards=False)
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = True, skip_dashboards=False)
-dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, catalog="quentin", schema="test_c360_uc", skip_dashboards=True)
+#dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, catalog="quentin", schema="test_c360_uc", skip_dashboards=True)
 #dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False)
 #installer = Installer()
 #for d in installer.get_demos_available():
@@ -136,6 +136,8 @@ dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/t
 
 
 #dbdemos.list_demos(None)
+
+#dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True)
 
 #dbdemos.install("sql-ai-functions", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
 
