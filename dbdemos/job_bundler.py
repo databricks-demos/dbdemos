@@ -79,7 +79,9 @@ class JobBundler:
     def reset_staging_repo(self, skip_pull = False):
         repo_path = self.conf.get_repo_path()
         print(f"Cloning repo { self.conf.repo_url} and pulling last content under {repo_path}...")
-        repos = self.db.get("2.0/repos", {"path_prefix": repo_path})['repos']
+        repos = self.db.get("2.0/repos", {"path_prefix": repo_path})
+        print(repos)
+        repos = repos['repos']
         if len(repos) == 0:
             print(f"creating repo under {repo_path}")
             self.db.post("2.0/repos", {"url": self.conf.repo_url, "provider": "gitHub", "path": repo_path})

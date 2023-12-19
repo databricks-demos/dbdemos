@@ -18,7 +18,7 @@ class InstallerReport:
                         font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji,FontAwesome;
     color: #3b3b3b;
     box-shadow: 0 .15rem 1.15rem 0 rgba(58,59,69,.15)!important;
-    padding: 10px;
+    padding: 10px 20px 20px 20px;
     margin: 10px;
     }
     .dbdemos_block{

@@ -100,6 +100,7 @@ class NotebookParser:
             self.replace_in_notebook(f'catalog = \\"{demo_conf.default_catalog}\\"', f'catalog = \\"{demo_conf.catalog}\\"')
             self.replace_in_notebook(f'dbName = db = \\"{demo_conf.default_schema}\\"', f'dbName = db = \\"{demo_conf.schema}\\"')
             self.replace_in_notebook(f'db = \\"{demo_conf.default_schema}\\"', f'db = \\"{demo_conf.schema}\\"')
+            self.replace_in_notebook(f'schema = \\"{demo_conf.default_schema}\\"', f'schema = \\"{demo_conf.schema}\\"')
 
     def replace_in_notebook(self, old, new, regex = False):
         if regex:
@@ -114,6 +115,7 @@ class NotebookParser:
     def add_extra_cell(self, cell_content, position = 1):
         command = {
             "version": "CommandV1",
+            "bindings": {},
             "subtype": "command",
             "commandType": "auto",
             "position": position,
