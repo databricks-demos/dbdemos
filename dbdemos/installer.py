@@ -456,6 +456,7 @@ class Installer:
             parser.replace_schema(demo_conf)
             parser.replace_dynamic_links_pipeline(pipeline_ids)
             parser.replace_dynamic_links_repo(repos)
+            parser.remove_delete_cell()
             parser.replace_dynamic_links_workflow(workflows)
             parser.set_tracker_tag(self.get_org_id(), self.get_uid(), demo_conf.category, demo_name, notebook.get_clean_path())
             content = parser.get_html()

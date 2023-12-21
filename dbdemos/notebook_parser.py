@@ -194,6 +194,8 @@ class NotebookParser:
             self.html = re.sub("""<head>""", tracker, self.html)
 
     def hide_commands_and_results(self):
+        #
+        self.replace_in_notebook('e2-demo-tools', 'xxxx', True)
         content = json.loads(self.content)
         for c in content["commands"]:
             if "#hide_this_code" in c["command"].lower():

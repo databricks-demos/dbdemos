@@ -154,6 +154,7 @@ class Packager:
             with open(full_path, "w") as f:
                 parser.remove_robots_meta()
                 parser.add_cell_as_html_for_seo()
+                parser.remove_delete_cell()
                 parser.add_javascript_to_minisite_relative_links()
                 f.write(parser.get_html())
             menu_entry = ""
