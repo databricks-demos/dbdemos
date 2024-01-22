@@ -67,7 +67,13 @@ class Installer:
         try:
             return "https://"+self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
         except:
-            return "local"
+            try:
+                return "https://"+self.get_dbutils_tags_safe()['browserHostName']
+            except:
+                return "local"
+    def get_dbutils_tags_safe(self):
+        import json
+        return json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().safeToJson())['attributes']
 
     def get_current_cluster_id(self):
         try:
@@ -76,13 +82,19 @@ class Installer:
             try:
                 return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().clusterId().get()
             except:
-                return "local"
+                try:
+                    return self.get_dbutils_tags_safe()['clusterId']
+                except:
+                    return "local"
 
     def get_org_id(self):
         try:
             return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().tags().apply('orgId')
         except:
-            return "local"
+            try:
+                return self.get_dbutils_tags_safe()['orgId']
+            except:
+                return "local"
 
     def get_uid(self):
         try:
@@ -95,14 +107,19 @@ class Installer:
             current_notebook = self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
             return current_notebook[:current_notebook.rfind("/")]
         except:
-            return "local"
-
+            try:
+                current_notebook = self.get_dbutils_tags_safe()['notebook_path']
+                return current_notebook[:current_notebook.rfind("/")]
+            except:
+                return "local"
     def get_workspace_id(self):
         try:
             return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().workspaceId().get()
         except:
-            return "local"
-
+            try:
+                return self.get_dbutils_tags_safe()['orgId']
+            except:
+                return "local"
     def get_current_pat_token(self):
         try:
             token = self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
@@ -119,8 +136,11 @@ class Installer:
             try:
                 return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().userName().get()
             except Exception as e:
-                print(f"WARN: couldn't get current username. This shouldn't happen - unpredictable behavior - 2 errors: {e2} - {e} - will return 'unknown'")
-                return "unknown"
+                try:
+                    return self.get_dbutils_tags_safe()['user']
+                except:
+                    print(f"WARN: couldn't get current username. This shouldn't happen - unpredictable behavior - 2 errors: {e2} - {e} - will return 'unknown'")
+                    return "unknown"
 
     def get_current_cloud(self):
         try:
@@ -232,6 +252,8 @@ class Installer:
         return []
 
     def replace_dashboard_schema(self, demo_conf: DemoConf, definition: str):
+        #main__build is used during the build process to avoid collision with default main.
+        definition = definition.replace("main__build.", f"main.")
         if demo_conf.custom_schema_supported:
             return definition.replace(demo_conf.default_catalog+"."+demo_conf.default_schema, f"`{demo_conf.catalog}`.`{demo_conf.schema}`")
         return definition

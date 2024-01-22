@@ -143,6 +143,7 @@ def help():
         print("""dbdemos.install_all(path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS")</div>: install all the demos to the given path.""")
 
 def list_demos(category = None, installer = None):
+    deprecated_demos = ["uc-04-audit-log", "llm-dolly-chatbot"]
     if installer == None:
         installer = Installer()
     installer.tracker.track_list()
@@ -151,7 +152,7 @@ def list_demos(category = None, installer = None):
     demos["lakehouse"] = []
     for demo in installer.get_demos_available():
         conf = installer.get_demo_conf(demo)
-        if category is None or conf.category == category.lower():
+        if category is None or conf.category == category.lower() and conf.name not in deprecated_demos:
             demos[conf.category].append(conf)
     if installer.report.displayHTML_available():
         list_html(demos)

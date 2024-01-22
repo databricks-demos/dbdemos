@@ -186,7 +186,7 @@ class JobBundler:
                     "task_key": f"bundle_{demo_conf.name}_{i}",
                     "notebook_task": {
                         "notebook_path": demo_conf.path+"/"+notebook.path,
-                        "base_parameters": {"reset_all_data": "true"},
+                        "base_parameters": {"reset_all_data": "false"},
                         "source": "GIT"
                     },
                     "libraries": notebook.libraries,

@@ -88,7 +88,11 @@ class NotebookParser:
                                                       "});", 1)
 
     def replace_schema(self, demo_conf: DemoConf):
+        #main__build is used during the build process to avoid collision with default main.
         self.replace_in_notebook(f'catalog = \\"main__build\\"', f'catalog = \\"main\\"')
+        self.replace_in_notebook(f'main__build.{demo_conf.default_schema}', f'main.{demo_conf.default_schema}')
+        self.replace_in_notebook('Volumes/main__build', 'Volumes/main')
+        #TODO we need to unify this across all demos.
         if demo_conf.custom_schema_supported:
             self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$schema=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $schema={demo_conf.schema}", True)
             self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$db=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $db={demo_conf.schema}", True)
@@ -96,9 +100,11 @@ class NotebookParser:
             self.replace_in_notebook(f'dbutils.widgets.text(\\"catalog\\", \\"{demo_conf.default_catalog}\\"', f'dbutils.widgets.text(\\"catalog\\", \\"{demo_conf.catalog}\\"')
             self.replace_in_notebook(f'dbutils.widgets.text(\\"schema\\", \\"{demo_conf.default_schema}\\"', f'dbutils.widgets.text(\\"schema\\", \\"{demo_conf.schema}\\"')
             self.replace_in_notebook(f'dbutils.widgets.text(\\"db\\", \\"{demo_conf.default_schema}\\"', f'dbutils.widgets.text(\\"db\\", \\"{demo_conf.schema}\\"')
+            self.replace_in_notebook(f'Volumes/{demo_conf.default_catalog}/{demo_conf.default_schema}', f'Volumes/{demo_conf.catalog}/{demo_conf.schema}')
 
             self.replace_in_notebook(f'catalog = \\"{demo_conf.default_catalog}\\"', f'catalog = \\"{demo_conf.catalog}\\"')
             self.replace_in_notebook(f'dbName = db = \\"{demo_conf.default_schema}\\"', f'dbName = db = \\"{demo_conf.schema}\\"')
+            self.replace_in_notebook(f'schema = dbName = db = \\"{demo_conf.default_schema}\\"', f'schema = dbName = db = \\"{demo_conf.schema}\\"')
             self.replace_in_notebook(f'db = \\"{demo_conf.default_schema}\\"', f'db = \\"{demo_conf.schema}\\"')
             self.replace_in_notebook(f'schema = \\"{demo_conf.default_schema}\\"', f'schema = \\"{demo_conf.schema}\\"')
 
