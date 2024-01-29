@@ -183,8 +183,8 @@ The installer needs to fetch data from a workspace & start jobs. To do so, it re
   "username": "xx.xx@databricks.com",
   "url": "https://xxx.databricks.com",
   "repo_staging_path": "/Repos/xx.xx@databricks.com",
-  "repo_name": "<field-demos_build>",
-  "repo_url": "https://github.com/<repo containing demos to package>",
+  "repo_name": "dbdemos-notebooks",
+  "repo_url": "https://github.com/databricks-demos/dbdemos-notebooks.git", #put your clone here
   "branch": "master",
   "current_folder": "<Used to mock the current folder outside of a notebook, ex: /Users/quentin.ambard@databricks.com/test_install_demo>"
 }

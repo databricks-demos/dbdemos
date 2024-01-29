@@ -152,7 +152,7 @@ def list_demos(category = None, installer = None):
     demos["lakehouse"] = []
     for demo in installer.get_demos_available():
         conf = installer.get_demo_conf(demo)
-        if category is None or conf.category == category.lower() and conf.name not in deprecated_demos:
+        if (category is None or conf.category == category.lower()) and conf.name not in deprecated_demos:
             demos[conf.category].append(conf)
     if installer.report.displayHTML_available():
         list_html(demos)

@@ -37,12 +37,12 @@ def bundle():
     # Or manually add bundle to run faster:
     #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-smart-claims")
-    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("product_demos/Unity-Catalog/04-Audit-log")
     #bundler.add_bundle("demo-HLS/lakehouse-patient-readmission")
     #bundler.add_bundle("product_demos/Data-Science/computer-vision-dl")
-    bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
+    #bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
     """0
     lakehouse-patient-readmission
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
@@ -112,7 +112,7 @@ def bundle_with_retry(max_retry = 3):
             print(str(e))
 
 #bundle_with_retry(3)
-bundle()
+#bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -137,7 +137,7 @@ import dbdemos
 
 #dbdemos.list_demos(None)
 
-dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True)
+dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True, use_current_cluster=True)
 
 #dbdemos.install("sql-ai-functions", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
 

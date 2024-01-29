@@ -133,14 +133,16 @@ class NotebookParser:
 
     #as auto ml links are unique per workspace, we have to delete them
     def remove_automl_result_links(self):
-        content = json.loads(self.content)
-        for c in content["commands"]:
-            if re.search('display_automl_[a-zA-Z]*_link', c["command"]):
-                if 'results' in c and c['results'] is not None and 'data' in c['results'] and c['results']['data'] is not None and len(c['results']['data']) > 0:
-                    contains_exp_link = len([d for d in c['results']['data'] if 'Data exploration notebook' in d['data']]) > 0
-                    if contains_exp_link:
-                        c['results']['data'] = [{'type': 'ansi', 'data': 'Please run the notebook cells to get your AutoML links (from the begining)', 'name': None, 'arguments': {}, 'addedWidgets': {}, 'removedWidgets': [], 'datasetInfos': [], 'metadata': {}}]
-        self.content = json.dumps(content)
+        if "display_automl_" in self.content:
+            content = json.loads(self.content)
+            for c in content["commands"]:
+                if re.search('display_automl_[a-zA-Z]*_link', c["command"]):
+                    if 'results' in c and c['results'] is not None and 'data' in c['results'] and c['results']['data'] is not None and len(c['results']['data']) > 0:
+                        contains_exp_link = len([d for d in c['results']['data'] if 'Data exploration notebook' in d['data']]) > 0
+                        if contains_exp_link:
+                            c['results']['data'] = [{'type': 'ansi', 'data': 'Please run the notebook cells to get your AutoML links (from the begining)', 'name': None, 'arguments': {}, 'addedWidgets': {}, 'removedWidgets': [], 'datasetInfos': [], 'metadata': {}}]
+                            link_removed = True
+            self.content = json.dumps(content)
 
 
     #Will change the content to
