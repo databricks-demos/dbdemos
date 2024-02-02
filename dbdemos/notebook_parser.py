@@ -21,9 +21,9 @@ class NotebookParser:
 
     def get_html(self):
         content = json.loads(self.content)
-        for i in range(len(content["commands"]) - 1):
-            if content["commands"][i + 1]['position'] <= content["commands"][i]['position']:
-                content["commands"][i + 1]['position'] = content["commands"][i]['position'] + 0.1  # Increment by a fixed value
+        #force the position to avoid bug during import
+        for i in range(len(content["commands"])):
+            content["commands"][i]['position'] = i
         content = json.dumps(content)
         content = urllib.parse.quote(content, safe="()*''")
         return self.html.replace(self.raw_content, base64.b64encode(content.encode('utf-8')).decode('utf-8'))

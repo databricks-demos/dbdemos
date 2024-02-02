@@ -344,7 +344,7 @@ class InstallerReport:
                     print(f"""We created a workflow as part of your demo: {self.workspace_url}/#job/{w['uid']}/tasks""")
         print("----------------------------------------------------")
         print(f"Your demo {title} is ready! ")
-        if len(notebooks) > 0:
-            first = list(filter(lambda n: "/" not in n.get_clean_path(), notebooks))
+        first = list(filter(lambda n: "/" not in n.get_clean_path(), notebooks))
+        if len(first) > 0:
             first.sort(key=lambda n: n.get_clean_path())
             print(f"Start with the first notebook {demo_name}/{first[0].get_clean_path()}{cluster_instruction}: {self.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}.")
