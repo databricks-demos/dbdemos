@@ -20,7 +20,12 @@ class NotebookParser:
         return raw_content, content
 
     def get_html(self):
-        content = urllib.parse.quote(self.content, safe="()*''")
+        content = json.loads(self.content)
+        for i in range(len(content["commands"]) - 1):
+            if content["commands"][i + 1]['position'] <= content["commands"][i]['position']:
+                content["commands"][i + 1]['position'] = content["commands"][i]['position'] + 0.1  # Increment by a fixed value
+        content = json.dumps(content)
+        content = urllib.parse.quote(content, safe="()*''")
         return self.html.replace(self.raw_content, base64.b64encode(content.encode('utf-8')).decode('utf-8'))
 
     def contains(self, str):
@@ -141,7 +146,6 @@ class NotebookParser:
                         contains_exp_link = len([d for d in c['results']['data'] if 'Data exploration notebook' in d['data']]) > 0
                         if contains_exp_link:
                             c['results']['data'] = [{'type': 'ansi', 'data': 'Please run the notebook cells to get your AutoML links (from the begining)', 'name': None, 'arguments': {}, 'addedWidgets': {}, 'removedWidgets': [], 'datasetInfos': [], 'metadata': {}}]
-                            link_removed = True
             self.content = json.dumps(content)
 
 
