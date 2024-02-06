@@ -2,6 +2,8 @@
 
 DBDemos is a toolkit to easily install Lakehouse demos for Databricks.
 
+**Looking for the dbdemos notebooks and content?** Access [https://github.com/databricks-demos/dbdemos](https://github.com/databricks-demos/dbdemos-notebooks)?
+
 Simply deploy & share demos on any workspace. dbdemos is packaged with a list of demos:
 
 - Lakehouse, end-to-end demos (ex: Lakehouse Retail Churn)
