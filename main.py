@@ -34,15 +34,18 @@ def bundle():
     bundler.reset_staging_repo(skip_pull=False, )
     # Discover bundles from repo:
     #bundler.load_bundles_conf()
+    #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     # Or manually add bundle to run faster:
     #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-smart-claims")
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("product_demos/Unity-Catalog/04-Audit-log")
     #bundler.add_bundle("demo-HLS/lakehouse-patient-readmission")
     #bundler.add_bundle("product_demos/Data-Science/computer-vision-dl")
     #bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
+    bundler.add_bundle("product_demos/Unity-Catalog/uc-01-acl")
+    #bundler.add_bundle("demo-FSI/lakehouse-fsi-smart-claims")
     """0
     lakehouse-patient-readmission
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
@@ -72,7 +75,6 @@ def bundle():
     #bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
     #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
     #bundler.add_bundle("product_demos/streaming-sessionization")
-    #bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
     #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-credit-decisioning")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
@@ -92,7 +94,7 @@ def bundle():
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
-    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=True)
+    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False)
 
     packager = Packager(conf, bundler)
     packager.package_all()
@@ -112,7 +114,7 @@ def bundle_with_retry(max_retry = 3):
             print(str(e))
 
 #bundle_with_retry(3)
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -137,8 +139,8 @@ import dbdemos
 
 #dbdemos.list_demos(None)
 
-#dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True, use_current_cluster=True, schema='test_quentin_rag', catalog='dbdemos')
-dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True, use_current_cluster=True)
+#dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=False, use_current_cluster=True, schema='test_quentin_rag', catalog='dbdemos')
+#dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True, use_current_cluster=True)
 
 #dbdemos.install("sql-ai-functions", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
 
@@ -161,6 +163,6 @@ dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_in
 #dbdemos.install("dlt-cdc", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-unit-test", "/Users/quentin.ambard@databricks.com/test_install", True, c['username'], c['pat_token'], c['url'])
-#dbdemos.install("uc-01-acl", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
+dbdemos.install("uc-01-acl", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], start_cluster = False,  schema='test_quentin_acl', catalog='dbdemos')
 #dbdemos.install("uc-05-upgrade", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.create_cluster("uc-05-upgrade", c['username'], c['pat_token'], c['url'], "GCP")

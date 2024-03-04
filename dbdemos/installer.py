@@ -73,7 +73,7 @@ class Installer:
                 return "local"
     def get_dbutils_tags_safe(self):
         import json
-        return json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().safeToJson())['attributes']
+        return json.loads(self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().safeToJson())['attributes']
 
     def get_current_cluster_id(self):
         try:

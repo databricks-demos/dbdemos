@@ -162,6 +162,9 @@ class JobBundler:
             #default job conf. TODO: add specific job setup per demo if required?
             conf_template = ConfTemplate(self.conf.username, demo_conf.name)
             default_job_conf = json.loads(conf_template.replace_template_key(self.conf.default_cluster_job_template))
+            default_job_conf["git_source"]["git_url"] = self.conf.repo_url
+            default_job_conf["git_source"]["git_branch"] = self.conf.branch
+
             cluster_conf = self.get_cluster_conf(demo_conf)
             #Update the job cluster with the specific demo setup if any
             for job_cluster in default_job_conf["job_clusters"]:
