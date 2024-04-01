@@ -183,7 +183,7 @@ class Installer:
 
     def test_premium_pricing(self):
         try:
-            w = self.db.get("2.0/sql/config/warehouses", {"limit": 1})
+            w = self.db.get("2.0/sql/config/warehouses", {"limit": 1}, print_auth_error = False)
             if "error_code" in w and (w["error_code"] == "FEATURE_DISABLED" or w["error_code"] == "ENDPOINT_NOT_FOUND"):
                 self.report.display_non_premium_warn(Exception(f"DBSQL not available, either at workspace level or user entitlement."), w)
                 return False
@@ -561,6 +561,8 @@ class Installer:
     def load_demo_cluster(self, demo_name, demo_conf: DemoConf, update_cluster_if_exists, start_cluster = True, use_cluster_id: str = None):
         if use_cluster_id is not None:
             return (use_cluster_id, "Interactive cluster you used for installation - make sure the cluster configuration matches.")
+        if demo_conf.create_cluster == False:
+            return (None, "This demo doesn't require cluster")
         #Do not start clusters by default in Databricks FE clusters to avoid costs as we have shared clusters for demos
         if start_cluster is None:
             start_cluster = not (self.db.conf.is_dev_env() or self.db.conf.is_fe_env())

@@ -181,7 +181,10 @@ class NotebookParser:
                     const href = links[i].getAttribute("href");
             
                     if (href && href.includes("$")) {
-                      const newHref = href.replace(/\$/g, "");
+                      newHref = href.replace(/\$/g, "");
+                      if (newHref.startsWith("/")) {
+                        newHref = newHref.slice(1)
+                      } 
                       links[i].setAttribute("href", newHref+".html");
             
                       if (links[i].hasAttribute("target")) {

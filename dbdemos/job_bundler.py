@@ -197,6 +197,9 @@ class JobBundler:
                     "timeout_seconds": 0,
                     "email_notifications": {}}
                 merge_dict(task["notebook_task"]["base_parameters"], notebook.parameters)
+                if notebook.warehouse_id:
+                    del task["job_cluster_key"]
+                    task["notebook_task"]["warehouse_id"] = notebook.warehouse_id
                 if notebook.depends_on_previous:
                     task["depends_on"] = [{"task_key": f"bundle_{demo_conf.name}_{i-1}"}]
                 default_job_conf['tasks'].append(task)

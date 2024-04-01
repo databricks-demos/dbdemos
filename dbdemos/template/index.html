@@ -118,7 +118,7 @@
         if (iframe) {
             iframeLink = iframe.contentWindow.location.href
             const name = iframeLink.split("/").pop();
-            const selection = $('a[iframe-src="./'+name+'"]')
+            const selection = $('a[iframe-src$="'+name+'"]')
             if (selection.length > 0) {
                 $('._left_menu').removeClass('active')
                 $(selection[0]).addClass('active')

@@ -93,19 +93,20 @@ class DBClient():
         with requests.patch(url, headers = self.conf.headers, json=json, timeout=60) as r:
             return self.get_json_result(url, r)
 
-    def get(self, path: str, params: dict = {}):
+    def get(self, path: str, params: dict = {}, print_auth_error = True):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
         with requests.get(url, headers = self.conf.headers, params=params, timeout=60) as r:
-            return self.get_json_result(url, r)
+            return self.get_json_result(url, r, print_auth_error)
 
     def delete(self, path: str, params: dict = {}):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
         with requests.delete(url, headers = self.conf.headers, params=params, timeout=60) as r:
             return self.get_json_result(url, r)
 
-    def get_json_result(self, url: str, r: Response):
+    def get_json_result(self, url: str, r: Response, print_auth_error = True):
         if r.status_code == 403:
-            print(f"Unauthorized call. Check your PAT token {r.text} - {r.url} - {url}")
+            if print_auth_error:
+                print(f"Unauthorized call. Check your PAT token {r.text} - {r.url} - {url}")
         try:
             return r.json()
         except Exception as e:
@@ -137,7 +138,7 @@ class DBClient():
 
 class DemoNotebook():
     def __init__(self, path: str, title: str, description: str, pre_run: bool = False, publish_on_website: bool = False,
-                 add_cluster_setup_cell: bool = False, parameters: dict = {}, depends_on_previous: bool = True, libraries: list = []):
+                 add_cluster_setup_cell: bool = False, parameters: dict = {}, depends_on_previous: bool = True, libraries: list = [], warehouse_id = None):
         self.path = path
         self.title = title
         self.description = description
@@ -147,6 +148,7 @@ class DemoNotebook():
         self.parameters = parameters
         self.depends_on_previous = depends_on_previous
         self.libraries = libraries
+        self.warehouse_id = warehouse_id
 
     def __repr__(self):
         return self.path
@@ -194,6 +196,7 @@ class DemoConf():
         self.default_schema = json_conf.get('default_schema', "")
         self.default_catalog = json_conf.get('default_catalog', "")
         self.custom_message = json_conf.get('custom_message', "")
+        self.create_cluster = json_conf.get('create_cluster', True)
         assert "bundle" in json_conf and json_conf["bundle"], "This demo isn't flaged for bundle. Please set bunde = True in the config file"
 
         for n in json_conf['notebooks']:
@@ -201,8 +204,9 @@ class DemoConf():
             params = n.get('parameters', {})
             depends_on_previous = n.get('depends_on_previous', True)
             libraries = n.get('libraries', [])
+            warehouse_id = n.get('warehouse_id', None)
             self.notebooks.append(DemoNotebook(n['path'], n['title'], n['description'], n['pre_run'], n['publish_on_website'],
-                                               add_cluster_setup_cell, params, depends_on_previous, libraries))
+                                               add_cluster_setup_cell, params, depends_on_previous, libraries, warehouse_id))
 
     def __repr__(self):
         return self.path + "("+str(self.notebooks)+")"
