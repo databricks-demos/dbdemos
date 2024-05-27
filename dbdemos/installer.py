@@ -23,6 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 import urllib
 import threading
+import requests
 
 class Installer:
     def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS", org_id: str = None, current_cluster_id: str = None):
@@ -54,13 +55,9 @@ class Installer:
     def get_dbutils(self):
         if self.dbutils is None:
             from pyspark.sql import SparkSession
+            from pyspark.dbutils import DBUtils
             spark = SparkSession.getActiveSession()
-            if spark.conf.get("spark.databricks.service.client.enabled") == "true":
-                from pyspark.dbutils import DBUtils
-                self.dbutils = DBUtils(spark)
-            else:
-                import IPython
-                self.dbutils = IPython.get_ipython().user_ns["dbutils"]
+            self.dbutils = DBUtils(spark)
         return self.dbutils
 
     def get_current_url(self):
@@ -154,7 +151,20 @@ class Installer:
             return "AZURE"
         else:
             return "AWS"
-
+        
+    def get_current_cluster_id(self):
+        try:
+            cluster_id = self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().clusterId().get()
+        except Exception as e:
+            raise Exception("Couldn't get the current cluster id: "+str(e))
+        return cluster_id
+        
+    def get_workspace_url(self):
+        try:
+            workspace_url = "https://"+self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
+        except Exception as e:
+            raise Exception("Couldn't get workspace URL: "+str(e))
+        return workspace_url
 
     def check_demo_name(self, demo_name):
         demos = collections.defaultdict(lambda: [])
@@ -193,8 +203,28 @@ class Installer:
             self.report.display_non_premium_warn(Exception(f"DBSQL not available"), str(e))
             return False
 
+    def cluster_is_serverless(self):
+        workspace_url = self.get_workspace_url()
+        cluster_id = self.get_current_cluster_id()
+        token = self.get_current_pat_token()
 
-    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False, debug = False, catalog = None, schema = None):
+        url = f"{workspace_url}/api/2.0/clusters/get"
+        headers = {"Authorization": f"Bearer {token}"}
+
+        try:
+            response = requests.get(url, headers=headers, params={"cluster_id": cluster_id})
+        except Exception as e:
+            raise Exception("Couldn't get cluster serverless status: "+str(e))
+
+        cluster_source = response.json().get("enable_serverless_compute", "")
+
+        if cluster_source == True:
+            # the cluster is serverless
+            return True
+        else:
+            return False
+
+    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -204,6 +234,8 @@ class Installer:
             install_path = self.get_current_folder()+"/"+install_path
         if install_path.endswith("/"):
             install_path = install_path[:-1]
+        if serverless and self.cluster_is_serverless(): 
+            use_current_cluster = True
         self.check_demo_name(demo_name)
         demo_conf = self.get_demo_conf(demo_name, catalog, schema, install_path+"/"+demo_name)
         if (schema is not  None or catalog is not None) and not demo_conf.custom_schema_supported:
@@ -218,7 +250,7 @@ class Installer:
             cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists, start_cluster, use_cluster_id)
         except ClusterException as e:
             self.report.display_cluster_creation_error(e, demo_conf)
-        pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug)
+        pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless)
         dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
         workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, debug)
@@ -509,20 +541,26 @@ class Installer:
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
 
-    def load_demo_pipelines(self, demo_name, demo_conf: DemoConf, debug=False):
+    def load_demo_pipelines(self, demo_name, demo_conf: DemoConf, debug=False, serverless=False):
         #default cluster conf
         pipeline_ids = []
         for pipeline in demo_conf.pipelines:
             definition = pipeline["definition"]
             today = date.today().strftime("%Y-%m-%d")
-            #enforce demo tagging in the cluster
-            for cluster in definition["clusters"]:
-                merge_dict(cluster, {"custom_tags": {"project": "dbdemos", "demo": demo_name, "demo_install_date": today}})
-                if self.db.conf.get_demo_pool() is not None:
-                    cluster["instance_pool_id"] = self.db.conf.get_demo_pool()
-                    if "node_type_id" in cluster: del cluster["node_type_id"]
-                    if "enable_elastic_disk" in cluster: del cluster["enable_elastic_disk"]
-                    if "aws_attributes" in cluster: del cluster["aws_attributes"]
+            #modify cluster definitions if serverless
+            if serverless:
+                del definition['clusters']
+                definition['photon'] = True
+                definition['serverless'] = True
+            else:
+                #enforce demo tagging in the cluster
+                for cluster in definition["clusters"]:
+                    merge_dict(cluster, {"custom_tags": {"project": "dbdemos", "demo": demo_name, "demo_install_date": today}})
+                    if self.db.conf.get_demo_pool() is not None:
+                        cluster["instance_pool_id"] = self.db.conf.get_demo_pool()
+                        if "node_type_id" in cluster: del cluster["node_type_id"]
+                        if "enable_elastic_disk" in cluster: del cluster["enable_elastic_disk"]
+                        if "aws_attributes" in cluster: del cluster["aws_attributes"]
 
             existing_pipeline = self.get_pipeline(definition["name"])
             if debug:
