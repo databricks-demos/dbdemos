@@ -207,17 +207,13 @@ class Installer:
         workspace_url = self.get_workspace_url()
         cluster_id = self.get_current_cluster_id()
         token = self.get_current_pat_token()
-
         url = f"{workspace_url}/api/2.0/clusters/get"
         headers = {"Authorization": f"Bearer {token}"}
-
         try:
             response = requests.get(url, headers=headers, params={"cluster_id": cluster_id})
         except Exception as e:
             raise Exception("Couldn't get cluster serverless status: "+str(e))
-
         cluster_source = response.json().get("enable_serverless_compute", "")
-
         if cluster_source == True:
             # the cluster is serverless
             return True

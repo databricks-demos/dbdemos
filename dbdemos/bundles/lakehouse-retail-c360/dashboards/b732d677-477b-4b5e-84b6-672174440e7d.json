@@ -1,0 +1,1390 @@
+{
+    "queries": [
+        {
+            "id": "d25e0a0f-62d4-4576-bd33-69126f98d725",
+            "version": 1,
+            "description": null,
+            "name": "DLT-retail-data-quality",
+            "user": {
+                "id": 7644138420879474,
+                "name": "Quentin Ambard",
+                "email": "quentin.ambard@databricks.com"
+            },
+            "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+            "warehouse_id": "9be8079d873b30a6",
+            "run_as_role": "owner",
+            "can_edit": true,
+            "is_archived": false,
+            "is_draft": false,
+            "is_favorite": false,
+            "is_safe": true,
+            "last_modified_by": {
+                "id": 7644138420879474,
+                "name": "Quentin Ambard",
+                "email": "quentin.ambard@databricks.com"
+            },
+            "parent": "folders/1580401252621742",
+            "permission_tier": "CAN_MANAGE",
+            "run_as_service_principal_id": null,
+            "tags": [],
+            "user_id": 7644138420879474,
+            "created_at": "2024-01-24T17:18:36Z",
+            "updated_at": "2024-01-24T17:18:36Z",
+            "options": {
+                "parameters": [],
+                "apply_auto_limit": false,
+                "folder_node_internal_name": "tree/3148449120608720",
+                "folder_node_status": "ACTIVE",
+                "parent": "folders/1580401252621742",
+                "visualization_control_order": [],
+                "run_as_role": "owner",
+                "schema": null,
+                "catalog": null
+            },
+            "query_draft": null,
+            "latest_query_data_id": "sqlx:query_execution_session:01eebadc-9eec-19fa-bd73-b7a6d510902f",
+            "job_id": null,
+            "visualizations": [
+                {
+                    "id": "9e7c1a85-4374-45d4-91b8-e2a826dd34ec",
+                    "description": "",
+                    "name": "Table",
+                    "type": "TABLE",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {},
+                    "query_plan": null
+                },
+                {
+                    "id": "a10463be-b407-404c-823b-5e835bc82d7a",
+                    "description": "",
+                    "name": "Table",
+                    "type": "TABLE",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {},
+                    "query_plan": null
+                },
+                {
+                    "id": "d83f49fe-1001-4b4b-942b-5328d7d3f0b0",
+                    "description": "",
+                    "name": "Customer pipeline data quality",
+                    "type": "CHART",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {
+                        "version": 2,
+                        "globalSeriesType": "line",
+                        "sortX": true,
+                        "legend": {
+                            "enabled": true,
+                            "placement": "auto",
+                            "traceorder": "normal"
+                        },
+                        "xAxis": {
+                            "type": "-",
+                            "labels": {
+                                "enabled": true
+                            },
+                            "title": {
+                                "text": "date"
+                            }
+                        },
+                        "yAxis": [
+                            {
+                                "type": "-",
+                                "title": {
+                                    "text": "dropped_records"
+                                }
+                            },
+                            {
+                                "type": "-",
+                                "opposite": true,
+                                "title": {
+                                    "text": "passed_records"
+                                }
+                            }
+                        ],
+                        "alignYAxesAtZero": false,
+                        "error_y": {
+                            "type": "data",
+                            "visible": true
+                        },
+                        "series": {
+                            "stacking": null,
+                            "error_y": {
+                                "type": "data",
+                                "visible": true
+                            }
+                        },
+                        "seriesOptions": {
+                            "dropped_records": {
+                                "yAxis": 0,
+                                "type": "area"
+                            },
+                            "passed_records": {
+                                "yAxis": 1,
+                                "type": "area"
+                            }
+                        },
+                        "valuesOptions": {},
+                        "direction": {
+                            "type": "counterclockwise"
+                        },
+                        "sizemode": "diameter",
+                        "coefficient": 1,
+                        "numberFormat": "0,0[.]00000",
+                        "percentFormat": "0[.]00%",
+                        "textFormat": "",
+                        "missingValuesAsZero": true,
+                        "useAggregationsUi": false,
+                        "showDataLabels": false,
+                        "dateTimeFormat": "YYYY-MM-DD HH:mm",
+                        "columnConfigurationMap": {
+                            "x": {
+                                "column": "date"
+                            },
+                            "y": [
+                                {
+                                    "column": "dropped_records"
+                                },
+                                {
+                                    "column": "passed_records"
+                                }
+                            ]
+                        },
+                        "showPlotlyControls": true,
+                        "swappedAxes": false
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "e580be59-9010-461c-a557-419b50c91c3a",
+                    "description": "",
+                    "name": "Table",
+                    "type": "TABLE",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {},
+                    "query_plan": null
+                },
+                {
+                    "id": "ec57e01a-f2ea-4b93-aa8e-d64c0dd0da6e",
+                    "description": "",
+                    "name": "Daily failure per dataset",
+                    "type": "CHART",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {
+                        "version": 2,
+                        "globalSeriesType": "column",
+                        "sortX": true,
+                        "legend": {
+                            "enabled": true,
+                            "placement": "auto",
+                            "traceorder": "normal"
+                        },
+                        "xAxis": {
+                            "type": "-",
+                            "labels": {
+                                "enabled": true
+                            },
+                            "title": {
+                                "text": "date"
+                            }
+                        },
+                        "yAxis": [
+                            {
+                                "type": "-",
+                                "title": {
+                                    "text": "failed_records"
+                                }
+                            },
+                            {
+                                "type": "-",
+                                "opposite": true,
+                                "title": {
+                                    "text": null
+                                }
+                            }
+                        ],
+                        "alignYAxesAtZero": false,
+                        "error_y": {
+                            "type": "data",
+                            "visible": true
+                        },
+                        "series": {
+                            "stacking": "stack",
+                            "error_y": {
+                                "type": "data",
+                                "visible": true
+                            }
+                        },
+                        "seriesOptions": {
+                            "failed_records": {
+                                "yAxis": 0
+                            },
+                            "user_gold_dlt": {
+                                "color": "#F58742"
+                            },
+                            "spend_silver_dlt": {
+                                "color": "#F5C61B"
+                            },
+                            "user_silver_dlt": {
+                                "color": "#A58AFF"
+                            },
+                            "users_bronze_dlt": {
+                                "color": "#C63FA9",
+                                "type": "column"
+                            },
+                            "valid_score": {
+                                "color": "#C44427"
+                            },
+                            "valid_id": {
+                                "color": "#D67C1C"
+                            },
+                            "valid_age": {
+                                "color": "#D6C31C"
+                            },
+                            "correct_schema": {
+                                "color": "#A58AFF"
+                            },
+                            "valid_income": {
+                                "color": "#C63FA9"
+                            }
+                        },
+                        "valuesOptions": {},
+                        "direction": {
+                            "type": "counterclockwise"
+                        },
+                        "sizemode": "diameter",
+                        "coefficient": 1,
+                        "numberFormat": "0,0[.]00000",
+                        "percentFormat": "0[.]00%",
+                        "textFormat": "",
+                        "missingValuesAsZero": true,
+                        "useAggregationsUi": false,
+                        "swappedAxes": false,
+                        "showDataLabels": false,
+                        "dateTimeFormat": "YYYY-MM-DD HH:mm",
+                        "columnConfigurationMap": {
+                            "x": {
+                                "column": "date"
+                            },
+                            "y": [
+                                {
+                                    "column": "failed_records"
+                                }
+                            ],
+                            "series": {
+                                "column": "name"
+                            }
+                        },
+                        "showPlotlyControls": true
+                    },
+                    "query_plan": null
+                }
+            ],
+            "query": "select sum(passed_records) as passed_records,\n       sum(failed_records) as failed_records,\n       sum(dropped_records) as dropped_records,\n       sum(output_records) as output_records,\n       sum(failed_records)/sum(output_records)*100 as failure_rate,\n       name,\n       dataset,\n        date(timestamp) as date from main__build.dbdemos_retail_c360.dlt_expectations values group by date, dataset, name;",
+            "is_parameter_query": false
+        },
+        {
+            "id": "f7306e05-c153-4250-9a0b-ae7201496389",
+            "version": 1,
+            "description": null,
+            "name": "DLT-retail-data-quality-per-table",
+            "user": {
+                "id": 7644138420879474,
+                "name": "Quentin Ambard",
+                "email": "quentin.ambard@databricks.com"
+            },
+            "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+            "warehouse_id": "9be8079d873b30a6",
+            "run_as_role": "owner",
+            "can_edit": true,
+            "is_archived": false,
+            "is_draft": false,
+            "is_favorite": false,
+            "is_safe": true,
+            "last_modified_by": {
+                "id": 7644138420879474,
+                "name": "Quentin Ambard",
+                "email": "quentin.ambard@databricks.com"
+            },
+            "parent": "folders/1580401252621742",
+            "permission_tier": "CAN_MANAGE",
+            "run_as_service_principal_id": null,
+            "tags": [],
+            "user_id": 7644138420879474,
+            "created_at": "2024-01-24T17:18:36Z",
+            "updated_at": "2024-01-24T17:18:36Z",
+            "options": {
+                "parameters": [],
+                "apply_auto_limit": false,
+                "folder_node_internal_name": "tree/3148449120608721",
+                "folder_node_status": "ACTIVE",
+                "parent": "folders/1580401252621742",
+                "visualization_control_order": [],
+                "run_as_role": "owner",
+                "schema": null,
+                "catalog": null
+            },
+            "query_draft": null,
+            "latest_query_data_id": "sqlx:query_execution_session:01eebadc-9ee9-1d01-9247-2ee61f300ba5",
+            "job_id": null,
+            "visualizations": [
+                {
+                    "id": "38d249c7-01d4-4fdb-b306-7a787e493409",
+                    "description": "",
+                    "name": "Table",
+                    "type": "TABLE",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {},
+                    "query_plan": null
+                },
+                {
+                    "id": "77a8200f-86e7-41f2-a474-3e5bd073bf15",
+                    "description": "",
+                    "name": "Status per expectation",
+                    "type": "CHART",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {
+                        "version": 2,
+                        "globalSeriesType": "pie",
+                        "sortX": true,
+                        "legend": {
+                            "enabled": true,
+                            "placement": "auto",
+                            "traceorder": "normal"
+                        },
+                        "xAxis": {
+                            "type": "-",
+                            "labels": {
+                                "enabled": true
+                            },
+                            "title": {
+                                "text": "type"
+                            }
+                        },
+                        "yAxis": [
+                            {
+                                "type": "-",
+                                "title": {
+                                    "text": "value"
+                                }
+                            },
+                            {
+                                "type": "-",
+                                "opposite": true,
+                                "title": {
+                                    "text": null
+                                }
+                            }
+                        ],
+                        "alignYAxesAtZero": false,
+                        "error_y": {
+                            "type": "data",
+                            "visible": true
+                        },
+                        "series": {
+                            "stacking": null,
+                            "error_y": {
+                                "type": "data",
+                                "visible": true
+                            }
+                        },
+                        "seriesOptions": {
+                            "value": {
+                                "yAxis": 0
+                            }
+                        },
+                        "valuesOptions": {
+                            "dropped_records": {
+                                "color": "#E92828"
+                            },
+                            "passed_records": {
+                                "color": "#799CFF"
+                            },
+                            "failed_records": {
+                                "color": "#FB8D3D"
+                            }
+                        },
+                        "direction": {
+                            "type": "counterclockwise"
+                        },
+                        "sizemode": "diameter",
+                        "coefficient": 1,
+                        "numberFormat": "0,0[.]00000",
+                        "percentFormat": "0[.]00%",
+                        "textFormat": "",
+                        "missingValuesAsZero": true,
+                        "useAggregationsUi": false,
+                        "showDataLabels": true,
+                        "dateTimeFormat": "YYYY-MM-DD HH:mm",
+                        "columnConfigurationMap": {
+                            "x": {
+                                "column": "type"
+                            },
+                            "y": [
+                                {
+                                    "column": "value"
+                                }
+                            ],
+                            "series": {
+                                "column": "dataset"
+                            }
+                        },
+                        "showPlotlyControls": true,
+                        "swappedAxes": false
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "a6ab1ef6-bbb9-46d6-9652-61714da3278e",
+                    "description": "",
+                    "name": "Table",
+                    "type": "TABLE",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {},
+                    "query_plan": null
+                },
+                {
+                    "id": "f8c7d936-0d7e-481c-89e7-cc7319ee7c90",
+                    "description": "",
+                    "name": "Table",
+                    "type": "TABLE",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {},
+                    "query_plan": null
+                }
+            ],
+            "query": "select 'passed_records' as type,\n       sum(passed_records) as value, \n       sum(failed_records)/sum(output_records)*100 as failure_rate,\n       dataset \n   from main__build.dbdemos_retail_c360.dlt_expectations  group by dataset\nunion\nselect 'failed_records' as type,\n       sum(failed_records) as value, \n       sum(failed_records)/sum(output_records)*100 as failure_rate,\n       dataset \n   from main__build.dbdemos_retail_c360.dlt_expectations  group by dataset\nunion\nselect 'dropped_records' as type,\n       sum(dropped_records) as value, \n       sum(failed_records)/sum(output_records)*100 as failure_rate,\n       dataset \n   from main__build.dbdemos_retail_c360.dlt_expectations  group by dataset\n",
+            "is_parameter_query": false
+        },
+        {
+            "id": "349e520b-3f04-4513-8e91-4aab8f58ecc9",
+            "version": 1,
+            "description": null,
+            "name": "DLT-retail-data-quality-stats",
+            "user": {
+                "id": 7644138420879474,
+                "name": "Quentin Ambard",
+                "email": "quentin.ambard@databricks.com"
+            },
+            "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+            "warehouse_id": "9be8079d873b30a6",
+            "run_as_role": "owner",
+            "can_edit": true,
+            "is_archived": false,
+            "is_draft": false,
+            "is_favorite": false,
+            "is_safe": true,
+            "last_modified_by": {
+                "id": 7644138420879474,
+                "name": "Quentin Ambard",
+                "email": "quentin.ambard@databricks.com"
+            },
+            "parent": "folders/1580401252621742",
+            "permission_tier": "CAN_MANAGE",
+            "run_as_service_principal_id": null,
+            "tags": [],
+            "user_id": 7644138420879474,
+            "created_at": "2024-01-24T17:18:36Z",
+            "updated_at": "2024-01-24T17:18:36Z",
+            "options": {
+                "parameters": [],
+                "apply_auto_limit": false,
+                "folder_node_internal_name": "tree/3148449120608722",
+                "folder_node_status": "ACTIVE",
+                "parent": "folders/1580401252621742",
+                "visualization_control_order": [],
+                "run_as_role": "owner",
+                "schema": null,
+                "catalog": null
+            },
+            "query_draft": null,
+            "latest_query_data_id": "sqlx:query_execution_session:01eebadc-9ee8-1ebf-a712-ae1ebe183b5d",
+            "job_id": null,
+            "visualizations": [
+                {
+                    "id": "04ca2f4a-e82f-48a0-a999-c66b1ae1f619",
+                    "description": "",
+                    "name": "Daily row ingested",
+                    "type": "COUNTER",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {
+                        "counterLabel": "Daily row ingested",
+                        "counterColName": "output_records",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 0,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000",
+                        "showPlotlyControls": true
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "5206503c-c915-417c-b36b-d9e3992ce796",
+                    "description": "",
+                    "name": "Invalid input schema",
+                    "type": "COUNTER",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {
+                        "counterLabel": "Invalid input schema",
+                        "counterColName": "failure_rate",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 2,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000",
+                        "useAggregationsUi": false,
+                        "showPlotlyControls": true,
+                        "stringPrefix": "",
+                        "stringSuffix": "%"
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "6845a38d-2a98-4354-b546-6bcf9dc3b983",
+                    "description": "",
+                    "name": "Table",
+                    "type": "TABLE",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {},
+                    "query_plan": null
+                },
+                {
+                    "id": "6b88b1f6-ddaf-4da0-803f-9a45f145c3b2",
+                    "description": "",
+                    "name": "Table",
+                    "type": "TABLE",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {},
+                    "query_plan": null
+                },
+                {
+                    "id": "9935d14d-0a60-4e46-a34b-887473523229",
+                    "description": "",
+                    "name": "Quality failure rate",
+                    "type": "COUNTER",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {
+                        "counterLabel": "Quality Failure rate",
+                        "counterColName": "failure_rate",
+                        "rowNumber": 11,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 2,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000",
+                        "showPlotlyControls": true,
+                        "stringPrefix": "",
+                        "stringSuffix": "%",
+                        "formatTargetValue": true,
+                        "targetColName": ""
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "d958a4a6-93e3-46a7-9036-96373d318bc0",
+                    "description": "",
+                    "name": "Table",
+                    "type": "TABLE",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "options": {},
+                    "query_plan": null
+                }
+            ],
+            "query": "select \n    date(timestamp) day, sum(failed_records)/sum(output_records)*100 failure_rate, sum(output_records) output_records from main__build.dbdemos_retail_c360.dlt_expectations \ngroup by day order by day",
+            "is_parameter_query": false
+        }
+    ],
+    "id": "b732d677-477b-4b5e-84b6-672174440e7d",
+    "dashboard": {
+        "id": "b732d677-477b-4b5e-84b6-672174440e7d",
+        "slug": "dlt---retail-data-quality-stats",
+        "name": "DLT - Retail Data Quality Stats",
+        "user_id": 7644138420879474,
+        "dashboard_filters_enabled": false,
+        "widgets": [
+            {
+                "id": "0f84b13b-4c30-45d9-b789-46badc6c582e",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {},
+                    "title": "Daily ingestion and failure",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 8,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 5,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 8
+                    },
+                    "overrideColors": false
+                },
+                "dashboard_id": "b732d677-477b-4b5e-84b6-672174440e7d",
+                "text": "",
+                "updated_at": "2024-01-24T17:18:36Z",
+                "created_at": "2024-01-24T17:18:36Z",
+                "visualization": {
+                    "id": "d83f49fe-1001-4b4b-942b-5328d7d3f0b0",
+                    "type": "CHART",
+                    "name": "Customer pipeline data quality",
+                    "description": "",
+                    "options": {
+                        "version": 2,
+                        "globalSeriesType": "line",
+                        "sortX": true,
+                        "legend": {
+                            "enabled": true,
+                            "placement": "auto",
+                            "traceorder": "normal"
+                        },
+                        "xAxis": {
+                            "type": "-",
+                            "labels": {
+                                "enabled": true
+                            },
+                            "title": {
+                                "text": "date"
+                            }
+                        },
+                        "yAxis": [
+                            {
+                                "type": "-",
+                                "title": {
+                                    "text": "dropped_records"
+                                }
+                            },
+                            {
+                                "type": "-",
+                                "opposite": true,
+                                "title": {
+                                    "text": "passed_records"
+                                }
+                            }
+                        ],
+                        "alignYAxesAtZero": false,
+                        "error_y": {
+                            "type": "data",
+                            "visible": true
+                        },
+                        "series": {
+                            "stacking": null,
+                            "error_y": {
+                                "type": "data",
+                                "visible": true
+                            }
+                        },
+                        "seriesOptions": {
+                            "dropped_records": {
+                                "yAxis": 0,
+                                "type": "area"
+                            },
+                            "passed_records": {
+                                "yAxis": 1,
+                                "type": "area"
+                            }
+                        },
+                        "valuesOptions": {},
+                        "direction": {
+                            "type": "counterclockwise"
+                        },
+                        "sizemode": "diameter",
+                        "coefficient": 1,
+                        "numberFormat": "0,0[.]00000",
+                        "percentFormat": "0[.]00%",
+                        "textFormat": "",
+                        "missingValuesAsZero": true,
+                        "useAggregationsUi": false,
+                        "showDataLabels": false,
+                        "dateTimeFormat": "YYYY-MM-DD HH:mm",
+                        "columnConfigurationMap": {
+                            "x": {
+                                "column": "date"
+                            },
+                            "y": [
+                                {
+                                    "column": "dropped_records"
+                                },
+                                {
+                                    "column": "passed_records"
+                                }
+                            ]
+                        },
+                        "showPlotlyControls": true,
+                        "swappedAxes": false
+                    },
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "query_plan": null,
+                    "query": {
+                        "id": "d25e0a0f-62d4-4576-bd33-69126f98d725",
+                        "name": "DLT-retail-data-quality",
+                        "description": null,
+                        "query": "select sum(passed_records) as passed_records,\n       sum(failed_records) as failed_records,\n       sum(dropped_records) as dropped_records,\n       sum(output_records) as output_records,\n       sum(failed_records)/sum(output_records)*100 as failure_rate,\n       name,\n       dataset,\n        date(timestamp) as date from main__build.dbdemos_retail_c360.dlt_expectations values group by date, dataset, name;",
+                        "is_draft": false,
+                        "updated_at": "2024-01-24T17:18:36Z",
+                        "created_at": "2024-01-24T17:18:36Z",
+                        "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+                        "options": {
+                            "parent": "folders/1580401252621742",
+                            "apply_auto_limit": false,
+                            "folder_node_status": "ACTIVE",
+                            "folder_node_internal_name": "tree/3148449120608720",
+                            "parameters": [],
+                            "schema": null,
+                            "catalog": null,
+                            "run_as_role": "owner",
+                            "visualization_control_order": []
+                        },
+                        "version": 1,
+                        "tags": [],
+                        "is_safe": true,
+                        "user_id": 7644138420879474,
+                        "run_as_role": "owner",
+                        "run_as_service_principal_id": null
+                    }
+                }
+            },
+            {
+                "id": "1d8fbfdb-296e-4b9c-b1f1-188443b4eb3d",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {},
+                    "title": "Daily ingestion error per expectations",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 6,
+                        "sizeY": 7,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 5,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 16
+                    },
+                    "overrideColors": false
+                },
+                "dashboard_id": "b732d677-477b-4b5e-84b6-672174440e7d",
+                "text": "",
+                "updated_at": "2024-01-24T17:18:36Z",
+                "created_at": "2024-01-24T17:18:36Z",
+                "visualization": {
+                    "id": "ec57e01a-f2ea-4b93-aa8e-d64c0dd0da6e",
+                    "type": "CHART",
+                    "name": "Daily failure per dataset",
+                    "description": "",
+                    "options": {
+                        "version": 2,
+                        "globalSeriesType": "column",
+                        "sortX": true,
+                        "legend": {
+                            "enabled": true,
+                            "placement": "auto",
+                            "traceorder": "normal"
+                        },
+                        "xAxis": {
+                            "type": "-",
+                            "labels": {
+                                "enabled": true
+                            },
+                            "title": {
+                                "text": "date"
+                            }
+                        },
+                        "yAxis": [
+                            {
+                                "type": "-",
+                                "title": {
+                                    "text": "failed_records"
+                                }
+                            },
+                            {
+                                "type": "-",
+                                "opposite": true,
+                                "title": {
+                                    "text": null
+                                }
+                            }
+                        ],
+                        "alignYAxesAtZero": false,
+                        "error_y": {
+                            "type": "data",
+                            "visible": true
+                        },
+                        "series": {
+                            "stacking": "stack",
+                            "error_y": {
+                                "type": "data",
+                                "visible": true
+                            }
+                        },
+                        "seriesOptions": {
+                            "failed_records": {
+                                "yAxis": 0
+                            },
+                            "user_gold_dlt": {
+                                "color": "#F58742"
+                            },
+                            "spend_silver_dlt": {
+                                "color": "#F5C61B"
+                            },
+                            "user_silver_dlt": {
+                                "color": "#A58AFF"
+                            },
+                            "users_bronze_dlt": {
+                                "color": "#C63FA9",
+                                "type": "column"
+                            },
+                            "valid_score": {
+                                "color": "#C44427"
+                            },
+                            "valid_id": {
+                                "color": "#D67C1C"
+                            },
+                            "valid_age": {
+                                "color": "#D6C31C"
+                            },
+                            "correct_schema": {
+                                "color": "#A58AFF"
+                            },
+                            "valid_income": {
+                                "color": "#C63FA9"
+                            }
+                        },
+                        "valuesOptions": {},
+                        "direction": {
+                            "type": "counterclockwise"
+                        },
+                        "sizemode": "diameter",
+                        "coefficient": 1,
+                        "numberFormat": "0,0[.]00000",
+                        "percentFormat": "0[.]00%",
+                        "textFormat": "",
+                        "missingValuesAsZero": true,
+                        "useAggregationsUi": false,
+                        "swappedAxes": false,
+                        "showDataLabels": false,
+                        "dateTimeFormat": "YYYY-MM-DD HH:mm",
+                        "columnConfigurationMap": {
+                            "x": {
+                                "column": "date"
+                            },
+                            "y": [
+                                {
+                                    "column": "failed_records"
+                                }
+                            ],
+                            "series": {
+                                "column": "name"
+                            }
+                        },
+                        "showPlotlyControls": true
+                    },
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "query_plan": null,
+                    "query": {
+                        "id": "d25e0a0f-62d4-4576-bd33-69126f98d725",
+                        "name": "DLT-retail-data-quality",
+                        "description": null,
+                        "query": "select sum(passed_records) as passed_records,\n       sum(failed_records) as failed_records,\n       sum(dropped_records) as dropped_records,\n       sum(output_records) as output_records,\n       sum(failed_records)/sum(output_records)*100 as failure_rate,\n       name,\n       dataset,\n        date(timestamp) as date from main__build.dbdemos_retail_c360.dlt_expectations values group by date, dataset, name;",
+                        "is_draft": false,
+                        "updated_at": "2024-01-24T17:18:36Z",
+                        "created_at": "2024-01-24T17:18:36Z",
+                        "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+                        "options": {
+                            "parent": "folders/1580401252621742",
+                            "apply_auto_limit": false,
+                            "folder_node_status": "ACTIVE",
+                            "folder_node_internal_name": "tree/3148449120608720",
+                            "parameters": [],
+                            "schema": null,
+                            "catalog": null,
+                            "run_as_role": "owner",
+                            "visualization_control_order": []
+                        },
+                        "version": 1,
+                        "tags": [],
+                        "is_safe": true,
+                        "user_id": 7644138420879474,
+                        "run_as_role": "owner",
+                        "run_as_service_principal_id": null
+                    }
+                }
+            },
+            {
+                "id": "5aa18ecb-e696-496b-a215-28a879dc6769",
+                "width": 1,
+                "options": {
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 6,
+                        "sizeY": 1,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 23
+                    },
+                    "parameterMappings": {}
+                },
+                "dashboard_id": "b732d677-477b-4b5e-84b6-672174440e7d",
+                "text": "Field Demo dashboard. Please do not edit\n![tracking_img](https://www.google-analytics.com/collect?v=1&gtm=GTM-NKQ8TT7&tid=UA-163989034-1&cid=555&aip=1&t=event&ec=field_demos&ea=display&dp=%2F42_field_demos%2Fretail%2Fnotebook&dt=DASHBOARD_RETAIL_DLT_QUALITY)",
+                "updated_at": "2024-01-24T17:18:36Z",
+                "created_at": "2024-01-24T17:18:36Z"
+            },
+            {
+                "id": "5d3fee5c-dcc6-48a3-a91f-0835481dce18",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {},
+                    "title": "Quality stat per table",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 8,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 5,
+                        "maxSizeY": 1000,
+                        "col": 3,
+                        "row": 8
+                    }
+                },
+                "dashboard_id": "b732d677-477b-4b5e-84b6-672174440e7d",
+                "text": "",
+                "updated_at": "2024-01-24T17:18:36Z",
+                "created_at": "2024-01-24T17:18:36Z",
+                "visualization": {
+                    "id": "77a8200f-86e7-41f2-a474-3e5bd073bf15",
+                    "type": "CHART",
+                    "name": "Status per expectation",
+                    "description": "",
+                    "options": {
+                        "version": 2,
+                        "globalSeriesType": "pie",
+                        "sortX": true,
+                        "legend": {
+                            "enabled": true,
+                            "placement": "auto",
+                            "traceorder": "normal"
+                        },
+                        "xAxis": {
+                            "type": "-",
+                            "labels": {
+                                "enabled": true
+                            },
+                            "title": {
+                                "text": "type"
+                            }
+                        },
+                        "yAxis": [
+                            {
+                                "type": "-",
+                                "title": {
+                                    "text": "value"
+                                }
+                            },
+                            {
+                                "type": "-",
+                                "opposite": true,
+                                "title": {
+                                    "text": null
+                                }
+                            }
+                        ],
+                        "alignYAxesAtZero": false,
+                        "error_y": {
+                            "type": "data",
+                            "visible": true
+                        },
+                        "series": {
+                            "stacking": null,
+                            "error_y": {
+                                "type": "data",
+                                "visible": true
+                            }
+                        },
+                        "seriesOptions": {
+                            "value": {
+                                "yAxis": 0
+                            }
+                        },
+                        "valuesOptions": {
+                            "dropped_records": {
+                                "color": "#E92828"
+                            },
+                            "passed_records": {
+                                "color": "#799CFF"
+                            },
+                            "failed_records": {
+                                "color": "#FB8D3D"
+                            }
+                        },
+                        "direction": {
+                            "type": "counterclockwise"
+                        },
+                        "sizemode": "diameter",
+                        "coefficient": 1,
+                        "numberFormat": "0,0[.]00000",
+                        "percentFormat": "0[.]00%",
+                        "textFormat": "",
+                        "missingValuesAsZero": true,
+                        "useAggregationsUi": false,
+                        "showDataLabels": true,
+                        "dateTimeFormat": "YYYY-MM-DD HH:mm",
+                        "columnConfigurationMap": {
+                            "x": {
+                                "column": "type"
+                            },
+                            "y": [
+                                {
+                                    "column": "value"
+                                }
+                            ],
+                            "series": {
+                                "column": "dataset"
+                            }
+                        },
+                        "showPlotlyControls": true,
+                        "swappedAxes": false
+                    },
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "query_plan": null,
+                    "query": {
+                        "id": "f7306e05-c153-4250-9a0b-ae7201496389",
+                        "name": "DLT-retail-data-quality-per-table",
+                        "description": null,
+                        "query": "select 'passed_records' as type,\n       sum(passed_records) as value, \n       sum(failed_records)/sum(output_records)*100 as failure_rate,\n       dataset \n   from main__build.dbdemos_retail_c360.dlt_expectations  group by dataset\nunion\nselect 'failed_records' as type,\n       sum(failed_records) as value, \n       sum(failed_records)/sum(output_records)*100 as failure_rate,\n       dataset \n   from main__build.dbdemos_retail_c360.dlt_expectations  group by dataset\nunion\nselect 'dropped_records' as type,\n       sum(dropped_records) as value, \n       sum(failed_records)/sum(output_records)*100 as failure_rate,\n       dataset \n   from main__build.dbdemos_retail_c360.dlt_expectations  group by dataset\n",
+                        "is_draft": false,
+                        "updated_at": "2024-01-24T17:18:36Z",
+                        "created_at": "2024-01-24T17:18:36Z",
+                        "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+                        "options": {
+                            "parent": "folders/1580401252621742",
+                            "apply_auto_limit": false,
+                            "folder_node_status": "ACTIVE",
+                            "folder_node_internal_name": "tree/3148449120608721",
+                            "parameters": [],
+                            "schema": null,
+                            "catalog": null,
+                            "run_as_role": "owner",
+                            "visualization_control_order": []
+                        },
+                        "version": 1,
+                        "tags": [],
+                        "is_safe": true,
+                        "user_id": 7644138420879474,
+                        "run_as_role": "owner",
+                        "run_as_service_principal_id": null
+                    }
+                }
+            },
+            {
+                "id": "664d2b61-cf40-4c68-9808-023ad9b36e03",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {},
+                    "title": "Ingestion rate",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 2,
+                        "sizeY": 4,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 4
+                    },
+                    "overrideColors": false
+                },
+                "dashboard_id": "b732d677-477b-4b5e-84b6-672174440e7d",
+                "text": "",
+                "updated_at": "2024-01-24T17:18:36Z",
+                "created_at": "2024-01-24T17:18:36Z",
+                "visualization": {
+                    "id": "04ca2f4a-e82f-48a0-a999-c66b1ae1f619",
+                    "type": "COUNTER",
+                    "name": "Daily row ingested",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "Daily row ingested",
+                        "counterColName": "output_records",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 0,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000",
+                        "showPlotlyControls": true
+                    },
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "query_plan": null,
+                    "query": {
+                        "id": "349e520b-3f04-4513-8e91-4aab8f58ecc9",
+                        "name": "DLT-retail-data-quality-stats",
+                        "description": null,
+                        "query": "select \n    date(timestamp) day, sum(failed_records)/sum(output_records)*100 failure_rate, sum(output_records) output_records from main__build.dbdemos_retail_c360.dlt_expectations \ngroup by day order by day",
+                        "is_draft": false,
+                        "updated_at": "2024-01-24T17:18:36Z",
+                        "created_at": "2024-01-24T17:18:36Z",
+                        "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+                        "options": {
+                            "parent": "folders/1580401252621742",
+                            "apply_auto_limit": false,
+                            "folder_node_status": "ACTIVE",
+                            "folder_node_internal_name": "tree/3148449120608722",
+                            "parameters": [],
+                            "schema": null,
+                            "catalog": null,
+                            "run_as_role": "owner",
+                            "visualization_control_order": []
+                        },
+                        "version": 1,
+                        "tags": [],
+                        "is_safe": true,
+                        "user_id": 7644138420879474,
+                        "run_as_role": "owner",
+                        "run_as_service_principal_id": null
+                    }
+                }
+            },
+            {
+                "id": "c286347c-7197-4dee-85e2-1e9322134a4c",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {},
+                    "title": "Invalid data",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 2,
+                        "sizeY": 4,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 2,
+                        "row": 4
+                    },
+                    "overrideColors": false
+                },
+                "dashboard_id": "b732d677-477b-4b5e-84b6-672174440e7d",
+                "text": "",
+                "updated_at": "2024-01-24T17:18:36Z",
+                "created_at": "2024-01-24T17:18:36Z",
+                "visualization": {
+                    "id": "9935d14d-0a60-4e46-a34b-887473523229",
+                    "type": "COUNTER",
+                    "name": "Quality failure rate",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "Quality Failure rate",
+                        "counterColName": "failure_rate",
+                        "rowNumber": 11,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 2,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000",
+                        "showPlotlyControls": true,
+                        "stringPrefix": "",
+                        "stringSuffix": "%",
+                        "formatTargetValue": true,
+                        "targetColName": ""
+                    },
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "query_plan": null,
+                    "query": {
+                        "id": "349e520b-3f04-4513-8e91-4aab8f58ecc9",
+                        "name": "DLT-retail-data-quality-stats",
+                        "description": null,
+                        "query": "select \n    date(timestamp) day, sum(failed_records)/sum(output_records)*100 failure_rate, sum(output_records) output_records from main__build.dbdemos_retail_c360.dlt_expectations \ngroup by day order by day",
+                        "is_draft": false,
+                        "updated_at": "2024-01-24T17:18:36Z",
+                        "created_at": "2024-01-24T17:18:36Z",
+                        "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+                        "options": {
+                            "parent": "folders/1580401252621742",
+                            "apply_auto_limit": false,
+                            "folder_node_status": "ACTIVE",
+                            "folder_node_internal_name": "tree/3148449120608722",
+                            "parameters": [],
+                            "schema": null,
+                            "catalog": null,
+                            "run_as_role": "owner",
+                            "visualization_control_order": []
+                        },
+                        "version": 1,
+                        "tags": [],
+                        "is_safe": true,
+                        "user_id": 7644138420879474,
+                        "run_as_role": "owner",
+                        "run_as_service_principal_id": null
+                    }
+                }
+            },
+            {
+                "id": "cd085c1b-dd40-4681-bc40-ac1390f88c7a",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {},
+                    "title": "Incorrect input schema rate",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 2,
+                        "sizeY": 4,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 4,
+                        "row": 4
+                    },
+                    "overrideColors": false
+                },
+                "dashboard_id": "b732d677-477b-4b5e-84b6-672174440e7d",
+                "text": "",
+                "updated_at": "2024-01-24T17:18:36Z",
+                "created_at": "2024-01-24T17:18:36Z",
+                "visualization": {
+                    "id": "5206503c-c915-417c-b36b-d9e3992ce796",
+                    "type": "COUNTER",
+                    "name": "Invalid input schema",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "Invalid input schema",
+                        "counterColName": "failure_rate",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 2,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000",
+                        "useAggregationsUi": false,
+                        "showPlotlyControls": true,
+                        "stringPrefix": "",
+                        "stringSuffix": "%"
+                    },
+                    "updated_at": "2024-01-24T17:18:36Z",
+                    "created_at": "2024-01-24T17:18:36Z",
+                    "query_plan": null,
+                    "query": {
+                        "id": "349e520b-3f04-4513-8e91-4aab8f58ecc9",
+                        "name": "DLT-retail-data-quality-stats",
+                        "description": null,
+                        "query": "select \n    date(timestamp) day, sum(failed_records)/sum(output_records)*100 failure_rate, sum(output_records) output_records from main__build.dbdemos_retail_c360.dlt_expectations \ngroup by day order by day",
+                        "is_draft": false,
+                        "updated_at": "2024-01-24T17:18:36Z",
+                        "created_at": "2024-01-24T17:18:36Z",
+                        "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+                        "options": {
+                            "parent": "folders/1580401252621742",
+                            "apply_auto_limit": false,
+                            "folder_node_status": "ACTIVE",
+                            "folder_node_internal_name": "tree/3148449120608722",
+                            "parameters": [],
+                            "schema": null,
+                            "catalog": null,
+                            "run_as_role": "owner",
+                            "visualization_control_order": []
+                        },
+                        "version": 1,
+                        "tags": [],
+                        "is_safe": true,
+                        "user_id": 7644138420879474,
+                        "run_as_role": "owner",
+                        "run_as_service_principal_id": null
+                    }
+                }
+            },
+            {
+                "id": "f792fdcb-2797-46fb-9815-964e527643ef",
+                "width": 1,
+                "options": {
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 6,
+                        "sizeY": 4,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 0
+                    }
+                },
+                "dashboard_id": "b732d677-477b-4b5e-84b6-672174440e7d",
+                "text": "# Retail ingestion quality tracker\nThis dashboard leverage the Delta Live Table expectation metrics to track our data quality over the ingestion pipeline.\n\nThe pipeline is incrementally consuming new data (each hour or in real time) and the dashboard is updated accordingly. Open notebook `02.1-Delta-Live-Table-Ingestion` to visualize the Delta Live Table pipeline.\n\nData has been prepared using a SQL query over the value from the `/system/events` table. Open `02.3-DLT-expectation-dashboard-data-prep` for more details.",
+                "updated_at": "2024-01-24T17:18:36Z",
+                "created_at": "2024-01-24T17:18:36Z"
+            }
+        ],
+        "options": {
+            "parent": "folders/1580401252621742",
+            "folder_node_status": "ACTIVE",
+            "folder_node_internal_name": "tree/2209613972538400"
+        },
+        "is_draft": false,
+        "tags": [
+            "field_demos",
+            "field_demos_retail",
+            "dlt_data_quality"
+        ],
+        "updated_at": "2024-01-24T17:18:36Z",
+        "created_at": "2023-02-15T09:09:23Z",
+        "version": 27,
+        "color_palette": null,
+        "run_as_role": null,
+        "run_as_service_principal_id": null,
+        "data_source_id": "05bcc976-c335-4f6f-90d9-1cc34d179cd8",
+        "warehouse_id": "9be8079d873b30a6",
+        "is_favorite": false,
+        "user": {
+            "id": 7644138420879474,
+            "name": "Quentin Ambard",
+            "email": "quentin.ambard@databricks.com"
+        },
+        "parent": "folders/1580401252621742",
+        "is_archived": false,
+        "can_edit": true,
+        "permission_tier": "CAN_MANAGE"
+    }
+}
