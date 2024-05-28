@@ -1,0 +1,3219 @@
+{
+    "queries": [
+        {
+            "id": "d5df38b4-2c02-4c0e-b31a-9dd58cb8953f",
+            "name": "Claim -  telematicPath",
+            "description": null,
+            "query": "USE main.fsi_smart_claims;\nSELECT\n  telematics_latitude,\n  telematics_longitude\nFROM\n  claim_policy_telematics\nwhere\n  claim_no = \"{{claim_number}}\";",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497532",
+                "visualization_control_order": [
+                    "claim_number"
+                ],
+                "parameters": [
+                    {
+                        "name": "claim_number",
+                        "title": "claim_number",
+                        "type": "query",
+                        "queryId": "f1f35813-a5ff-49ad-a4f4-28b3d6a490ab",
+                        "value": "d69cdd12-b837-4436-ba21-5c7b3fb1ab1c",
+                        "multiValuesOptions": null
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "2b478332-de72-4b8e-8619-67cf04b9bce4",
+                    "type": "MAP",
+                    "name": "Results",
+                    "description": "",
+                    "options": {
+                        "latColName": "latitude",
+                        "lonColName": "longitude",
+                        "groups": {},
+                        "mapTileUrl": "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        "clusterMarkers": false,
+                        "customizeMarkers": false,
+                        "iconShape": "marker",
+                        "iconFont": "circle",
+                        "foregroundColor": "#ffffff",
+                        "backgroundColor": "#356AFF",
+                        "borderColor": "#356AFF",
+                        "bounds": null,
+                        "tooltip": {
+                            "enabled": false,
+                            "template": ""
+                        },
+                        "popup": {
+                            "enabled": true,
+                            "template": ""
+                        }
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "71a09d9e-ebb9-44a5-9c88-9c145d23e310",
+                    "type": "MAP",
+                    "name": "telematics jernouy",
+                    "description": "",
+                    "options": {
+                        "latColName": "telematics_latitude",
+                        "lonColName": "telematics_longitude",
+                        "groups": {},
+                        "mapTileUrl": "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        "clusterMarkers": true,
+                        "customizeMarkers": false,
+                        "iconShape": "marker",
+                        "iconFont": "circle",
+                        "foregroundColor": "#ffffff",
+                        "backgroundColor": "#356AFF",
+                        "borderColor": "#356AFF",
+                        "bounds": null,
+                        "tooltip": {
+                            "enabled": false,
+                            "template": ""
+                        },
+                        "popup": {
+                            "enabled": true,
+                            "template": ""
+                        },
+                        "condensed": true,
+                        "withRowNumber": true
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "ef4d5cf2-8768-4f5d-b1f5-7b45dbbb6bab",
+            "name": "Claim - getClaim",
+            "description": "",
+            "query": "USE main.fsi_smart_claims;;\nselect\n  claim_no,\n  claim_amount_total,\n  claim_amount_injury,\n  claim_amount_property,\n  claim_amount_vehicle,\n  to_date(claim_date),\n  incident_type,\n  incident_severity,\n  incident_date,\n  collision_type,\n  collision_number_of_vehicles_involved,\n  driver_age,\n  driver_insured_relationship,\n  driver_license_issue_date,\n  months_as_customer,\n  number_of_witnesses,\n  suspicious_activity\nfrom\n  claim_insights\nwhere\n  claim_no = '{{claim_number}}';",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497530",
+                "visualization_control_order": [
+                    "claim_number"
+                ],
+                "parameters": [
+                    {
+                        "name": "claim_number",
+                        "title": "Claim Number",
+                        "type": "query",
+                        "queryId": "f1f35813-a5ff-49ad-a4f4-28b3d6a490ab",
+                        "value": "d69cdd12-b837-4436-ba21-5c7b3fb1ab1c",
+                        "multiValuesOptions": null
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "7441417c-adb5-46de-9a5c-e35a28fd6af8",
+                    "type": "TABLE",
+                    "name": "aClaim",
+                    "description": "",
+                    "options": {
+                        "itemsPerPage": 25,
+                        "condensed": true,
+                        "withRowNumber": false,
+                        "columns": [
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_no",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100000,
+                                "title": "claim_no",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_total",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100001,
+                                "title": "claim_amount_total",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_injury",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100002,
+                                "title": "claim_amount_injury",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_property",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100003,
+                                "title": "claim_amount_property",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_vehicle",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100004,
+                                "title": "claim_amount_vehicle",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "dateTimeFormat": "YYYY-MM-DD",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "to_date(claim_datetime)",
+                                "type": "date",
+                                "displayAs": "datetime",
+                                "visible": true,
+                                "order": 100005,
+                                "title": "to_date(claim_datetime)",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "incident_type",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100006,
+                                "title": "incident_type",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "incident_severity",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": false,
+                                "order": 100007,
+                                "title": "incident_severity",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "dateTimeFormat": "YYYY-MM-DD",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "incident_date",
+                                "type": "date",
+                                "displayAs": "datetime",
+                                "visible": true,
+                                "order": 100008,
+                                "title": "incident_date",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "collision_type",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100009,
+                                "title": "collision_type",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "collision_number_of_vehicles_involved",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100010,
+                                "title": "collision_number_of_vehicles_involved",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0.00",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "driver_age",
+                                "type": "float",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100011,
+                                "title": "driver_age",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "driver_insured_relationship",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100012,
+                                "title": "driver_insured_relationship",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "dateTimeFormat": "YYYY-MM-DD",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "driver_license_issue_date",
+                                "type": "date",
+                                "displayAs": "datetime",
+                                "visible": true,
+                                "order": 100013,
+                                "title": "driver_license_issue_date",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "months_as_customer",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100014,
+                                "title": "months_as_customer",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "number_of_witnesses",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100015,
+                                "title": "number_of_witnesses",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "suspicious_activity",
+                                "type": "boolean",
+                                "displayAs": "boolean",
+                                "visible": false,
+                                "order": 100016,
+                                "title": "suspicious_activity",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            }
+                        ],
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "be3534f6-6583-4b34-852a-a72ef1d7acef",
+                    "type": "TABLE",
+                    "name": "Table",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "5d26c71a-4cb3-4f9c-887d-7f1b26694d91",
+            "name": "Claim - SeverityCheck",
+            "description": null,
+            "query": "USE main.fsi_smart_claims;\nselect\n  reported_severity_check,\n  count(*) as ctr\nFROM\n  claim_insights\nwhere\n  to_date(claim_date) >= '{{start_date}}'\n  and to_date(claim_date) <= '{{end_date}}'\ngroup by\n  reported_severity_check\norder by\n  reported_severity_check",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497527",
+                "visualization_control_order": [
+                    "start_date",
+                    "end_date"
+                ],
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "title": "start_date",
+                        "type": "date",
+                        "value": "2015-01-01"
+                    },
+                    {
+                        "name": "end_date",
+                        "title": "end_date",
+                        "type": "date",
+                        "value": "2021-05-01"
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "7e476a09-bd52-4222-b7b8-dfcc047a98ce",
+                    "type": "TABLE",
+                    "name": "Results",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "9d68313f-8d54-44ee-8f1c-63f6fed1bd48",
+                    "type": "COUNTER",
+                    "name": "Counter 1",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "#Severity Mismatch",
+                        "counterColName": "ctr",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 0,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000"
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "9b2e9c64-9420-4d73-9735-2b1d06318b1d",
+            "name": "Claim - getPolicy",
+            "description": "",
+            "query": "USE main.fsi_smart_claims;\nselect\n  *\nfrom\n  claim_insights\nwhere\n  POLICY_NO = \"{{policy_number}}\";",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497534",
+                "visualization_control_order": [
+                    "policy_number"
+                ],
+                "parameters": [
+                    {
+                        "name": "policy_number",
+                        "title": "Policy Number",
+                        "type": "query",
+                        "queryId": "7cd484cf-ca82-4ae3-bea4-25eac6306dac",
+                        "value": "102147943",
+                        "multiValuesOptions": null
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "21071af1-9bb5-4306-b8a6-ae50201e3b11",
+                    "type": "TABLE",
+                    "name": "Table",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "b86342f4-e8f3-40ba-9c72-6789b2cbbf32",
+            "name": "Claim - Insight",
+            "description": null,
+            "query": "USE main.fsi_smart_claims;\nselect\n  CASE\n    WHEN valid_date = 'NOT VALID' THEN 1\n    ELSE 0\n  END as valid_policy,\n  CASE\n    WHEN reported_severity_check = 'Severity matches the report' THEN 1\n    ELSE 0\n  END as correct_severity_assessment,\n  CASE\n    WHEN valid_amount = 'claim value more than premium' THEN 1\n    ELSE 0\n  END as approve_claim_amount,\n  claim_amount_total,\n  claim_amount_injury,\n  claim_amount_property,\n  claim_amount_vehicle,\n  incident_severity as reported_severity,\n  -- severity as predicted_severity,\n  reported_severity_check,\n  valid_amount,\n  valid_date\nfrom\n  claim_insights\nwhere\n  claim_no = '{{claim_number}}';",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497531",
+                "visualization_control_order": [
+                    "claim_number"
+                ],
+                "parameters": [
+                    {
+                        "name": "claim_number",
+                        "title": "claim_number",
+                        "type": "query",
+                        "queryId": "f1f35813-a5ff-49ad-a4f4-28b3d6a490ab",
+                        "value": "d69cdd12-b837-4436-ba21-5c7b3fb1ab1c",
+                        "multiValuesOptions": null
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "a27d06ac-7b8a-4215-8f22-8a5c10a3d206",
+                    "type": "TABLE",
+                    "name": "Results",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "abe8a338-09d3-470f-83df-030c1c7a8a86",
+                    "type": "TABLE",
+                    "name": "Predicted",
+                    "description": "",
+                    "options": {
+                        "itemsPerPage": 25,
+                        "condensed": true,
+                        "withRowNumber": false,
+                        "columns": [
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_policy",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100000,
+                                "title": "valid_policy",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "correct_severity_assessment",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100001,
+                                "title": "correct_severity_assessment",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "approve_claim_amount",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100002,
+                                "title": "approve_claim_amount",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_total",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100003,
+                                "title": "claim_amount_total",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_injury",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100004,
+                                "title": "claim_amount_injury",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_property",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100005,
+                                "title": "claim_amount_property",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_vehicle",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100006,
+                                "title": "claim_amount_vehicle",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "reported_severity",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": false,
+                                "order": 100007,
+                                "title": "reported_severity",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0.00",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "predicted_severity",
+                                "type": "float",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100008,
+                                "title": "predicted_severity",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "reported_severity_check",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100009,
+                                "title": "reported_severity_check",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_amount",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100010,
+                                "title": "valid_amount",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_date",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100011,
+                                "title": "valid_date",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            }
+                        ],
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "e551517d-c69f-4324-96bd-b85653c7d369",
+                    "type": "TABLE",
+                    "name": "Reported",
+                    "description": "",
+                    "options": {
+                        "itemsPerPage": 25,
+                        "condensed": true,
+                        "withRowNumber": false,
+                        "columns": [
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_policy",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100000,
+                                "title": "valid_policy",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "correct_severity_assessment",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100001,
+                                "title": "correct_severity_assessment",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "approve_claim_amount",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100002,
+                                "title": "approve_claim_amount",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_total",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100003,
+                                "title": "claim_amount_total",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_injury",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100004,
+                                "title": "claim_amount_injury",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_property",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100005,
+                                "title": "claim_amount_property",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_vehicle",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100006,
+                                "title": "claim_amount_vehicle",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "reported_severity",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100007,
+                                "title": "reported_severity",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0.00",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "predicted_severity",
+                                "type": "float",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100008,
+                                "title": "predicted_severity",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "reported_severity_check",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100009,
+                                "title": "reported_severity_check",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_amount",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100010,
+                                "title": "valid_amount",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_date",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100011,
+                                "title": "valid_date",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            }
+                        ],
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "f6372534-18c5-4e81-8564-9f5a7d5c2860",
+                    "type": "TABLE",
+                    "name": "Amounts",
+                    "description": "",
+                    "options": {
+                        "itemsPerPage": 25,
+                        "condensed": true,
+                        "withRowNumber": false,
+                        "columns": [
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_policy",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100000,
+                                "title": "valid_policy",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "correct_severity_assessment",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100001,
+                                "title": "correct_severity_assessment",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "approve_claim_amount",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100002,
+                                "title": "approve_claim_amount",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_total",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100003,
+                                "title": "claim_amount_total",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_injury",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100004,
+                                "title": "claim_amount_injury",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_property",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100005,
+                                "title": "claim_amount_property",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_amount_vehicle",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100006,
+                                "title": "claim_amount_vehicle",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "reported_severity",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": false,
+                                "order": 100007,
+                                "title": "reported_severity",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0.00",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "predicted_severity",
+                                "type": "float",
+                                "displayAs": "number",
+                                "visible": false,
+                                "order": 100008,
+                                "title": "predicted_severity",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "reported_severity_check",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": false,
+                                "order": 100009,
+                                "title": "reported_severity_check",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_amount",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": false,
+                                "order": 100010,
+                                "title": "valid_amount",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_date",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": false,
+                                "order": 100011,
+                                "title": "valid_date",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            }
+                        ],
+                        "version": 2
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "f1f35813-a5ff-49ad-a4f4-28b3d6a490ab",
+            "name": "Claim -  claimsList",
+            "description": "",
+            "query": "--param query - the import needs the  query to be run first even empty.\nCREATE SCHEMA IF NOT EXISTS main.fsi_smart_claims;\nCREATE TABLE IF NOT EXISTS main.fsi_smart_claims.claim_insights (claim_no STRING, policy_no STRING);\nINSERT INTO main.fsi_smart_claims.claim_insights (claim_no, policy_no) SELECT 'd69cdd12-b837-4436-ba21-5c7b3fb1ab1c', '102147943'\n  WHERE NOT EXISTS (SELECT * FROM  main.fsi_smart_claims.claim_insights);\n\nselect\n  distinct claim_no\nfrom\n  main.fsi_smart_claims.claim_insights where '2000-01-01' < now();  --condition to trick the cache to avoid import cache issue (only due to dbsqlclone behavior - you can remove it once installed).",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497520",
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner",
+                "visualization_control_order": [],
+                "parameters": []
+            },
+            "visualizations": [
+                {
+                    "id": "b90a2b8f-12e9-4ee0-8ee6-cf2ad1c4e0e8",
+                    "type": "TABLE",
+                    "name": "Table",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "d6d12113-1c9c-4159-b295-0fc57245ccff",
+                    "type": "COUNTER",
+                    "name": "#Claims",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "# Claims",
+                        "counterColName": "counter",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 0,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000",
+                        "countRow": true
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "647544ef-6814-49f6-b349-a4ba2bf37279",
+            "name": "Claim - suspicious",
+            "description": "",
+            "query": "USE main.fsi_smart_claims;\nselect\n  count(suspicious_activity) as fraud\nFROM\n  claim_insights\nwhere\n  suspicious_activity = true\n  and to_date(claim_date) >= '{{start_date}}'\n  and to_date(claim_date) <= '{{end_date}}';",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497528",
+                "visualization_control_order": [
+                    "start_date",
+                    "end_date"
+                ],
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "title": "start_date",
+                        "type": "date",
+                        "value": "2015-01-01"
+                    },
+                    {
+                        "name": "end_date",
+                        "title": "end_date",
+                        "type": "date",
+                        "value": "2021-05-01"
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "c4a3abdd-edbb-4b6c-9dd1-2e07ea1159fb",
+                    "type": "COUNTER",
+                    "name": "Table",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "#Suspicious",
+                        "counterColName": "fraud",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 0,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000"
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "801f12a3-101b-43b0-89e7-eb5f7ed4b53b",
+            "name": "Claim -  claim_insights",
+            "description": null,
+            "query": "USE main.fsi_smart_claims;\nselect\n  claim_no,\n  claim_date,\n  policy_no,\n  CASE\n    WHEN valid_date = 'NOT VALID' THEN 0\n    ELSE 1\n  END as valid_policy,\n  CASE\n    WHEN reported_severity_check = 'Severity matches the report' THEN 0\n    ELSE 1\n  END as correct_severity_assessment,\n  CASE\n    WHEN valid_amount = 'claim value more than premium' THEN 0\n    ELSE 1\n  END as approve_claim_amount,\n  claim_amount_total,\n  claim_amount_injury,\n  claim_amount_property,\n  claim_amount_vehicle,\n  incident_severity as reported_severity,\n  -- severity as predicted_severity,\n  reported_severity_check,\n  valid_amount,\n  valid_date\nfrom\n  claim_insights;",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497522",
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner",
+                "visualization_control_order": [],
+                "parameters": []
+            },
+            "visualizations": [
+                {
+                    "id": "f265949c-d736-409d-938b-672a37d97dd8",
+                    "type": "TABLE",
+                    "name": "Results",
+                    "description": "",
+                    "options": {
+                        "itemsPerPage": 25,
+                        "condensed": true,
+                        "withRowNumber": true,
+                        "columns": [
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_no",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 0,
+                                "title": "claim_no",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_datetime",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 1,
+                                "title": "claim_datetime",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "policy_no",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 2,
+                                "title": "policy_no",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0.00",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "reported_severity",
+                                "type": "float",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 3,
+                                "title": "reported_severity",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false,
+                                "cellFormat": {
+                                    "default": {
+                                        "foregroundColor": null
+                                    },
+                                    "rules": [
+                                        {
+                                            "if": {
+                                                "column": "reported_severity",
+                                                "fn": ">",
+                                                "literal": "0.84"
+                                            },
+                                            "value": {
+                                                "foregroundColor": "#E92828"
+                                            }
+                                        },
+                                        {
+                                            "if": {
+                                                "column": "reported_severity",
+                                                "fn": ">",
+                                                "literal": "0.65"
+                                            },
+                                            "value": {
+                                                "foregroundColor": "#FB8D3D"
+                                            }
+                                        },
+                                        {
+                                            "if": {
+                                                "column": "reported_severity",
+                                                "fn": ">",
+                                                "literal": "4.5"
+                                            },
+                                            "value": {
+                                                "foregroundColor": "#FFFF00"
+                                            }
+                                        },
+                                        {
+                                            "if": {
+                                                "column": "reported_severity",
+                                                "fn": "<=",
+                                                "literal": "4.5"
+                                            },
+                                            "value": {
+                                                "foregroundColor": "#049235"
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "reported_severity_check",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": false,
+                                "order": 4,
+                                "title": "reported_severity_check",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "20",
+                                "imageHeight": "20",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_amount",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": false,
+                                "order": 5,
+                                "title": "valid_amount",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_date",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": false,
+                                "order": 6,
+                                "title": "valid_date",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "https://hls-eng-data-public.s3.amazonaws.com/img/{{valid_policy}}.png",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "20",
+                                "imageHeight": "20",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "valid_policy",
+                                "type": "integer",
+                                "displayAs": "image",
+                                "visible": true,
+                                "order": 7,
+                                "title": "valid_policy",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "https://hls-eng-data-public.s3.amazonaws.com/img/{{correct_severity_assessment}}.png",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "20",
+                                "imageHeight": "20",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "correct_severity_assessment",
+                                "type": "integer",
+                                "displayAs": "image",
+                                "visible": true,
+                                "order": 8,
+                                "title": "correct_severity_assessment",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false,
+                                "cellFormat": {
+                                    "default": {
+                                        "foregroundColor": null
+                                    },
+                                    "rules": [
+                                        {
+                                            "if": {
+                                                "column": "correct_severity_assessment",
+                                                "fn": "=",
+                                                "literal": ""
+                                            },
+                                            "value": {
+                                                "foregroundColor": null
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "https://hls-eng-data-public.s3.amazonaws.com/img/{{approve_claim_amount}}.png",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "20",
+                                "imageHeight": "20",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "approve_claim_amount",
+                                "type": "integer",
+                                "displayAs": "image",
+                                "visible": true,
+                                "order": 9,
+                                "title": "approve_claim_amount",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            }
+                        ],
+                        "version": 2
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "442c6b10-8892-4c4c-aca3-e1f0f2d9c0ba",
+            "name": "Claim - accident_image",
+            "description": null,
+            "query": "USE main.fsi_smart_claims;;\nselect image_name\nFROM accident_images\nwhere claim_no = '{{claim_no}}';",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497529",
+                "visualization_control_order": [
+                    "claim_no"
+                ],
+                "parameters": [
+                    {
+                        "name": "claim_no",
+                        "title": "claim_no",
+                        "type": "query",
+                        "queryId": "f1f35813-a5ff-49ad-a4f4-28b3d6a490ab",
+                        "value": "d69cdd12-b837-4436-ba21-5c7b3fb1ab1c",
+                        "multiValuesOptions": null
+                    }
+                ],
+                "catalog": "hive_metastore",
+                "schema": "default",
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "c83c846b-b7d8-496e-ba2e-abb56c0b8486",
+                    "type": "TABLE",
+                    "name": "Results",
+                    "description": "",
+                    "options": {
+                        "itemsPerPage": 25,
+                        "condensed": true,
+                        "withRowNumber": true,
+                        "columns": [
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "https://hls-eng-data-public.s3.amazonaws.com/img/accident_images/{{image_name}}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "image_name",
+                                "type": "string",
+                                "displayAs": "image",
+                                "visible": true,
+                                "order": 100000,
+                                "title": "image_name",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            }
+                        ],
+                        "version": 2
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "4f3d7a8a-0cce-4bdf-bbed-a1c7a9cfd2c7",
+            "name": "Claim - Claims",
+            "description": "",
+            "query": "USE main.fsi_smart_claims;\nselect\n  count(claim_no)\nfrom\n  claim_insights\nwhere\n  to_date(claim_date) >= '{{start_date}}'\n  and to_date(claim_date) <= '{{end_date}}';",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497521",
+                "visualization_control_order": [
+                    "start_date",
+                    "end_date"
+                ],
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "title": "start_date",
+                        "type": "date",
+                        "value": "2015-01-01"
+                    },
+                    {
+                        "name": "end_date",
+                        "title": "end_date",
+                        "type": "date",
+                        "value": "2021-05-01"
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "888872c8-03c4-43cc-91b6-76c258d09bc3",
+                    "type": "TABLE",
+                    "name": "Table",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "ec55d6cb-650e-4f6d-9eae-178891b51670",
+                    "type": "COUNTER",
+                    "name": "Counter 1",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "#claims",
+                        "counterColName": "count(claim_no)",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 0,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000"
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "e36dceab-9d45-4c45-ac59-772cd202c6c0",
+            "name": "Claim - ClaimAmount",
+            "description": null,
+            "query": "USE main.fsi_smart_claims;;\nselect\n  valid_amount,\n  count(*) as ctr\nFROM\n  claim_insights\nwhere\n  to_date(claim_date) >= '{{start_date}}'\n  and to_date(claim_date) <= '{{end_date}}'\ngroup by\n  valid_amount\norder by\n  valid_amount desc",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497526",
+                "visualization_control_order": [
+                    "start_date",
+                    "end_date"
+                ],
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "title": "start_date",
+                        "type": "date",
+                        "value": "2015-01-01"
+                    },
+                    {
+                        "name": "end_date",
+                        "title": "end_date",
+                        "type": "date",
+                        "value": "2021-05-01"
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "40f2b2bd-de90-49d4-9bad-356c209fe671",
+                    "type": "TABLE",
+                    "name": "Results",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "cd668741-25d0-43bf-90c4-aa7af29d47aa",
+                    "type": "COUNTER",
+                    "name": "ClaimAmountExceeded",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "#ExceedsClaimAmount",
+                        "counterColName": "ctr",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 0,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000",
+                        "condensed": true,
+                        "withRowNumber": true
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "9c2608aa-0ac3-4664-95d6-cc56d768cc88",
+            "name": "Claim - NumInvalidPolicy",
+            "description": null,
+            "query": "USE main.fsi_smart_claims;\nselect\n  count(*) as expired_policies\nFROM\n  claim_insights\nwhere\n  pol_expiry_date < claim_date\n  and to_date(claim_date) >= '{{start_date}}'\n  and to_date(claim_date) <= '{{end_date}}';",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497525",
+                "visualization_control_order": [
+                    "start_date",
+                    "end_date"
+                ],
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "title": "start_date",
+                        "type": "date",
+                        "value": "2015-01-01"
+                    },
+                    {
+                        "name": "end_date",
+                        "title": "end_date",
+                        "type": "date",
+                        "value": "2021-05-01"
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "c0894b9f-a216-445a-8f02-640d1811abd5",
+                    "type": "TABLE",
+                    "name": "Results",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "e6d04bc6-04c7-41da-867f-ff1e03faad52",
+                    "type": "COUNTER",
+                    "name": "ExxpiredPolicies",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "#Expired Policies",
+                        "counterColName": "expired_policies",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 0,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000",
+                        "condensed": true,
+                        "withRowNumber": true
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "5bf9a7b6-d61e-48fd-a9a0-d18b2ccaa710",
+            "name": "Claim -  telematic_insights",
+            "description": null,
+            "query": "USE main.fsi_smart_claims;\nselect\n  CHASSIS_NO,\n  avg(high_speed) as speeding,\n  CASE\n    WHEN avg(high_speed) < 0.25 THEN 0\n    ELSE 1\n  END as speeding_more_than_25percent\nfrom\n  (\n    select\n      chassis_no,\n      claim_no,\n      claim_date,\n      policy_no,\n      CASE\n        WHEN speed_check = 'High Speed' THEN 1\n        WHEN speed_check = 'Normal Speed' THEN 0\n        ELSE -1000\n      END as high_speed,\n      claim_amount_total,\n      incident_severity as reported_severity\n    from\n      claim_insights\n  ) a\nwhere\n  a.claim_no = \"{{claim_number}}\"\ngroup by\n  CHASSIS_NO,\n  claim_no;\n  ",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497533",
+                "visualization_control_order": [
+                    "claim_number"
+                ],
+                "parameters": [
+                    {
+                        "name": "claim_number",
+                        "title": "Claim Number",
+                        "type": "query",
+                        "queryId": "f1f35813-a5ff-49ad-a4f4-28b3d6a490ab",
+                        "value": "d69cdd12-b837-4436-ba21-5c7b3fb1ab1c",
+                        "multiValuesOptions": null
+                    }
+                ],
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner"
+            },
+            "visualizations": [
+                {
+                    "id": "be1cba41-59ca-43b6-8aa4-09764e742d35",
+                    "type": "TABLE",
+                    "name": "Results",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "cf798c0e-1967-4eb8-8ca8-ffd466f5308b",
+                    "type": "TABLE",
+                    "name": "Telematics Insights",
+                    "description": "",
+                    "options": {
+                        "itemsPerPage": 25,
+                        "condensed": true,
+                        "withRowNumber": false,
+                        "columns": [
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "CHASSIS_NO",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100000,
+                                "title": "CHASSIS_NO",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "claim_no",
+                                "type": "string",
+                                "displayAs": "string",
+                                "visible": true,
+                                "order": 100001,
+                                "title": "claim_no",
+                                "allowSearch": false,
+                                "alignContent": "left",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0.00",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "speeding",
+                                "type": "float",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100002,
+                                "title": "speeding",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            },
+                            {
+                                "numberFormat": "0",
+                                "booleanValues": [
+                                    "false",
+                                    "true"
+                                ],
+                                "imageUrlTemplate": "{{ @ }}",
+                                "imageTitleTemplate": "{{ @ }}",
+                                "imageWidth": "",
+                                "imageHeight": "",
+                                "linkUrlTemplate": "{{ @ }}",
+                                "linkTextTemplate": "{{ @ }}",
+                                "linkTitleTemplate": "{{ @ }}",
+                                "linkOpenInNewTab": true,
+                                "name": "speeding_more_than_25percent",
+                                "type": "integer",
+                                "displayAs": "number",
+                                "visible": true,
+                                "order": 100003,
+                                "title": "speeding_more_than_25percent",
+                                "allowSearch": false,
+                                "alignContent": "right",
+                                "allowHTML": false,
+                                "highlightLinks": false,
+                                "useMonospaceFont": false,
+                                "preserveWhitespace": false
+                            }
+                        ],
+                        "version": 2
+                    },
+                    "query_plan": null
+                }
+            ]
+        },
+        {
+            "id": "7cd484cf-ca82-4ae3-bea4-25eac6306dac",
+            "name": "Claim - PolicyList",
+            "description": "",
+            "query": "--param query - the import needs the  query to be run first even empty.\nCREATE SCHEMA IF NOT EXISTS main.fsi_smart_claims;\nCREATE TABLE IF NOT EXISTS main.fsi_smart_claims.claim_insights (claim_no STRING, policy_no STRING);\nINSERT INTO main.fsi_smart_claims.claim_insights (claim_no, policy_no) SELECT 'd69cdd12-b837-4436-ba21-5c7b3fb1ab1c', '102147943'\n  WHERE NOT EXISTS (SELECT * FROM  main.fsi_smart_claims.claim_insights);\n\nselect\n  distinct policy_no\nfrom\n  main.fsi_smart_claims.claim_insights where '2000-01-01' < now();  --condition to trick the cache to avoid import cache issue (only due to dbsqlclone behavior - you can remove it once installed).",
+            "options": {
+                "parent": "folders/1580401252621742",
+                "apply_auto_limit": true,
+                "folder_node_status": "ACTIVE",
+                "folder_node_internal_name": "tree/4388798399497523",
+                "schema": null,
+                "catalog": null,
+                "run_as_role": "owner",
+                "visualization_control_order": [],
+                "parameters": []
+            },
+            "visualizations": [
+                {
+                    "id": "0dadc30d-70a1-4148-90eb-637f30ff3eb5",
+                    "type": "TABLE",
+                    "name": "Table",
+                    "description": "",
+                    "options": {
+                        "version": 2
+                    },
+                    "query_plan": null
+                },
+                {
+                    "id": "889cee78-9ac8-4f72-b5dc-ddd9604d9f5a",
+                    "type": "COUNTER",
+                    "name": "Policies",
+                    "description": "",
+                    "options": {
+                        "counterLabel": "#Policies",
+                        "counterColName": "count(policy_no)",
+                        "rowNumber": 1,
+                        "targetRowNumber": 1,
+                        "stringDecimal": 0,
+                        "stringDecChar": ".",
+                        "stringThouSep": ",",
+                        "tooltipFormat": "0,0.000"
+                    },
+                    "query_plan": null
+                }
+            ]
+        }
+    ],
+    "dashboard": {
+        "id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+        "name": "Smart Claims Investigation",
+        "widgets": [
+            {
+                "id": "0f467574-5e0a-4c31-bdd7-177d83f83c28",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "start_date": {
+                            "name": "start_date",
+                            "type": "dashboard-level",
+                            "mapTo": "start_date",
+                            "value": null,
+                            "title": ""
+                        },
+                        "end_date": {
+                            "name": "end_date",
+                            "type": "dashboard-level",
+                            "mapTo": "end_date",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 1,
+                        "sizeY": 3,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 2,
+                        "row": 2
+                    },
+                    "overrideColors": false
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "c4a3abdd-edbb-4b6c-9dd1-2e07ea1159fb"
+            },
+            {
+                "id": "1bc0f698-508f-4f5b-9063-9ea69b9007f4",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "claim_number": {
+                            "name": "claim_number",
+                            "type": "dashboard-level",
+                            "mapTo": "claim_number",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "Claim Amounts ",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 4,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 3,
+                        "row": 31
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "f6372534-18c5-4e81-8564-9f5a7d5c2860"
+            },
+            {
+                "id": "2674dd08-6592-425e-a261-5d87f479c0da",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "policy_number": {
+                            "name": "policy_number",
+                            "type": "dashboard-level",
+                            "mapTo": "policy_number",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "Driver Details",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 4,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 3,
+                        "row": 20
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "21071af1-9bb5-4306-b8a6-ae50201e3b11"
+            },
+            {
+                "id": "26c1a514-7764-4dba-bbed-cc9b6e12ebf5",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "claim_number": {
+                            "name": "claim_number",
+                            "type": "dashboard-level",
+                            "mapTo": "claim_number",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "Predicted Insights",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 4,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 3,
+                        "row": 35
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "abe8a338-09d3-470f-83df-030c1c7a8a86"
+            },
+            {
+                "id": "3b2165fd-2689-4215-8f42-51b2376579b5",
+                "width": 1,
+                "options": {
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 6,
+                        "sizeY": 2,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 0
+                    },
+                    "parameterMappings": {}
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "# Claims Investigation"
+            },
+            {
+                "id": "42faf40b-9295-48f0-b2dd-d5898809aa5c",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "claim_number": {
+                            "name": "claim_number",
+                            "type": "dashboard-level",
+                            "mapTo": "claim_number",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "Telematics Insights ",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 3,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 3,
+                        "row": 24
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "cf798c0e-1967-4eb8-8ca8-ffd466f5308b"
+            },
+            {
+                "id": "49628af0-f161-4947-8547-e459f09944b7",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "start_date": {
+                            "name": "start_date",
+                            "type": "dashboard-level",
+                            "mapTo": "start_date",
+                            "value": null,
+                            "title": ""
+                        },
+                        "end_date": {
+                            "name": "end_date",
+                            "type": "dashboard-level",
+                            "mapTo": "end_date",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 1,
+                        "sizeY": 3,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 5,
+                        "row": 2
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "cd668741-25d0-43bf-90c4-aa7af29d47aa"
+            },
+            {
+                "id": "6af7b3eb-214c-42a9-8edc-7c2490173935",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "claim_number": {
+                            "name": "claim_number",
+                            "type": "dashboard-level",
+                            "mapTo": "claim_number",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "Reported  Data",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 4,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 3,
+                        "row": 27
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "e551517d-c69f-4324-96bd-b85653c7d369"
+            },
+            {
+                "id": "6db9b92c-af2e-4372-b25d-bf5d8dfbcd3b",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "policy_number": {
+                            "name": "policy_number",
+                            "type": "dashboard-level",
+                            "mapTo": "policy_number",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "Policy Details",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 4,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 3,
+                        "row": 16
+                    },
+                    "overrideColors": false
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "21071af1-9bb5-4306-b8a6-ae50201e3b11"
+            },
+            {
+                "id": "a61fb604-e8a1-4438-8ea9-ec30ff50c76a",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {},
+                    "title": "Insights",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 6,
+                        "sizeY": 7,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 5
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "f265949c-d736-409d-938b-672a37d97dd8"
+            },
+            {
+                "id": "cda70b91-1b9f-4073-95c0-c01c368d8c6b",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {},
+                    "title": "Car Image",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 12,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 12
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "c83c846b-b7d8-496e-ba2e-abb56c0b8486"
+            },
+            {
+                "id": "d67cf76a-6f6a-4ab4-9923-e56a6740ffee",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "claim_number": {
+                            "name": "claim_number",
+                            "type": "dashboard-level",
+                            "mapTo": "claim_number",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "Telematics Journey",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 15,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 24
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "71a09d9e-ebb9-44a5-9c88-9c145d23e310"
+            },
+            {
+                "id": "dc64bc33-549d-4981-82da-81bd8a3d96f4",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "claim_number": {
+                            "name": "claim_number",
+                            "type": "dashboard-level",
+                            "mapTo": "claim_number",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "Claim Details",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 3,
+                        "sizeY": 4,
+                        "minSizeX": 2,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 3,
+                        "row": 12
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "7441417c-adb5-46de-9a5c-e35a28fd6af8"
+            },
+            {
+                "id": "e4299cf4-9898-4afa-95b1-5c4a1465a07c",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "start_date": {
+                            "name": "start_date",
+                            "type": "dashboard-level",
+                            "mapTo": "start_date",
+                            "value": null,
+                            "title": ""
+                        },
+                        "end_date": {
+                            "name": "end_date",
+                            "type": "dashboard-level",
+                            "mapTo": "end_date",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 2,
+                        "sizeY": 3,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 0,
+                        "row": 2
+                    },
+                    "overrideColors": false
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "ec55d6cb-650e-4f6d-9eae-178891b51670"
+            },
+            {
+                "id": "facc5e6b-1874-4473-99a9-ba3e6006de38",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "start_date": {
+                            "name": "start_date",
+                            "type": "dashboard-level",
+                            "mapTo": "start_date",
+                            "value": null,
+                            "title": ""
+                        },
+                        "end_date": {
+                            "name": "end_date",
+                            "type": "dashboard-level",
+                            "mapTo": "end_date",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 1,
+                        "sizeY": 3,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 4,
+                        "row": 2
+                    }
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "9d68313f-8d54-44ee-8f1c-63f6fed1bd48"
+            },
+            {
+                "id": "fef9ac28-6a80-4ad6-a736-a4a203df6238",
+                "width": 1,
+                "options": {
+                    "parameterMappings": {
+                        "start_date": {
+                            "name": "start_date",
+                            "type": "dashboard-level",
+                            "mapTo": "start_date",
+                            "value": null,
+                            "title": ""
+                        },
+                        "end_date": {
+                            "name": "end_date",
+                            "type": "dashboard-level",
+                            "mapTo": "end_date",
+                            "value": null,
+                            "title": ""
+                        }
+                    },
+                    "title": "",
+                    "description": "",
+                    "isHidden": false,
+                    "position": {
+                        "autoHeight": false,
+                        "sizeX": 1,
+                        "sizeY": 3,
+                        "minSizeX": 1,
+                        "maxSizeX": 6,
+                        "minSizeY": 1,
+                        "maxSizeY": 1000,
+                        "col": 3,
+                        "row": 2
+                    },
+                    "overrideColors": false
+                },
+                "dashboard_id": "e3cde222-ab48-4217-bf78-2243aae4ff88",
+                "text": "",
+                "visualization_id": "e6d04bc6-04c7-41da-867f-ff1e03faad52"
+            }
+        ],
+        "tags": [
+            "smart_claims"
+        ],
+        "color_palette": null,
+        "dashboard_filters_enabled": false,
+        "parent": "folders/1580401252621742",
+        "options": {
+            "parent": "folders/1580401252621742"
+        },
+        "is_archived": false
+    },
+    "version": "1.0"
+}
