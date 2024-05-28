@@ -10,7 +10,7 @@ local_conf*
 .DS_Store
 build
 dbdemos/minisite/
-#dbdemos/bundles
+dbdemos/bundles
 dist
 *.egg-info/
 dbdemos/__pycache__
