@@ -60,14 +60,15 @@ class InstallerReport:
         except:
             return False
 
-    def display_cluster_creation_error(self, exception: ClusterCreationException, demo_conf: DemoConf):
-        self.display_error(exception, f"By default, dbdemos try to create a new cluster for your demo with the proper settings. <br/>"
-                                      f"If you don't have cluster creation permission, dbdemos can use the current cluster to run the content.<br/>"
+    def display_cluster_creation_warn(self, exception: ClusterCreationException, demo_conf: DemoConf):
+        self.display_error(exception, f"By default, dbdemos tries to create a new cluster for your demo with the proper settings. <br/>"
+                                      f"dbdemos couldn't create a cluster for you (probably due to your permissions). Instead we will use the current cluster to run the setup job and load the data.<br/>"
                                       f"For the demo to run properly, <strong>make sure your cluster has UC enabled and using Databricks Runtime (DBR) version {exception.cluster_conf['spark_version']}</strong>.<br/>"
+                                      f"<i>Note: you can avoid this message setting `use_current_cluster`:</i><br/>"
                                       f"""<div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', use_current_cluster = True)</div><br/>"""
                                       f"<strong>Cluster creation details</strong><br/>"
                                       f"""Full cluster configuration: <div class="code dbdemos_block">{json.dumps(exception.cluster_conf)}.</div><br/>"""
-                                      f"""Full error: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""")
+                                      f"""Full error: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""", raise_error=False, warning=True)
 
     def display_custom_schema_not_supported_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"This demo doesn't support custom catalog/schema yet.<br/>"

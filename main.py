@@ -43,7 +43,7 @@ def bundle():
     #bundler.add_bundle("product_demos/Unity-Catalog/04-Audit-log")
     #bundler.add_bundle("demo-HLS/lakehouse-patient-readmission")
     #bundler.add_bundle("product_demos/Data-Science/computer-vision-dl")
-    bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
+    bundler.add_bundle("product_demos/Data-Science/llm-fine-tuning")
     #bundler.add_bundle("product_demos/Unity-Catalog/uc-01-acl")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-smart-claims")
     """0
@@ -119,7 +119,7 @@ def bundle_with_retry(max_retry = 3):
 #bundle()
 
 #Loads conf to install on cse2.
-with open("local_conf_E2FE.json", "r") as r:
+with open("local_conf_E2WEST.json", "r") as r:
     c = json.loads(r.read())
 
 from dbdemos.installer import Installer
@@ -134,6 +134,7 @@ import dbdemos
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = True, skip_dashboards=False)
 #dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
 #dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
+dbdemos.install("llm-fine-tuning", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
 #installer = Installer()
 #for d in installer.get_demos_available():
 #    dbdemos.install(d, "/Users/quentin.ambard@databricks.com/test_dbdemos", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
@@ -141,7 +142,7 @@ import dbdemos
 
 #dbdemos.list_demos(None)
 
-dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=False, use_current_cluster=True, schema='test_quentin_rag', catalog='dbdemos')
+#dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=False, use_current_cluster=True, schema='test_quentin_rag', catalog='dbdemos')
 #dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True, use_current_cluster=True)
 
 

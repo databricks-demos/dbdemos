@@ -245,7 +245,10 @@ class Installer:
         try:
             cluster_id, cluster_name = self.load_demo_cluster(demo_name, demo_conf, update_cluster_if_exists, start_cluster, use_cluster_id)
         except ClusterException as e:
-            self.report.display_cluster_creation_error(e, demo_conf)
+            #Fallback to current cluster if we can't create a cluster.
+            cluster_id = self.current_cluster_id
+            self.report.display_cluster_creation_warn(e, demo_conf)
+            cluster_name = "Current Cluster"
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless)
         dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
@@ -542,6 +545,8 @@ class Installer:
         pipeline_ids = []
         for pipeline in demo_conf.pipelines:
             definition = pipeline["definition"]
+            #Force channel to current due to ES-1079180
+            #definition["channel"] = "CURRENT"
             today = date.today().strftime("%Y-%m-%d")
             #modify cluster definitions if serverless
             if serverless:
