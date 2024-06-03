@@ -209,7 +209,7 @@ def list_dashboards(category = None):
     pass
 
 def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None,
-            use_current_cluster: bool = False, current_cluster_id = None, install_dashboard_sequentially = None, debug = False, catalog = None, schema = None, serverless=False):
+            use_current_cluster: bool = False, current_cluster_id = None, install_dashboard_sequentially = None, debug = False, catalog = None, schema = None, serverless=None):
     if demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
         demo_name = "lakehouse-retail-c360"

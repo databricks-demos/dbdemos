@@ -60,6 +60,22 @@ class Installer:
             self.dbutils = DBUtils(spark)
         return self.dbutils
 
+    #TODO replace with https://github.com/mlflow/mlflow/blob/master/mlflow/utils/databricks_utils.py#L64 ?
+    def get_dbutils(self):
+        if self.dbutils is None:
+            from pyspark.sql import SparkSession
+            try:
+                spark = SparkSession.getActiveSession()
+                from pyspark.dbutils import DBUtils
+                self.dbutils = DBUtils(spark)
+            except:
+                import IPython
+                self.dbutils = IPython.get_ipython().user_ns["dbutils"]
+        return self.dbutils
+
+
+
+
     def get_current_url(self):
         try:
             return "https://"+self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
@@ -204,20 +220,11 @@ class Installer:
             return False
 
     def cluster_is_serverless(self):
-        workspace_url = self.get_workspace_url()
-        cluster_id = self.get_current_cluster_id()
-        token = self.get_current_pat_token()
-        url = f"{workspace_url}/api/2.0/clusters/get"
-        headers = {"Authorization": f"Bearer {token}"}
         try:
-            response = requests.get(url, headers=headers, params={"cluster_id": cluster_id})
+            cluster_details = self.db.get("2.0/clusters/get", {"cluster_id": self.get_current_cluster_id()})
+            return cluster_details.get("enable_serverless_compute", False)
         except Exception as e:
-            raise Exception("Couldn't get cluster serverless status: "+str(e))
-        cluster_source = response.json().get("enable_serverless_compute", "")
-        if cluster_source == True:
-            # the cluster is serverless
-            return True
-        else:
+            print(f"Couldn't get cluster serverless status. Will consider it False. {e}")
             return False
 
     def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False):
@@ -230,7 +237,9 @@ class Installer:
             install_path = self.get_current_folder()+"/"+install_path
         if install_path.endswith("/"):
             install_path = install_path[:-1]
-        if serverless and self.cluster_is_serverless(): 
+        if serverless is None:
+            serverless = self.cluster_is_serverless()
+        if serverless:
             use_current_cluster = True
         self.check_demo_name(demo_name)
         demo_conf = self.get_demo_conf(demo_name, catalog, schema, install_path+"/"+demo_name)
