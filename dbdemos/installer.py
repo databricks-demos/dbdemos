@@ -51,29 +51,21 @@ class Installer:
         self.max_workers = 1 if self.get_current_cloud() == "GCP" else 1
 
 
-    #TODO replace with https://github.com/mlflow/mlflow/blob/master/mlflow/utils/databricks_utils.py#L64 ?
     def get_dbutils(self):
         if self.dbutils is None:
-            from pyspark.sql import SparkSession
-            from pyspark.dbutils import DBUtils
-            spark = SparkSession.getActiveSession()
-            self.dbutils = DBUtils(spark)
-        return self.dbutils
-
-    #TODO replace with https://github.com/mlflow/mlflow/blob/master/mlflow/utils/databricks_utils.py#L64 ?
-    def get_dbutils(self):
-        if self.dbutils is None:
-            from pyspark.sql import SparkSession
             try:
+                from pyspark.sql import SparkSession
                 spark = SparkSession.getActiveSession()
                 from pyspark.dbutils import DBUtils
                 self.dbutils = DBUtils(spark)
             except:
-                import IPython
-                self.dbutils = IPython.get_ipython().user_ns["dbutils"]
+                try:
+                    import IPython
+                    self.dbutils = IPython.get_ipython().user_ns["dbutils"]
+                except:
+                    #Can't get dbutils (local run)
+                    return None
         return self.dbutils
-
-
 
 
     def get_current_url(self):
@@ -170,11 +162,16 @@ class Installer:
         
     def get_current_cluster_id(self):
         try:
-            cluster_id = self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().clusterId().get()
-        except Exception as e:
-            raise Exception("Couldn't get the current cluster id: "+str(e))
-        return cluster_id
-        
+            return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().tags().apply('clusterId')
+        except:
+            try:
+                return self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().clusterId().get()
+            except:
+                try:
+                    return self.get_dbutils_tags_safe()['clusterId']
+                except:
+                    return "local"
+
     def get_workspace_url(self):
         try:
             workspace_url = "https://"+self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
@@ -239,14 +236,17 @@ class Installer:
             install_path = install_path[:-1]
         if serverless is None:
             serverless = self.cluster_is_serverless()
-        if serverless:
-            use_current_cluster = True
         self.check_demo_name(demo_name)
         demo_conf = self.get_demo_conf(demo_name, catalog, schema, install_path+"/"+demo_name)
         if (schema is not  None or catalog is not None) and not demo_conf.custom_schema_supported:
             self.report.display_custom_schema_not_supported_error(Exception('Custom schema not supported'), demo_conf)
         if (schema is not None and catalog is None) or (schema is None and catalog is not None):
             self.report.display_custom_schema_missing_error(Exception('Catalog and Schema must both be defined.'), demo_conf)
+
+        if serverless:
+            use_current_cluster = True
+            if not demo_conf.serverless_supported:
+                self.report.display_serverless_warn(Exception('This DBDemo content is not yet updated to Serverless/Test Drive!'), demo_conf)
 
         self.report.display_install_info(demo_conf, install_path, catalog, schema)
         self.tracker.track_install(demo_conf.category, demo_name)

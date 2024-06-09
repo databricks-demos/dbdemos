@@ -5,7 +5,7 @@ from dbdemos.job_bundler import JobBundler
 from dbdemos.packager import Packager
 import traceback
 
-with open("./local_conf.json", "r") as r:
+with open("./local_conf_E2FE.json", "r") as r:
     c = json.loads(r.read())
 with open("./dbdemos/resources/default_cluster_config.json", "r") as cc:
     default_cluster_template = cc.read()
@@ -26,13 +26,14 @@ def bundle():
     #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-smart-claims")
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
-    #bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
 
     bundler = JobBundler(conf)
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
     bundler.reset_staging_repo(skip_pull=False, )
     # Discover bundles from repo:
+    #bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
+    bundler.add_bundle("product_demos/DBSQL-Datawarehousing/lakehouse-monitor")
     #bundler.load_bundles_conf()
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     # Or manually add bundle to run faster:
@@ -43,7 +44,7 @@ def bundle():
     #bundler.add_bundle("product_demos/Unity-Catalog/04-Audit-log")
     #bundler.add_bundle("demo-HLS/lakehouse-patient-readmission")
     #bundler.add_bundle("product_demos/Data-Science/computer-vision-dl")
-    bundler.add_bundle("product_demos/Data-Science/llm-fine-tuning")
+    #bundler.add_bundle("product_demos/Data-Science/llm-fine-tuning")
     #bundler.add_bundle("product_demos/Unity-Catalog/uc-01-acl")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-smart-claims")
     """0
@@ -96,7 +97,7 @@ def bundle():
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
-    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False)
+    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=True)
 
     packager = Packager(conf, bundler)
     packager.package_all()
@@ -132,9 +133,9 @@ import dbdemos
 #dbdemos.install("lakehouse-fsi-smart-claims", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = True, skip_dashboards=False)
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = True, skip_dashboards=False)
-#dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
+dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
 #dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
-dbdemos.install("llm-fine-tuning", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
+#dbdemos.install("llm-fine-tuning", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
 #installer = Installer()
 #for d in installer.get_demos_available():
 #    dbdemos.install(d, "/Users/quentin.ambard@databricks.com/test_dbdemos", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
@@ -142,7 +143,7 @@ dbdemos.install("llm-fine-tuning", "/Users/quentin.ambard@databricks.com/test_in
 
 #dbdemos.list_demos(None)
 
-#dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=False, use_current_cluster=True, schema='test_quentin_rag', catalog='dbdemos')
+#dbdemos.install("lakehouse-monitoring", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=False, use_current_cluster=True, schema='test_quentin_rag', catalog='dbdemos')
 #dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True, use_current_cluster=True)
 
 

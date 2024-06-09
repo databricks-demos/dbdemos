@@ -70,6 +70,10 @@ class InstallerReport:
                                       f"""Full cluster configuration: <div class="code dbdemos_block">{json.dumps(exception.cluster_conf)}.</div><br/>"""
                                       f"""Full error: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""", raise_error=False, warning=True)
 
+    def display_serverless_warn(self, exception: Exception, demo_conf: DemoConf):
+        self.display_error(exception, f"This demo might not fully work on Serverless and Databricks Test Drive!<br/>"
+                                      f"We're actively working to update this content to fully work on serverless.<br/>"
+                                      f"Some of the notebooks might not work as expected as they are tested with DBRML, we'll be releasing an new version very shortly, stay tuned!<br/>", raise_error=False, warning=True)
     def display_custom_schema_not_supported_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"This demo doesn't support custom catalog/schema yet.<br/>"
                                       f"Please open a Github issue to accelerate the support for this demo.<br/>"

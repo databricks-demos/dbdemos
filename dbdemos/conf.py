@@ -179,6 +179,7 @@ class DemoConf():
         self.workflows = json_conf.get('workflows', [])
         self.pipelines = json_conf.get('pipelines', [])
         self.repos = json_conf.get('repos', [])
+        self.serverless_supported = json_conf.get('serverless_supported', False)
         self.init_job = json_conf.get('init_job', {})
         self.job_id = None
         self.run_id = None
