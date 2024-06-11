@@ -555,7 +555,7 @@ class Installer:
         for pipeline in demo_conf.pipelines:
             definition = pipeline["definition"]
             #Force channel to current due to ES-1079180
-            #definition["channel"] = "CURRENT"
+            definition["channel"] = "CURRENT"
             today = date.today().strftime("%Y-%m-%d")
             #modify cluster definitions if serverless
             if serverless:
