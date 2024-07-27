@@ -24,8 +24,8 @@ class JobBundler:
         return cluster_conf
 
     def load_bundles_conf(self):
-        if not self.staging_reseted:
-            self.reset_staging_repo()
+        #if not self.staging_reseted:
+        #    self.reset_staging_repo()
         print("scanning folder for bundles...")
         def find_conf_files(path, list, depth = 0):
             objects = self.db.get("2.0/workspace/list", {"path": path})["objects"]
@@ -212,12 +212,12 @@ class JobBundler:
         print(f'searching for job {job_conf["name"]}')
         existing_job = self.db.find_job(job_conf["name"])
         if existing_job is not None:
-            #update the job
+            # update the job
             print(f"test job {existing_job['job_id']} already existing for {demo_conf.name}, updating it with last config")
             self.db.post("2.1/jobs/reset", {'job_id': existing_job['job_id'], 'new_settings': job_conf})
             return existing_job['job_id']
         else:
-            #create the job from scratch
+            # create the job from scratch
             print(f"test job doesn't exist for {demo_conf.name}, creating a new one")
             r = self.db.post("2.1/jobs/create", job_conf)
             if 'job_id' not in r:

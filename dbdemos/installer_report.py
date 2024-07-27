@@ -1,5 +1,3 @@
-from dbsqlclone.utils.load_dashboard import DashboardWidgetException
-
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .exceptions.dbdemos_exception import ClusterCreationException, ExistingResourceException, FolderDeletionException, \
     DLTException, WorkflowException, FolderCreationException, TokenException
@@ -82,14 +80,6 @@ class InstallerReport:
     def display_custom_schema_missing_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"Both schema and catalog option must be defined.<br/>"
                                       f"""<div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', catalog = 'xxx', schema = 'xxx')</div><br/>""")
-
-    def display_dashboard_widget_exception(self, exception: DashboardWidgetException, demo_conf: DemoConf):
-        self.display_error(exception, f"""The dashboard has widget queries, and these queries need to be run before importing other queries.<br/>
-                                          dbdemo started a job to run these queries but it failed with the following error<br/>
-                                          <div class="code dbdemos_block">{exception.error}</div><br/>
-                                          For more details, open the job run page: {exception.run_url}<br/>
-                                          You can skip the dashboard installation with skip_dashboards = True:
-                                          <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', skip_dashboards = True)</div><br/>""")
 
     def display_dashboard_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"""Couldn't create or update a dashboard. <br/>
@@ -235,6 +225,8 @@ class InstallerReport:
             cluster_instruction = ""
         if len(notebooks) > 0:
             first = list(filter(lambda n: "/" not in n.get_clean_path(), notebooks))
+            if len(first) == 0:
+                first = list(filter(lambda n: "resources" not in n.get_clean_path(), notebooks))
             first.sort(key=lambda n: n.get_clean_path())
             html += f"""Start with the first notebook {InstallerReport.NOTEBOOK_SVG} <a href="{self.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}">{demo_name}/{first[0].get_clean_path()}</a>{cluster_instruction}\n"""
             html += """<h2>Notebook installed:</h2><div class="container_dbdemos">\n """
@@ -274,11 +266,12 @@ class InstallerReport:
             for d in dashboards:
                 if "error" in d:
                     error_already_installed  = ""
-                    if d["installed_id"] is not None:
-                        error_already_installed = f""" A dashboard with the same name exists: <a href="{self.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a>"""
                     html += f"""<div>ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}</div>"""
                 else:
-                    html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a></div>"""
+                    if "is_lakeview" in d:
+                        html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboardsv3/{d['uid']}">{d['name']}</a></div>"""
+                    else:
+                        html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a></div>"""
             html +="</div>"
         if len(workflows) > 0:
             html += f"""<h2>Workflows</h2><ul>"""
@@ -333,12 +326,14 @@ class InstallerReport:
             print("------------- DBSQL Dashboard available: -----------")
             for d in dashboards:
                 error_already_installed  = ""
-                if d["installed_id"] is not None:
-                    error_already_installed = f""" A dashboard with the same name exists: <a href="{self.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a>"""
                 if "error" in d:
                     print(f"    - ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}")
                 else:
-                    print(f"    - {d['name']}: {self.workspace_url}/sql/dashboards/{d['installed_id']}")
+                    if "is_lakeview" in d:
+                        print(f"    - {d['name']}: {self.workspace_url}/sql/dashboardsv3/{d['uid']}")
+                    else:
+                        #TODO: remove once on lakeview
+                        print(f"    - {d['name']}: {self.workspace_url}/sql/dashboards/{d['installed_id']}")
         if len(workflows) > 0:
             print("----------------------------------------------------")
             print("-------------------- Workflows: --------------------")

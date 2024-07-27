@@ -1,7 +1,6 @@
 import collections
 
 import pkg_resources
-from dbsqlclone.utils.load_dashboard import DashboardWidgetException
 
 from dbdemos.packager import Packager
 
@@ -224,7 +223,7 @@ class Installer:
             print(f"Couldn't get cluster serverless status. Will consider it False. {e}")
             return False
 
-    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = True, use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False):
+    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = None, use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -238,7 +237,7 @@ class Installer:
             serverless = self.cluster_is_serverless()
         self.check_demo_name(demo_name)
         demo_conf = self.get_demo_conf(demo_name, catalog, schema, install_path+"/"+demo_name)
-        if (schema is not  None or catalog is not None) and not demo_conf.custom_schema_supported:
+        if (schema is not None or catalog is not None) and not demo_conf.custom_schema_supported:
             self.report.display_custom_schema_not_supported_error(Exception('Custom schema not supported'), demo_conf)
         if (schema is not None and catalog is None) or (schema is None and catalog is not None):
             self.report.display_custom_schema_missing_error(Exception('Catalog and Schema must both be defined.'), demo_conf)
@@ -258,6 +257,7 @@ class Installer:
             cluster_id = self.current_cluster_id
             self.report.display_cluster_creation_warn(e, demo_conf)
             cluster_name = "Current Cluster"
+        self.check_if_install_folder_exists(demo_name, install_path, demo_conf, overwrite, debug)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless)
         dashboards = [] if skip_dashboards else self.install_dashboards(demo_conf, install_path, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
@@ -272,165 +272,57 @@ class Installer:
 
         self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, init_job['uid'], init_job['run_id'], cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
 
+
+    def load_lakeview_dashboard(self, demo_conf: DemoConf, install_path, dashboard):
+        endpoint = self.get_or_create_endpoint(self.db.conf.name)
+        try:
+            definition = self.get_resource(f"bundles/{demo_conf.name}/install_package/_resources/dashboards/{dashboard['id']}.lvdash.json")
+            definition = self.replace_dashboard_schema(demo_conf, definition)
+        except Exception as e:
+            raise Exception(f"Can't load dashboard {dashboard} in demo {demo_conf.name}. Check bundle configuration under dashboards: [..]. "
+                            f"The dashboard id should match the file name under the _resources/dashboard/<dashboard> folder.. {e}")
+        dashboard_path = f"{install_path}/{demo_conf.name}/_dashboards"
+        #Make sure the dashboard folder exists
+        f = self.db.post("2.0/workspace/mkdirs", {"path": dashboard_path})
+        if "error_code" in f:
+            raise Exception(f"ERROR - wrong install path, can't save dashboard here: {f}")
+        dashboard_creation = self.db.post(f"2.0/lakeview/dashboards", {
+            "display_name": dashboard['name'],
+            "warehouse_id": endpoint['warehouse_id'],
+            "serialized_dashboard": definition,
+            "parent_path": dashboard_path
+        })
+        dashboard['uid'] = dashboard_creation['dashboard_id']
+        dashboard['is_lakeview'] = True
+        return dashboard
+
+
+
     def install_dashboards(self, demo_conf: DemoConf, install_path, debug=True):
-        if "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
-            if debug:
-                print(f'    Installing dashboards')
-            def install_dash(dashboard):
-                return self.install_dashboard(demo_conf, install_path, dashboard, debug)
-            dashboards = pkg_resources.resource_listdir("dbdemos", "bundles/" + demo_conf.name + "/dashboards")
-            #filter out new import/export api:
-            dashboards = filter(lambda n: Packager.DASHBOARD_IMPORT_API not in n, dashboards)
+        if len(demo_conf.dashboards) > 0:
             try:
-                # Parallelize dashboard install, 3 by 3. Not on GCP as it's failing
-                with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                    return [n for n in executor.map(install_dash, dashboards)]
-            except DashboardWidgetException as e:
-                self.report.display_dashboard_widget_exception(e, demo_conf)
+                if debug:
+                    print(f'installing {len(demo_conf.dashboards)} dashboards...')
+                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d) for d in demo_conf.dashboards]
+                if debug:
+                    print(f'dashboard installed')
+                return installed_dash
             except Exception as e:
                 self.report.display_dashboard_error(e, demo_conf)
+        elif "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
+            raise Exception("Old dashboard are not supported anymore. This shouldn't happen - please fill a bug")
         return []
 
     def replace_dashboard_schema(self, demo_conf: DemoConf, definition: str):
+        import re
         #main__build is used during the build process to avoid collision with default main.
+        re.sub(r"`?main__build`?\.", "main", definition)
         definition = definition.replace("main__build.", f"main.")
+        definition = definition.replace("`main__build`.", f"`main`.")
         if demo_conf.custom_schema_supported:
-            return definition.replace(demo_conf.default_catalog+"."+demo_conf.default_schema, f"`{demo_conf.catalog}`.`{demo_conf.schema}`")
+            return re.sub(r"`?" + re.escape(demo_conf.default_catalog) + r"`?\.`?" + re.escape(demo_conf.default_schema) + r"`?", f"`{demo_conf.catalog}`.`{demo_conf.schema}`", definition)
         return definition
 
-    def install_dashboard(self, demo_conf, install_path, dashboard, debug=True):
-        definition = self.get_resource("bundles/" + demo_conf.name + "/dashboards/" + dashboard)
-        definition = self.replace_dashboard_schema(demo_conf, definition)
-        definition = json.loads(definition)
-        id = dashboard[:dashboard.rfind(".json")]
-        dashboard_name = definition['dashboard']['name']
-        dashboard_name = dashboard_name + " - " + self.db.conf.name
-        definition['dashboard']['name'] = dashboard_name
-
-        if debug:
-            print(f"     Installing dashboard {dashboard_name} - {id}...")
-        from dbsqlclone.utils import dump_dashboard
-        from dbsqlclone.utils.client import Client
-        client = Client(self.db.conf.workspace_url, self.db.conf.pat_token)
-        existing_dashboard = self.get_dashboard_by_name(dashboard_name)
-        if existing_dashboard is not None:
-            existing_dashboard = dump_dashboard.get_dashboard_definition_by_id(client, existing_dashboard['id'])
-            # If we can't change the ownership, we'll have to create a new dashboard.
-            could_change_owner_changed = self.change_dashboard_ownership(existing_dashboard)
-            # Can't change ownership, we won't be able to override the dashboard. Create a new one with your name.
-            if not could_change_owner_changed:
-                #definition['dashboard']['name'] = dashboard_name
-                print(
-                    f"WARNING:  Could not change dashboard ownership {dashboard_name}. Import might fail. Check dashboard {self.db.conf.workspace_url}/sql/dashboards/{existing_dashboard['id']}")
-        # Create the folder where to save the queries
-        path = f'{install_path}/dbdemos_dashboards/{demo_conf.name}'
-        f = self.db.post("2.0/workspace/mkdirs", {"path": path})
-        if "error_code" in f:
-            raise Exception(f"ERROR - wrong install path, can't save dashboard here: {f}")
-        folders = self.db.get("2.0/workspace/list", {"path": Path(path).parent.absolute()})
-        if "error_code" in folders:
-            raise Exception(f"ERROR - wrong install path, can't save dashboard here: {folders}")
-        parent_folder_id = None
-        for f in folders["objects"]:
-            if f["object_type"] == "DIRECTORY" and f["path"] == path:
-                parent_folder_id = f["object_id"]
-        if parent_folder_id is None:
-            raise Exception(f"ERROR: couldn't find dashboard folder {path}. Do you have permission?")
-
-        # ------- LEGACY IMPORT/EXPORT DASHBOARD - TO BE REPLACED ONCE IMPORT/EXPORT API IS PUBLIC PREVIEW
-        from dbsqlclone.utils.client import Client
-        from dbsqlclone.utils import load_dashboard, clone_dashboard
-        client = Client(self.db.conf.workspace_url, self.db.conf.pat_token, permissions= [
-            {"user_name": self.db.conf.username, "permission_level": "CAN_MANAGE"},
-            {"group_name": "users", "permission_level": "CAN_EDIT"}
-        ])
-        try:
-            endpoint = self.get_or_create_endpoint(self.db.conf.name)
-            if endpoint is None:
-                print(
-                    "WARN: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? dbdemos will continue trying to import the dashboard without endoint (import will pick the first available if any)")
-            else:
-                client.data_source_id = endpoint['id']
-                client.endpoint_id = endpoint['warehouse_id']
-            if existing_dashboard is not None:
-                load_dashboard.clone_dashboard_without_saved_state(definition, client, existing_dashboard['id'], parent=f'folders/{parent_folder_id}')
-                return {"id": id, "name": dashboard_name, "installed_id": existing_dashboard['id']}
-            else:
-                state = load_dashboard.clone_dashboard(definition, client, {}, parent=f'folders/{parent_folder_id}')
-                return {"id": id, "name": dashboard_name, "installed_id": state["new_id"]}
-        except Exception as e:
-            print(f"    ERROR loading dashboard {dashboard_name} - {str(e)}")
-            raise e
-
-        """
-        # ------- NEW IMPORT/EXPORT API
-        data = {
-            'import_file_contents': definition,
-            'parent': f'folders/{parent_folder_id}'
-        }
-        endpoint_id = self.get_or_create_endpoint()
-        if endpoint_id is None:
-            print(
-                "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Trying to import the dashboard without endoint (import will pick the first available if any)")
-        else:
-            data['warehouse_id'] = endpoint_id
-        if existing_dashboard is not None:
-            data['overwrite_dashboard_id'] = existing_dashboard
-            data['should_overwrite_existing_queries'] = True
-        
-        TODO: import / export public preview delayed. Instead we'll fallback to manual import/export
-        i = self.db.post(f"2.0/preview/sql/dashboards/import", data)
-        if "id" in i:
-            # Change definition for all users to be able to use the dashboard & the queries.
-            permissions = {"access_control_list": [
-                {"user_name": self.db.conf.username, "permission_level": "CAN_MANAGE"},
-                {"group_name": "users", "permission_level": "CAN_EDIT"}
-            ]}
-            permissions = self.db.post("2.0/preview/sql/permissions/dashboards/" + i["id"], permissions)
-            existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard}/export")
-            if "queries" in existing_dashboard_definition:
-                for q in existing_dashboard_definition["queries"]:
-                    self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}", permissions)
-            print(f"     Dashboard {definition['dashboard']['name']} installed. Permissions set to {permissions}")
-            self.db.post("2.0/preview/sql/dashboards/" + i["id"], {"run_as_role": "viewer"})
-            return {"id": id, "name": definition['dashboard']['name'], "installed_id": i["id"]}
-        else:
-            print(f"    ERROR loading dashboard {definition['dashboard']['name']}: {i}, {existing_dashboard}")
-            return {"id": id, "name": definition['dashboard']['name'], "error": i, "installed_id": existing_dashboard}"""
-
-    # Try to change ownership to be able to override the dashboard. Only admin can override ownership.
-    # Return True if we've been able to change ownership, false otherwise
-    def change_dashboard_ownership(self, existing_dashboard):
-        owner = self.db.post(f"2.0/preview/sql/permissions/dashboard/{existing_dashboard['id']}/transfer", {"new_owner": self.db.conf.username})
-        if 'error_code' in owner or ('message' in owner and (owner['message'] != 'Success' and not owner['message'].startswith("This object already belongs"))):
-            print(f"       WARN: Couldn't update ownership of dashboard {existing_dashboard['id']} to current user. Will create a new one.")
-            return False
-        # Get existing dashboard definition and change all its query ownership
-        # TODO legacy import/export
-        # existing_dashboard_definition = self.db.get(f"2.0/preview/sql/dashboards/{existing_dashboard_id}/export")
-        # if "message" in existing_dashboard_definition:
-        #     print(f"WARN: Error getting existing dashboard details - id {existing_dashboard['id']}: {existing_dashboard_definition}. Will create a new one.")
-        #    return False
-        # else:
-        # Try to update all individual query ownership
-        for q in existing_dashboard["queries"]:
-            owner = self.db.post(f"2.0/preview/sql/permissions/query/{q['id']}/transfer", {"new_owner": self.db.conf.username})
-            if 'error_code' in owner:
-                print(f"       WARN: Couldn't update ownership of query {q['id']} to current user. Will create a new dashboard.")
-                return False
-        return True
-
-    def get_dashboard_by_name(self, name):
-        def get_dashboard(page):
-            page_size = 250
-            ds = self.db.get("2.0/preview/sql/dashboards", params = {"page_size": page_size, "page": page})
-            for d in ds['results']:
-                if d['name'] == name and 'moved_to_trash_at' not in d:
-                    return d
-            if len(ds["results"]) >= page_size:
-                return get_dashboard(page+1)
-            return None
-        return get_dashboard(1)
 
     def get_demo_datasource(self):
         data_sources = self.db.get("2.0/preview/sql/data_sources")
@@ -486,11 +378,8 @@ class Installer:
         print(f"ERROR: Couldn't create endpoint.")
         return None
 
-    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str,
-                          pipeline_ids, dashboards, workflows, repos, overwrite=False, use_current_cluster=False, debug=False):
-        assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
-        if debug:
-            print(f'    Installing notebooks')
+    #Check if the folder already exists, and delete it if needed.
+    def check_if_install_folder_exists(self, demo_name: str, install_path: str, demo_conf: DemoConf, overwrite=False, debug=False):
         install_path = install_path+"/"+demo_name
         s = self.db.get("2.0/workspace/get-status", {"path": install_path})
         if 'object_type' in s:
@@ -498,11 +387,18 @@ class Installer:
                 self.report.display_folder_already_existing(ExistingResourceException(install_path, s), demo_conf)
             if debug:
                 print(f"    Folder {install_path} already exists. Deleting the existing content...")
-            assert install_path not in ['/Users', '/Repos', '/Shared'], "Demo name is missing, shouldn't happen. Fail to prevent main deletion."
+            assert install_path.lower() not in ['/users', '/repos', '/shared', '/workspace', '/workspace/shared', '/workspace/users'],\
+                "Demo name is missing, shouldn't happen. Fail to prevent main deletion."
             d = self.db.post("2.0/workspace/delete", {"path": install_path, 'recursive': True})
             if 'error_code' in d:
                 self.report.display_folder_permission(FolderDeletionException(install_path, d), demo_conf)
 
+    def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str,
+                          pipeline_ids, dashboards, workflows, repos, overwrite=False, use_current_cluster=False, debug=False):
+        assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
+        if debug:
+            print(f'    Installing notebooks')
+        install_path = install_path+"/"+demo_name
         folders_created = set()
         #Avoid multiple mkdirs in parallel as it's creating error.
         folders_created_lock = threading.Lock()
@@ -555,7 +451,7 @@ class Installer:
         for pipeline in demo_conf.pipelines:
             definition = pipeline["definition"]
             #Force channel to current due to ES-1079180
-            definition["channel"] = "CURRENT"
+            #definition["channel"] = "CURRENT"
             today = date.today().strftime("%Y-%m-%d")
             #modify cluster definitions if serverless
             if serverless:
@@ -606,7 +502,7 @@ class Installer:
             demo_conf.set_pipeline_id(pipeline["id"], id)
         return pipeline_ids
 
-    def load_demo_cluster(self, demo_name, demo_conf: DemoConf, update_cluster_if_exists, start_cluster = True, use_cluster_id: str = None):
+    def load_demo_cluster(self, demo_name, demo_conf: DemoConf, update_cluster_if_exists, start_cluster = None, use_cluster_id: str = None):
         if use_cluster_id is not None:
             return (use_cluster_id, "Interactive cluster you used for installation - make sure the cluster configuration matches.")
         if demo_conf.create_cluster == False:

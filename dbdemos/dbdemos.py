@@ -219,23 +219,6 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
         report = InstallerReport(workspace_url)
         report.display_token_error(e, demo_name)
 
-    if (installer.get_current_cloud() == "GCP" and install_dashboard_sequentially is None) or install_dashboard_sequentially:
-        print("WARN: GCP detected, dbdemos will slow down and run the dashboard installation sequentially to avoid API timeouts, please be patient...")
-        print("You can skip the dashboard installation adding: skip_dashboards=True")
-        print("--- details: changing dbdsql clone loader settings as following: ---")
-        print("from dbsqlclone.utils import load_dashboard")
-        print("load_dashboard.max_workers = 1")
-        print("load_dashboard.sleep_between_queries = 2 #Reduce to 1 or 0sec for faster installation")
-        print("----")
-        try:
-            from dbsqlclone.utils import load_dashboard
-            load_dashboard.max_workers = 1
-            load_dashboard.sleep_between_queries = 2
-            from urllib3 import Retry
-            Retry.DEFAULT = Retry(3, backoff_factor=5)
-        except Exception as e:
-            print(f"ERROR setting up GCP conf: {e}")
-
     if not installer.test_premium_pricing():
         #Force dashboard skip as dbsql isn't available to avoid any error.
         skip_dashboards = True

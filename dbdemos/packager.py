@@ -19,13 +19,14 @@ class Packager:
         self.jobBundler = jobBundler
 
     def package_all(self, iframe_root_src = "./"):
-        def package_demo(demo_conf):
+        def package_demo(demo_conf: DemoConf):
             self.clean_bundle(demo_conf)
             dashboard_ids = self.package_demo(demo_conf)
-            self.extract_dashboards(demo_conf, dashboard_ids)
+            if len(demo_conf.dashboards) > 0:
+                self.extract_lakeview_dashboards(demo_conf)
             self.build_minisite(demo_conf, iframe_root_src)
 
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=1) as executor:
             confs = [ demo_conf for _, demo_conf in self.jobBundler.bundles.items()]
             collections.deque(executor.map(package_demo, confs))
 
@@ -33,33 +34,20 @@ class Packager:
         if Path(demo_conf.get_bundle_root_path()).exists():
             shutil.rmtree(demo_conf.get_bundle_root_path())
 
-    def extract_dashboards(self, demo_conf: DemoConf, dashboard_ids):
-        def cleanup_names_import_bug(dashboard):
-            #Fix bug having (1) (2) ... at the end of the name of the requests
-            dashboard = json.dumps(dashboard, indent=4)
-            matches = re.finditer(r'"name".*?(?P<bug_num>(\s?\([0-9]\) ?){1,5})"', dashboard)
-            for match in matches:
-                dashboard = dashboard.replace(match.groupdict()["bug_num"], '')
-            return dashboard
 
-        for id in set(dashboard_ids):
-            dashboard = self.db.get(f"2.0/preview/sql/dashboards/{id}/export")
-            if "message" in dashboard:
-                raise Exception(f"Error exporting dashboard id {id} in demo {demo_conf.name}. "
-                                f"Ids are extracted from links in notebooks, please review & correct your notebook template. Export answer: {dashboard}")
-            dashboard = cleanup_names_import_bug(dashboard)
-            dashboard_path = demo_conf.get_bundle_dashboard_path()
-            Path(dashboard_path).mkdir(parents=True, exist_ok=True)
-            with open(f"{dashboard_path}/{id}{Packager.DASHBOARD_IMPORT_API}.json", "w") as f:
-                f.write(dashboard)
-            #LEGACY IMPORT/EXPORT
-            from dbsqlclone.utils import dump_dashboard
-            from dbsqlclone.utils.client import Client
-            client = Client(self.db.conf.workspace_url, self.db.conf.pat_token)
-            dashboard = dump_dashboard.get_dashboard_definition_by_id(client, id)
-            dashboard = cleanup_names_import_bug(dashboard)
-            with open(f"{dashboard_path}/{id}.json", "w") as f:
-                f.write(dashboard)
+    def extract_lakeview_dashboards(self, demo_conf: DemoConf):
+        for d in demo_conf.dashboards:
+            repo_path = self.jobBundler.conf.get_repo_path()+"/"+demo_conf.path+"/_resources/dashboards/"+d['id']+".lvdash.json"
+            repo_path = os.path.realpath(repo_path)
+            dashboard_file = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "SOURCE", "direct_download": False})
+            if 'error_code' in dashboard_file:
+                raise Exception(f"Couldn't find dashboard {repo_path} in repo. Check repo ID in bundle conf file and make sure the dashboard is here. "
+                                f"{dashboard_file['error_code']} - {dashboard_file['message']}")
+            dashboard_file = base64.b64decode(dashboard_file['content']).decode('utf-8')
+            full_path = demo_conf.get_bundle_path()+"/_resources/dashboards/"+d['id']+".lvdash.json"
+            Path(full_path[:full_path.rindex("/")]).mkdir(parents=True, exist_ok=True)
+            with open(full_path, "w") as f:
+                f.write(dashboard_file)
 
 
     def package_demo(self, demo_conf: DemoConf):
@@ -110,7 +98,7 @@ class Packager:
             return (requires_global_setup, requires_global_setup_v2, parser.get_dashboard_ids())
 
         dashboard_ids = []
-        with ThreadPoolExecutor(max_workers=3) as executor:
+        with ThreadPoolExecutor(max_workers=1) as executor:
             requires_global_setup = False
             requires_global_setup_v2 = False
             for rv1, rv2, ids in executor.map(download_notebook_html, demo_conf.notebooks):

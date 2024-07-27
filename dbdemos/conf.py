@@ -56,7 +56,7 @@ class Conf():
         return None
 
     def is_dev_env(self):
-        return "e2-demo-tools" in self.workspace_url
+        return "e2-demo-tools" in self.workspace_url or "local" in self.workspace_url
 
     def is_demo_env(self):
         return "e2-demo-field-eng" in self.workspace_url or "eastus2" or self.org_id in ["1444828305810485"]
@@ -78,10 +78,19 @@ class DBClient():
             path = path[len("api/"):]
         return path
 
-    def post(self, path: str, json: dict = {}):
+    def post(self, path: str, json: dict = {}, retry = 0):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
         with requests.post(url, headers = self.conf.headers, json=json, timeout=60) as r:
-            return self.get_json_result(url, r)
+            #TODO: should add that in the requests lib adapter for all requests.
+            if r.status_code == 429 and retry < 2:
+                import time
+                wait_time = 30 * (retry+1)
+                print(f'WARN: hitting api request limit 429 error: {path}. Sleeping {wait_time}sec and retrying...')
+                time.sleep(wait_time)
+                print('Retrying call.')
+                return self.post(path, json, retry+1)
+            else:
+                return self.get_json_result(url, r)
 
     def put(self, path: str, json: dict = {}):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
@@ -198,6 +207,7 @@ class DemoConf():
         self.default_catalog = json_conf.get('default_catalog', "")
         self.custom_message = json_conf.get('custom_message', "")
         self.create_cluster = json_conf.get('create_cluster', True)
+        self.dashboards = json_conf.get('dashboards', [])
         assert "bundle" in json_conf and json_conf["bundle"], "This demo isn't flaged for bundle. Please set bunde = True in the config file"
 
         for n in json_conf['notebooks']:

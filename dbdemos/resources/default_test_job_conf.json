@@ -11,7 +11,7 @@
     {
       "job_cluster_key": "field_demo_test",
       "new_cluster": {
-        "spark_version": "12.2.x-cpu-ml-scala2.12",
+        "spark_version": "14.3.x-cpu-ml-scala2.12",
         "custom_tags": {
           "project": "dbdemos",
           "demo_bundle_job": "autoloader",
@@ -23,7 +23,7 @@
         "instance_pool_id": "1025-140806-yup112-pool-yz565bma",
         "data_security_mode": "NONE",
         "runtime_engine": "STANDARD",
-        "num_workers": 1
+        "num_workers": 3
       }
     }
   ],

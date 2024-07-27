@@ -244,25 +244,31 @@ class NotebookParser:
         self.content = json.dumps(content)
 
     def replace_dashboard_links(self, dashboards):
-        def replace_link_with_error(pattern, c):
-            for p in pattern.findall(c["command"]):
-                c["command"] = c["command"].replace(p[0], f"{p[1]}: ERROR - could not load the dashboard {d['name']}. {d['error']}")
-        if "sql/dashboards" in self.content:
-            content = json.loads(self.content)
-            for d in dashboards:
-                pattern1 = re.compile(rf'\[(.*?)\]\(\/sql\/dashboards\/{d["id"]}.*?\)', re.IGNORECASE)
-                pattern2 = re.compile(rf'(<a.*?\/sql\/dashboards\/{d["id"]}.*?>(.*?)</a>)', re.IGNORECASE)
-                for c in content["commands"]:
-                    if "sql/dashboards" in c["command"]:
-                        if d["installed_id"] is None:
-                            replace_link_with_error(pattern1, c)
-                            replace_link_with_error(pattern2, c)
-                        else:
-                            c["command"] = c["command"].replace(d['id'], d["installed_id"])
-            self.content = json.dumps(content)
+        if len(dashboards) == 0:
+            return
+        if "is_lakeview" in dashboards[0]:
+            self.replace_dynamic_links_lakeview_dashboards(dashboards)
+        else:
+            #DEPRECATED - remove once moved to lakeview.
+            def replace_link_with_error(pattern, c):
+                for p in pattern.findall(c["command"]):
+                    c["command"] = c["command"].replace(p[0], f"{p[1]}: ERROR - could not load the dashboard {d['name']}. {d['error']}")
+            if "sql/dashboards" in self.content:
+                content = json.loads(self.content)
+                for d in dashboards:
+                    pattern1 = re.compile(rf'\[(.*?)\]\(\/sql\/dashboards\/{d["id"]}.*?\)', re.IGNORECASE)
+                    pattern2 = re.compile(rf'(<a.*?\/sql\/dashboards\/{d["id"]}.*?>(.*?)</a>)', re.IGNORECASE)
+                    for c in content["commands"]:
+                        if "sql/dashboards" in c["command"]:
+                            if d["installed_id"] is None:
+                                replace_link_with_error(pattern1, c)
+                                replace_link_with_error(pattern2, c)
+                            else:
+                                c["command"] = c["command"].replace(d['id'], d["installed_id"])
+                self.content = json.dumps(content)
 
     def replace_dynamic_links(self, items, name, link_path):
-        matches = re.finditer(rf'<a\s*dbdemos-{name}-id=\\?"(?P<item_id>.*?)\\?"\s*href=\\?".*?\/?{link_path}\/(?P<item_uid>[a-zA-Z0-9_-]*).*?>', self.content)
+        matches = re.finditer(rf'<a\s*dbdemos-{name}-id=\\?[\'"](?P<item_id>.*?)\\?[\'"]\s*href=\\?[\'"].*?\/?{link_path}\/(?P<item_uid>[a-zA-Z0-9_-]*).*?>', self.content)
         for match in matches:
             item_id = match.groupdict()["item_id"]
             installed = False
@@ -294,3 +300,10 @@ class NotebookParser:
         Replace the links in the notebook with the DLT pipeline installed if any
         """
         self.replace_dynamic_links(pipelines_id, "pipeline", "#joblist/pipelines")
+
+
+    def replace_dynamic_links_lakeview_dashboards(self, dashboards_id):
+        """
+        Replace the links in the notebook with the DLT pipeline installed if any
+        """
+        self.replace_dynamic_links(dashboards_id, "dashboard", "/sql/dashboardsv3")
