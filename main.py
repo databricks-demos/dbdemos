@@ -18,7 +18,6 @@ conf = Conf(c['username'], c['url'], c['org_id'], c['pat_token'],
 
 
 def bundle():
-    #TO BE TESTED=
     bundler = JobBundler(conf)
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
     bundler.reset_staging_repo(skip_pull=False, )
@@ -44,10 +43,12 @@ def bundle():
     bundler.add_bundle("product_demos/streaming-sessionization")
     bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
 """
+    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    bundler.add_bundle("product_demos/DBSQL-Datawarehousing/lakehouse-monitor")
     #bundler.add_bundle("product_demos/Delta-Lake")
     #bundler.add_bundle("product_demos/Data-Science/computer-vision-dl")
     #bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
-    #bundler.add_bundle("product_demos/Unity-Catalog/04-system-tables")
+    #bundler.add_bundle("product_demos/Unity-Catalog/uc-04-system-tables")
     #bundler.add_bundle("product_demos/streaming-sessionization")
 
     """
@@ -79,14 +80,15 @@ def bundle():
 
     bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
 
-    #bundler.add_bundle("product_demos/Data-Science/llm-fine-tuning")
+    
     bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
     bundler.add_bundle("product_demos/Delta-Live-Table/dlt-unit-test")
 
 
     bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
     """
-    bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
+    #bundler.add_bundle("product_demos/Data-Science/llm-fine-tuning")
+    #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
     #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/lakehouse-monitor")
     #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/sql-ai-functions")
     """
@@ -118,7 +120,7 @@ from dbdemos.installer import Installer
 import dbdemos
 
 #dbdemos.install("lakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
-dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
+#dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
 #dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
 #dbdemos.install("lakehouse-fsi-smart-claims", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
 #dbdemos.install("lakehouse-fsi-credit", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
@@ -127,7 +129,6 @@ dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/tes
 #dbdemos.install("uc-01-acl", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], start_cluster = False,  schema='test_quentin_acl', catalog='dbdemos')
 #dbdemos.install("uc-02-external-location", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("uc-03-data-lineage", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
-#dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
 #dbdemos.install("uc-05-upgrade", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 
     
@@ -143,6 +144,8 @@ dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/tes
 """
 """
 
+#dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
+#dbdemos.install("llm-fine-tuning", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
 
 
 
@@ -150,7 +153,6 @@ dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/tes
 #dbdemos.check_status_all(c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = True, skip_dashboards=False)
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = True, skip_dashboards=False)
-#dbdemos.install("llm-fine-tuning", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
 #installer = Installer()
 #for d in installer.get_demos_available():
 #    dbdemos.install(d, "/Users/quentin.ambard@databricks.com/test_dbdemos", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
@@ -158,10 +160,10 @@ dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/tes
 
 #dbdemos.list_demos(None)
 
-dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True, use_current_cluster=True, catalog='main_test', schema='quentin_test', debug = True)
+#dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False,  skip_dashboards=True, use_current_cluster=True, catalog='main_test', schema='quentin_test', debug = True)
 
 
-#dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", schema='test_quentin', catalog='dbdemos')
+dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", schema='test_quentin', catalog='dbdemos')
 #dbdemos.install("lakehouse-fsi-credit", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, skip_dashboards=True)
 
 #dbdemos.install("feature-store", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
