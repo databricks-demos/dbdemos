@@ -105,7 +105,7 @@ def bundle():
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
-    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=True)
+    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False)
 
     packager = Packager(conf, bundler)
     packager.package_all()
