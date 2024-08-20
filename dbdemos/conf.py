@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-
+from typing import List
 import requests
 import urllib
 from datetime import date
@@ -145,6 +145,22 @@ class DBClient():
                 return self.find_job(name, offset+limit, limit)
         return None
 
+class GenieRoom():
+    def __init__(self, display_name: str, description: str, table_identifiers: List[str], curated_questions: List[str], instructions: str, sql_instructions: List[dict]):
+        self.display_name = display_name
+        self.description = description
+        self.instructions = instructions
+        self.table_identifiers = table_identifiers
+        self.sql_instructions = sql_instructions
+        self.curated_questions = curated_questions
+
+class DataFolder():
+    def __init__(self, source_folder: str, source_format: str, target_table_name: str, target_format: str = "delta"):
+        self.source_folder = source_folder
+        self.source_format = source_format
+        self.target_table_name = target_table_name
+        self.target_format = target_format
+
 class DemoNotebook():
     def __init__(self, path: str, title: str, description: str, pre_run: bool = False, publish_on_website: bool = False,
                  add_cluster_setup_cell: bool = False, parameters: dict = {}, depends_on_previous: bool = True, libraries: list = [], warehouse_id = None):
@@ -210,7 +226,18 @@ class DemoConf():
         self.dashboards = json_conf.get('dashboards', [])
         assert "bundle" in json_conf and json_conf["bundle"], "This demo isn't flaged for bundle. Please set bunde = True in the config file"
 
-        for n in json_conf['notebooks']:
+        self.data_folders = []
+        for data_folder in json_conf.get('data_folders', []):
+            self.data_folders.append(DataFolder(data_folder['source_folder'], data_folder['source_format'], data_folder['target_table_name'], data_folder['target_format']))
+
+        self.genie_rooms = []
+        for genie_room in json_conf.get('genie_rooms', []):
+            self.genie_rooms.append(GenieRoom(genie_room['display_name'], genie_room.get('description', None),
+                                              genie_room['table_identifiers'], genie_room.get('curated_questions', []),
+                                              genie_room.get('instructions', None), genie_room.get('sql_instructions', [])
+                                              ))
+
+        for n in json_conf.get('notebooks', []):
             add_cluster_setup_cell = n.get('add_cluster_setup_cell', False)
             params = n.get('parameters', {})
             depends_on_previous = n.get('depends_on_previous', True)

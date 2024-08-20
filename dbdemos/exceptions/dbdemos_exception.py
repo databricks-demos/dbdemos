@@ -21,6 +21,13 @@ class ClusterCreationException(ClusterException):
         super().__init__(message, cluster_conf, response)
 
 
+class GenieCreationException(Exception):
+    def __init__(self, message, genie_conf, response):
+        super().__init__(message)
+        self.response = response
+        self.genie_conf = genie_conf
+
+
 class ExistingResourceException(Exception):
     def __init__(self, install_path, response):
         super().__init__(f"Folder {install_path} isn't empty.")
