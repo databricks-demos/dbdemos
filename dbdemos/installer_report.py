@@ -268,10 +268,7 @@ class InstallerReport:
                     error_already_installed  = ""
                     html += f"""<div>ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}</div>"""
                 else:
-                    if "is_lakeview" in d:
-                        html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboardsv3/{d['uid']}">{d['name']}</a></div>"""
-                    else:
-                        html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboards/{d['installed_id']}">{d['name']}</a></div>"""
+                    html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboardsv3/{d['uid']}">{d['name']}</a></div>"""
             html +="</div>"
         if len(workflows) > 0:
             html += f"""<h2>Workflows</h2><ul>"""
@@ -329,11 +326,7 @@ class InstallerReport:
                 if "error" in d:
                     print(f"    - ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}")
                 else:
-                    if "is_lakeview" in d:
-                        print(f"    - {d['name']}: {self.workspace_url}/sql/dashboardsv3/{d['uid']}")
-                    else:
-                        #TODO: remove once on lakeview
-                        print(f"    - {d['name']}: {self.workspace_url}/sql/dashboards/{d['installed_id']}")
+                    print(f"    - {d['name']}: {self.workspace_url}/sql/dashboardsv3/{d['uid']}")
         if len(workflows) > 0:
             print("----------------------------------------------------")
             print("-------------------- Workflows: --------------------")
