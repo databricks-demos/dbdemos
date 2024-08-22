@@ -14,7 +14,7 @@ class InstallerDashboard:
                     print(f'installing {len(demo_conf.dashboards)} dashboards...')
                 installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d) for d in demo_conf.dashboards]
                 if debug:
-                    print(f'dashboard installed')
+                    print(f'dashboard installed: {installed_dash}')
                 return installed_dash
             except Exception as e:
                 self.report.display_dashboard_error(e, demo_conf)
