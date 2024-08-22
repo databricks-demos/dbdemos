@@ -1,7 +1,10 @@
+from databricks.sdk import WorkspaceClient
+from databricks.sdk.service.sql import StatementState
+
 from .conf import DemoConf, GenieRoom
 import pkg_resources
 
-from .exceptions.dbdemos_exception import GenieCreationException
+from .exceptions.dbdemos_exception import GenieCreationException, DataLoaderException
 from .installer import Installer
 
 
@@ -52,6 +55,74 @@ class InstallerGenie:
             if debug:
                 print(f"genie room SQL instructions: {instructions}")
 
+    def create_schema(self, demo_conf: DemoConf, warehouse_id, debug=True):
+        ws = WorkspaceClient(token=self.installer.db.conf.pat_token, host=self.installer.db.conf.workspace_url)
+        #Test if catalog exists
+        st = f"DESCRIBE CATALOG `{demo_conf.catalog}`"
+        e = ws.statement_execution.execute_statement(statement=st, warehouse_id=warehouse_id, wait_timeout="50s")
+        if e.status.state == StatementState.FAILED:
+            if debug:
+                print(f"Can't describe catalog {demo_conf.catalog}. {st} Try creating it {e.status.error.message}")
+            st = f"CREATE CATALOG IF NOT EXISTS `{demo_conf.catalog}`"
+            e = ws.statement_execution.execute_statement(statement=st, warehouse_id=warehouse_id, wait_timeout="50s")
+            if e.status.state == StatementState.FAILED:
+                raise DataLoaderException(f"Can't create catalog `{demo_conf.catalog}` and it doesn't seem to be existing. <br/>"
+                                          f"Please create the catalog or grant you USAGE/READ permission, or install the demo in another catalog= dbdemos.install(xxx, catalog=xxx, schema=xxx).<br/>"
+                                          f" {st} - {e.status.error.message}")
+
+        #Schema
+        st = f"DESCRIBE SCHEMA `{demo_conf.catalog}`.`{demo_conf.schema}`"
+        e = ws.statement_execution.execute_statement(statement=st, warehouse_id=warehouse_id, wait_timeout="50s")
+        if e.status.state == StatementState.FAILED:
+            if debug:
+                print(f"Can't describe schema {demo_conf.catalog}. {st} Try creating it {e.status.error.message}")
+            st = f"CREATE SCHEMA IF NOT EXISTS `{demo_conf.catalog}`.`{demo_conf.schema}`"
+            e = ws.statement_execution.execute_statement(statement=st, warehouse_id=warehouse_id, wait_timeout="50s")
+            if e.status.state == StatementState.FAILED:
+                raise DataLoaderException(f"Can't create schema `{demo_conf.catalog}`.`{demo_conf.schema}` and it doesn't seem to be existing. <br/>"
+                                          f"Please create the catalog or grant you USAGE/READ permission, or install the demo in another catalog: dbdemos.install(xxx, catalog=xxx, schema=xxx, warehouse_id=xx).<br/>"
+                                          f" {st} - {e.status.error.message}")
+
+
+    def download_file_from_git(self, path:str):
+        def download_file(url, destination):
+            local_filename = url.split('/')[-1]
+            # NOTE the stream=True parameter below
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                print('saving '+destination+'/'+local_filename)
+                with open(destination+'/'+local_filename, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        # If you have chunk encoded response uncomment if
+                        # and set chunk_size parameter to None.
+                        #if chunk:
+                        f.write(chunk)
+            return local_filename
+
+        from concurrent.futures import ThreadPoolExecutor
+        owner = "databricks-demos"
+        repo = "dbdemos-dataset"
+        if not path.startswith("/"):
+            path = "/"+path
+        import requests
+        files = requests.get(f'https://api.github.com/repos/{owner}/{repo}/contents{path}').json()
+        files = [f['download_url'] for f in files if 'NOTICE' not in f['name']]
+        def download_to_dest(url):
+            try:
+                #Temporary fix to avoid hitting github limits - Swap github to our S3 bucket to download files
+                s3url = url.replace("https://raw.githubusercontent.com/databricks-demos/dbdemos-dataset/main/", "https://notebooks.databricks.com/demos/dbdemos-dataset/")
+                download_file(s3url, dest)
+            except:
+                download_file(url, dest)
+        #with ThreadPoolExecutor(max_workers=10) as executor:
+        #    collections.deque(executor.map(download_to_dest, files))
+
+
     def load_genie_data(self, demo_conf: DemoConf, warehouse_id, debug=True):
-        for data_folder in demo_conf.data_folders:
-            print(f"Loading data {data_folder}")
+        if len(demo_conf.data_folders) > 0:
+            self.create_schema(demo_conf, warehouse_id, debug)
+            for data_folder in demo_conf.data_folders:
+                ws = WorkspaceClient(token=self.installer.db.conf.pat_token, host=self.installer.db.conf.workspace_url)
+                "https://notebooks.databricks.com/demos/dbdemos-dataset/"
+                print(f"Loading data {data_folder}")
+                self.download_file_from_git(data_folder.source_folder)

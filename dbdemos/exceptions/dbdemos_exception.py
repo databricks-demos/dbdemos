@@ -34,6 +34,10 @@ class ExistingResourceException(Exception):
         self.install_path = install_path
         self.response = response
 
+class DataLoaderException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
 class FolderDeletionException(Exception):
     def __init__(self, install_path, response):
         super().__init__(f"Can't delete folder {install_path}.")
