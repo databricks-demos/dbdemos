@@ -1,6 +1,5 @@
-from .conf import DemoConf, merge_dict, ConfTemplate
-import json
-import time
+from .conf import DemoConf
+
 
 class InstallerRepo:
     def __init__(self, installer):
