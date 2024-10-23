@@ -225,7 +225,8 @@ class Installer:
             print(f"Couldn't get cluster serverless status. Will consider it False. {e}")
             return False
 
-    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = None, use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False):
+    def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = None,
+                     use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False, warehouse_name = None):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -243,6 +244,8 @@ class Installer:
             self.report.display_custom_schema_not_supported_error(Exception('Custom schema not supported'), demo_conf)
         if (schema is not None and catalog is None) or (schema is None and catalog is not None):
             self.report.display_custom_schema_missing_error(Exception('Catalog and Schema must both be defined.'), demo_conf)
+        if "-" in schema or "-" in catalog:
+            self.report.display_incorrect_schema_error(Exception('Please use a valid schema/catalog name.'), demo_conf)
 
         if serverless:
             use_current_cluster = True
@@ -261,7 +264,7 @@ class Installer:
             cluster_name = "Current Cluster"
         self.check_if_install_folder_exists(demo_name, install_path, demo_conf, overwrite, debug)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless)
-        dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, debug)
+        dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, warehouse_name, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
         workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, debug)
         init_job = self.installer_workflow.create_demo_init_job(demo_conf, use_cluster_id, debug)
@@ -274,8 +277,13 @@ class Installer:
 
         self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, init_job['uid'], init_job['run_id'], cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
 
-    def get_demo_datasource(self):
+    def get_demo_datasource(self, warehouse_name = None):
         data_sources = self.db.get("2.0/preview/sql/data_sources")
+        if warehouse_name is not None:
+            for source in data_sources:
+                if source['name'] == warehouse_name:
+                    return source
+            raise Exception(f"""Error creating the dashboard: cannot find warehouse with warehouse_name='{warehouse_name}' to load your dashboards. Use a different name and make sure the endpoint exists.""")
         for source in data_sources:
             if source['name'] == "dbdemos-shared-endpoint":
                 return source
@@ -288,8 +296,8 @@ class Installer:
                 return source
         return None
 
-    def get_or_create_endpoint(self, username, endpoint_name = "dbdemos-shared-endpoint"):
-        ds = self.get_demo_datasource()
+    def get_or_create_endpoint(self, username, default_endpoint_name ="dbdemos-shared-endpoint", warehouse_name = None):
+        ds = self.get_demo_datasource(warehouse_name)
         if ds is not None:
             return ds
         def get_definition(serverless, name):
@@ -308,15 +316,15 @@ class Installer:
                 "channel": { "name": "CHANNEL_NAME_CURRENT" }
             }
         def try_create_endpoint(serverless):
-            w = self.db.post("2.0/sql/warehouses", json=get_definition(serverless, endpoint_name))
+            w = self.db.post("2.0/sql/warehouses", json=get_definition(serverless, default_endpoint_name))
             if "message" in w and "already exists" in w['message']:
-                w = self.db.post("2.0/sql/warehouses", json=get_definition(serverless, endpoint_name+"-"+username))
+                w = self.db.post("2.0/sql/warehouses", json=get_definition(serverless, default_endpoint_name + "-" + username))
             if "id" in w:
                 return w
             if serverless:
-                print(f"WARN: Couldn't create serverless warehouse ({endpoint_name}). Will fallback to standard SQL warehouse. Creation response: {w}")
+                print(f"WARN: Couldn't create serverless warehouse ({default_endpoint_name}). Will fallback to standard SQL warehouse. Creation response: {w}")
             else:
-                print(f"WARN: Couldn't create warehouse: {endpoint_name} and {endpoint_name}-{username}. Creation response: {w}. Use another warehouse to view your dashboard.")
+                print(f"WARN: Couldn't create warehouse: {default_endpoint_name} and {default_endpoint_name}-{username}. Creation response: {w}. Use another warehouse to view your dashboard.")
             return None
 
         if try_create_endpoint(True) is None:

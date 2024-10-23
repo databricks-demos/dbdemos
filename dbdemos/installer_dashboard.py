@@ -2,22 +2,23 @@ from .conf import DemoConf
 import pkg_resources
 
 
+
 class InstallerDashboard:
     def __init__(self, installer):
         self.installer = installer
         self.db = installer.db
 
-    def install_dashboards(self, demo_conf: DemoConf, install_path, debug=True):
+    def install_dashboards(self, demo_conf: DemoConf, install_path, warehouse_name = None, debug=True):
         if len(demo_conf.dashboards) > 0:
             try:
                 if debug:
                     print(f'installing {len(demo_conf.dashboards)} dashboards...')
-                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d) for d in demo_conf.dashboards]
+                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name) for d in demo_conf.dashboards]
                 if debug:
                     print(f'dashboard installed: {installed_dash}')
                 return installed_dash
             except Exception as e:
-                self.report.display_dashboard_error(e, demo_conf)
+                self.installer.report.display_dashboard_error(e, demo_conf)
         elif "dashboards" in pkg_resources.resource_listdir("dbdemos", "bundles/"+demo_conf.name):
             raise Exception("Old dashboard are not supported anymore. This shouldn't happen - please fill a bug")
         return []
@@ -32,8 +33,8 @@ class InstallerDashboard:
             return re.sub(r"`?" + re.escape(demo_conf.default_catalog) + r"`?\.`?" + re.escape(demo_conf.default_schema) + r"`?", f"`{demo_conf.catalog}`.`{demo_conf.schema}`", definition)
         return definition
 
-    def load_lakeview_dashboard(self, demo_conf: DemoConf, install_path, dashboard):
-        endpoint = self.installer.get_or_create_endpoint(self.db.conf.name)
+    def load_lakeview_dashboard(self, demo_conf: DemoConf, install_path, dashboard, warehouse_name = None):
+        endpoint = self.installer.get_or_create_endpoint(self.db.conf.name, warehouse_name = warehouse_name)
         try:
             definition = self.installer.get_resource(f"bundles/{demo_conf.name}/install_package/_resources/dashboards/{dashboard['id']}.lvdash.json")
             definition = self.replace_dashboard_schema(demo_conf, definition)

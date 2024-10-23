@@ -1,4 +1,4 @@
-from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
+from .conf import DemoConf
 from .exceptions.dbdemos_exception import ClusterCreationException, ExistingResourceException, FolderDeletionException, \
     DLTException, WorkflowException, FolderCreationException, TokenException
 from pathlib import Path
@@ -81,11 +81,16 @@ class InstallerReport:
         self.display_error(exception, f"Both schema and catalog option must be defined.<br/>"
                                       f"""<div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', catalog = 'xxx', schema = 'xxx')</div><br/>""")
 
+    def display_incorrect_schema_error(self, exception: Exception, demo_conf: DemoConf):
+        self.display_error(exception, f"Incorrect schema/catalog name.<br/>"
+                                      f"""Please use a correct catalog/schema name. Use '_' instead of '-'.""")
     def display_dashboard_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"""Couldn't create or update a dashboard. <br/>
                                           If this is a permission error, we recommend you to search the existing dashboard and delete it manually.<br/>
                                           You can skip the dashboard installation with skip_dashboards = True:
-                                          <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', skip_dashboards = True)</div><br/>""")
+                                          <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', skip_dashboards = True)</div><br/>
+                                          You can also specify the SQL warehouse you'd like to use to load the dashboard with warehouse_name = 'xxx':
+                                          <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', warehouse_name = 'xxx')</div><br/>""")
 
     def display_folder_already_existing(self, exception: ExistingResourceException, demo_conf: DemoConf):
         self.display_error(exception, f"""Please install demo with overwrite=True to replace the existing folder content under {exception.install_path}:
