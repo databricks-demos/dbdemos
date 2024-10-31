@@ -244,7 +244,7 @@ class Installer:
             self.report.display_custom_schema_not_supported_error(Exception('Custom schema not supported'), demo_conf)
         if (schema is not None and catalog is None) or (schema is None and catalog is not None):
             self.report.display_custom_schema_missing_error(Exception('Catalog and Schema must both be defined.'), demo_conf)
-        if "-" in schema or "-" in catalog:
+        if (schema is not None and catalog is not None) and ("-" in schema or "-" in catalog):
             self.report.display_incorrect_schema_error(Exception('Please use a valid schema/catalog name.'), demo_conf)
 
         if serverless:

@@ -144,10 +144,10 @@ def help():
         print("""dbdemos.create_cluster(demo_name: str): install update the interactive cluster for the demo (scoped to the user).""")
         print("""dbdemos.install_all(path: str = "./", overwrite: bool = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS")</div>: install all the demos to the given path.""")
 
-def list_demos(category = None, installer = None):
+def list_demos(category = None, installer = None, pat_token = None):
     deprecated_demos = ["uc-04-audit-log", "llm-dolly-chatbot"]
     if installer == None:
-        installer = Installer()
+        installer = Installer(pat_token=pat_token)
     installer.tracker.track_list()
     demos = defaultdict(lambda: [])
     #Define category order
