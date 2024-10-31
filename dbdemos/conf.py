@@ -293,8 +293,9 @@ class ConfTemplate:
 
     def replace_template_key(self, text: str):
         for key in set(re.findall(r'\{\{(.*?)\}\}', text)):
-            if not key.startswith("DYNAMIC") and not key.startswith("SHARED_WAREHOUSE"):
-                func = getattr(self, f"template_{key}")
-                replacement = func()
-                text = text.replace("{{"+key+"}}", replacement)
+            if "Drift_detection" not in key: #TODO need to improve that, mlops demo has {{}} in the product like tasks.Drift_detection.values.all_violations_count
+                if not key.startswith("DYNAMIC") and not key.startswith("SHARED_WAREHOUSE"):
+                    func = getattr(self, f"template_{key}")
+                    replacement = func()
+                    text = text.replace("{{"+key+"}}", replacement)
         return text
