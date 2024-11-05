@@ -83,7 +83,6 @@ class Packager:
             parser.remove_dbdemos_build()
             #parser.remove_static_settings()
             parser.hide_commands_and_results()
-            parser.add_ga_website_tracker()
             #Moving away from the initial 00-global-setup, remove it once migration is completed
             requires_global_setup = False
             requires_global_setup_v2 = False

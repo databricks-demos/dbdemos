@@ -229,7 +229,7 @@ class InstallerReport:
         html = f"""{InstallerReport.CSS_REPORT}
         <div class="dbdemos_install">
             <img style="float:right; width: 180px; padding: 10px" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/{demo_name}.jpg" />
-            <h1>Your demo {title} is ready!</h1>
+            <h1>Your demo: '{title}' is ready!</h1>
             <i>{description}</i><br/><br/>
             """
         
@@ -254,9 +254,9 @@ class InstallerReport:
             if len(pipelines_ids)>0 or len(dashboards)>0:
                 html += """<div style="float: right; width: 300px">"""
                 if len(pipelines_ids)>0:
-                    html += f"""<img src="https://www.dbdemos.ai/assets/img/dbdemos/{demo_name}-dlt-0.png" style="width: 300px; margin-bottom: 10px">"""
+                    html += f"""<img src="https://github.com/databricks-demos/dbdemos-resources/blob/main/icon/{demo_name}-dlt-0.png?raw=true" style="width: 300px; margin-bottom: 10px">"""
                 if len(dashboards)>0:
-                    html += f"""<img src="https://www.dbdemos.ai/assets/img/dbdemos/{demo_name}-dashboard-0.png" style="width: 300px">"""
+                    html += f"""<img src="https://github.com/databricks-demos/dbdemos-resources/blob/main/icon/{demo_name}-dashboard-0.png?raw=true" style="width: 300px">"""
                 html += """</div>"""
             previous_folder = ""
             for n in notebooks:
@@ -283,7 +283,7 @@ class InstallerReport:
                     html += f"""<li><a href="{self.workspace_url}/#joblist/pipelines/{p['uid']}">{p['name']}</a></li>"""
             html +="</ul>"
         if len(dashboards) > 0:
-            html += f"""<h2>DBSQL Dashboards</h2><div class="container_dbdemos">"""
+            html += f"""<h2>Databricks AI/BI Dashboards</h2><div class="container_dbdemos">"""
             for d in dashboards:
                 if "error" in d:
                     error_already_installed  = ""
@@ -292,7 +292,7 @@ class InstallerReport:
                     html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboardsv3/{d['uid']}">{d['name']}</a></div>"""
             html +="</div>"
         if len(genie_rooms) > 0:
-            html += f"""<h2>Genie Spaces: Talk to your data</h2><div class="container_dbdemos">"""
+            html += f"""<h2>Databricks AI/BI Genie Spaces: Talk to your data</h2><div class="container_dbdemos">"""
             for g in genie_rooms:
                 html += f"""<div>{InstallerReport.GENIE_SVG} <a href="{self.workspace_url}/genie/rooms/{g['uid']}">{g['name']}</a></div>"""
             html +="</div>"

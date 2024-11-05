@@ -128,7 +128,12 @@ Images are stored in the [dbdemos-resources repository](https://github.com/datab
 To add an image, fork the repo and send a PR.
 
 You need at least 2 images:
-- the miniature for the demo list: https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/<demo_name>.jpg
-- the screenshot of the dashboard: https://www.dbdemos.ai/assets/img/dbdemos/<demo_name>-dashboard-0.png (1 per dashboard you add)
+- the miniature for the demo list: `https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/<demo_name>.jpg`
+- the screenshot of the dashboard: `https://www.dbdemos.ai/assets/img/dbdemos/<demo_name>-dashboard-0.png` (1 per dashboard you add)
 
 Reach out the demo team for a demo miniature
+
+
+https://www.dbdemos.ai/assets/img/dbdemos/aibi-marketing-campaign-dashboard-0.png
+
+https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/aibi-marketing-campaign.jpg
