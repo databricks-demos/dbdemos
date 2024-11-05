@@ -50,9 +50,17 @@
 .menu_button.selected {
   background-color: rgb(158, 214, 196)
 }
+.new_tag {
+  background-color: red;
+  color: white;
+  font-size: 13px;
+  padding: 2px 4px 5px;
+  border-radius: 3px;
+  margin-right: 5px;
+}
 </style>
 <div class="dbdemo">
-     <div style="padding: 10px 0px 20px 20px"><button category="lakehouse" class="menu_button selected" type="button"><span>Lakehouse</span></button><button category="data-science" class="menu_button " type="button"><span>Data-science</span></button><button category="data-engineering" class="menu_button " type="button"><span>Data-engineering</span></button><button category="governance" class="menu_button " type="button"><span>Governance</span></button><button category="DBSQL" class="menu_button " type="button"><span>Dbsql</span></button></div><div class="dbdemo_category" style="min-height: 200px; display: block" id="category-lakehouse">
+     <div style="padding: 10px 0px 20px 20px"><button category="lakehouse" class="menu_button selected" type="button"><span>Lakehouse</span></button><button category="data-science" class="menu_button " type="button"><span>Data-science</span></button><button category="DBSQL" class="menu_button " type="button"><span>Dbsql</span></button><button category="governance" class="menu_button " type="button"><span>Governance</span></button><button category="data-engineering" class="menu_button " type="button"><span>Data-engineering</span></button><button category="AI-BI" class="menu_button " type="button"><span class="new_tag">NEW!</span><span>Ai-bi</span></button></div><div class="dbdemo_category" style="min-height: 200px; display: block" id="category-lakehouse">
             <div class="dbdemo_box">
               <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/lakehouse-retail-c360.jpg" />
               <div class="dbdemo_description">
@@ -64,43 +72,53 @@
               </div>
             </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-data-science">
             <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/llm-rag-chatbot.jpg" />
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/pandas-on-spark.jpg" />
               <div class="dbdemo_description">
-                <h2>LLM Chatbot With Retrieval Augmented Generation (RAG) and DBRX</h2>
-                Deploy your Chatbot on Databricks AI with RAG, DBRX, Vector Search & Mosaic AI Agent Evaluation
+                <h2>Pandas API with spark backend (Koalas)</h2>
+                Let you Data Science team scale to TB of data while working with Pandas API, without having to learn & move to another framework.
               </div>
               <div class="code"> 
-                dbdemos.install('llm-rag-chatbot')
-              </div>
-            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-data-engineering">
-            <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/delta-lake.jpg" />
-              <div class="dbdemo_description">
-                <h2>Delta Lake</h2>
-                Store your table with Delta Lake & discover how Delta Lake can simplify your Data Pipelines.
-              </div>
-              <div class="code"> 
-                dbdemos.install('delta-lake')
-              </div>
-            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-governance">
-            <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/uc-05-upgrade.jpg" />
-              <div class="dbdemo_description">
-                <h2>Upgrade table to Unity Catalog</h2>
-                Discover how to upgrade your hive_metastore tables to Unity Catalog to benefit from UC capabilities: Security/ACL/Row-level/Lineage/Audit...
-              </div>
-              <div class="code"> 
-                dbdemos.install('uc-05-upgrade')
+                dbdemos.install('pandas-on-spark')
               </div>
             </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-DBSQL">
             <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/lakehouse-monitoring.jpg" />
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/sql-ai-functions.jpg" />
               <div class="dbdemo_description">
-                <h2>Lakehouse Monitoring for Retail Transactions</h2>
-                Monitor your data quality with Lakehouse Monitoring
+                <h2>AI Functions: query LLM with DBSQL</h2>
+                Call Azure OpenAI's model from your Lakehouse data using AI_GENERATE_TEXT()
               </div>
               <div class="code"> 
-                dbdemos.install('lakehouse-monitoring')
+                dbdemos.install('sql-ai-functions')
+              </div>
+            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-governance">
+            <div class="dbdemo_box">
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/uc-01-acl.jpg" />
+              <div class="dbdemo_description">
+                <h2>Table ACL & Row + Column Level security with UC</h2>
+                Discover how to GRANT permission on your table with Unity Catalog and implement fined grained control such as data masking at column level or filter rows based on each user.
+              </div>
+              <div class="code"> 
+                dbdemos.install('uc-01-acl')
+              </div>
+            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-data-engineering">
+            <div class="dbdemo_box">
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/auto-loader.jpg" />
+              <div class="dbdemo_description">
+                <h2>Databricks Autoloader (cloudfile)</h2>
+                Incremental ingestion on your cloud storage folder.
+              </div>
+              <div class="code"> 
+                dbdemos.install('auto-loader')
+              </div>
+            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-AI-BI">
+            <div class="dbdemo_box">
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/aibi-marketing-campaign.jpg" />
+              <div class="dbdemo_description">
+                <h2>AI/BI: Marketing Campaign effectiveness</h2>
+                Analyze your Marketing Campaign effectiveness leveraging AI/BI Dashboard. Deep dive into your data and metrics, asking plain question through Genie Room.
+              </div>
+              <div class="code"> 
+                dbdemos.install('aibi-marketing-campaign')
               </div>
             </div></div></div><script>
     const buttons = document.querySelectorAll('.menu_button');

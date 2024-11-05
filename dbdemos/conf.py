@@ -146,7 +146,7 @@ class DBClient():
         return None
 
 class GenieRoom():
-    def __init__(self, display_name: str, id: str, description: str, table_identifiers: List[str], curated_questions: List[str], instructions: str, sql_instructions: List[dict]):
+    def __init__(self, id: str, display_name: str, description: str, table_identifiers: List[str], curated_questions: List[str], instructions: str, sql_instructions: List[dict]):
         self.display_name = display_name
         self.id = id
         self.description = description
@@ -233,7 +233,7 @@ class DemoConf():
 
         self.genie_rooms: List[GenieRoom] = []
         for genie_room in json_conf.get('genie_rooms', []):
-            self.genie_rooms.append(GenieRoom(genie_room['display_name'], genie_room.get('description', None), genie_room.get('id', None),
+            self.genie_rooms.append(GenieRoom(genie_room['id'], genie_room.get('display_name', None), genie_room.get('description', None),
                                               genie_room['table_identifiers'], genie_room.get('curated_questions', []),
                                               genie_room.get('instructions', None), genie_room.get('sql_instructions', [])
                                               ))

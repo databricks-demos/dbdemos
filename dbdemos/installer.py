@@ -280,7 +280,7 @@ class Installer:
             if "run_after_creation" in pipeline and pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
 
-        self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, init_job['uid'], init_job['run_id'], cluster_id, cluster_name, pipeline_ids, dashboards, workflows, genie_rooms)
+        self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, init_job['uid'], init_job['run_id'], serverless, cluster_id, cluster_name, pipeline_ids, dashboards, workflows, genie_rooms)
 
     def get_demo_datasource(self, warehouse_name = None):
         data_sources = self.db.get("2.0/preview/sql/data_sources")

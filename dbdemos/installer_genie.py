@@ -51,7 +51,6 @@ class InstallerGenie:
             "parent_folder": f'folders/{genie_path["object_id"]}',
             "run_as_type": "VIEWER"
         }
-        print(room_payload)
         created_room = self.db.post("2.0/data-rooms", json=room_payload)
         if 'id' not in created_room:
             raise GenieCreationException(f"Error creating room {room_payload} - {created_room}", room, created_room)
@@ -77,7 +76,6 @@ class InstallerGenie:
             instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/instructions", {"title": sql['title'], "content": sql['content'], "instruction_type": "SQL_INSTRUCTION"})
             if debug:
                 print(f"genie room SQL instructions: {instructions}")
-        self.load_genie_data(demo_conf, warehouse_id, debug)
         return {"id": room.id, "uid": created_room['id'], 'name': room.display_name}
 
 
@@ -110,6 +108,7 @@ class InstallerGenie:
 
     def load_genie_data(self, demo_conf: DemoConf, warehouse_id, debug=True):
         if demo_conf.data_folders:
+            print(f"Loading data in your schema {demo_conf.catalog}.{demo_conf.schema}, this might take a few seconds...")
             ws = WorkspaceClient(token=self.installer.db.conf.pat_token, host=self.installer.db.conf.workspace_url)
             self.create_schema(ws, demo_conf, debug)
             with ThreadPoolExecutor(max_workers=3) as executor:

@@ -56,6 +56,14 @@ CSS_LIST = """
 .menu_button.selected {
   background-color: rgb(158, 214, 196)
 }
+.new_tag {
+  background-color: red;
+  color: white;
+  font-size: 13px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-right: 5px;
+}
 </style>
 """
 
@@ -153,6 +161,11 @@ def list_demos(category = None, installer = None, pat_token = None):
     demos = defaultdict(lambda: [])
     #Define category order
     demos["lakehouse"] = []
+    demos["data-engineering"] = []
+    demos["governance"] = []
+    demos["DBSQL"] = []
+    demos["data-science"] = []
+    demos["AI-BI"] = []
     for demo in installer.get_demos_available():
         conf = installer.get_demo_conf(demo)
         if (category is None or conf.category == category.lower()) and conf.name not in deprecated_demos:
@@ -169,7 +182,7 @@ def get_html_list_demos(demos):
     content = f"""{CSS_LIST}<div class="dbdemo">
      <div style="padding: 10px 0px 20px 20px">"""
     for i, cat in enumerate(categories):
-        content += f"""<button category="{cat}" class="menu_button {"selected" if i == 0 else ""}" type="button">{f'<span class="new_tag">NEW!</span>' if cat == 'aibi' else ''}<span>{cat.capitalize()}</span></button>"""
+        content += f"""<button category="{cat}" class="menu_button {"selected" if i == 0 else ""}" type="button">{f'<span class="new_tag">NEW!</span>' if cat == 'AI-BI' else ''}<span>{cat.capitalize()}</span></button>"""
     content += """</div>"""
     for i, cat in enumerate(categories):
         content += f"""<div class="dbdemo_category" style="min-height: 200px; display: {"block" if i == 0 else "none"}" id="category-{cat}">"""

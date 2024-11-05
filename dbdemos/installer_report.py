@@ -217,14 +217,14 @@ class InstallerReport:
             else:
                 print(html)
 
-    def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, 
+    def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, serverless = False, cluster_id = None, cluster_name = None, 
                                pipelines_ids = [], dashboards = [], workflows = [], genie_rooms = []):
         if self.displayHTML_available():
-            self.display_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows, genie_rooms)
+            self.display_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, serverless, cluster_id, cluster_name, pipelines_ids, dashboards, workflows, genie_rooms)
         else:
-            self.display_install_result_console(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows, genie_rooms)
+            self.display_install_result_console(demo_name, description, title, install_path, notebooks, job_id, run_id, serverless, cluster_id, cluster_name, pipelines_ids, dashboards, workflows, genie_rooms)
 
-    def get_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, 
+    def get_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, serverless = False, cluster_id = None, cluster_name = None, 
                                 pipelines_ids = [], dashboards = [], workflows = [], genie_rooms = []):
         html = f"""{InstallerReport.CSS_REPORT}
         <div class="dbdemos_install">
@@ -232,7 +232,8 @@ class InstallerReport:
             <h1>Your demo {title} is ready!</h1>
             <i>{description}</i><br/><br/>
             """
-        if cluster_id is not None:
+        
+        if not serverless and cluster_id is not None:
             cluster_section = f"""
             <h2>Interactive cluster for the demo:</h2>
             <a href="{self.workspace_url}/#setting/clusters/{cluster_id}/configuration">{cluster_name}</a>. You can refresh your demo cluster with:
@@ -293,7 +294,6 @@ class InstallerReport:
         if len(genie_rooms) > 0:
             html += f"""<h2>Genie Spaces: Talk to your data</h2><div class="container_dbdemos">"""
             for g in genie_rooms:
-                print(g)
                 html += f"""<div>{InstallerReport.GENIE_SVG} <a href="{self.workspace_url}/genie/rooms/{g['uid']}">{g['name']}</a></div>"""
             html +="</div>"
         if len(workflows) > 0:
@@ -313,13 +313,13 @@ class InstallerReport:
         html += cluster_section+"</div>"
         return html
 
-    def display_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, 
+    def display_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, serverless = False, cluster_id = None, cluster_name = None, 
                                     pipelines_ids = [], dashboards = [], workflows = [], genie_rooms = []):
         from dbruntime.display import displayHTML
-        html = self.get_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows, genie_rooms)
+        html = self.get_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, serverless, cluster_id, cluster_name, pipelines_ids, dashboards, workflows, genie_rooms)
         displayHTML(html)
 
-    def display_install_result_console(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, 
+    def display_install_result_console(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, serverless = False, cluster_id = None, cluster_name = None, 
                                        pipelines_ids = [], dashboards = [], workflows = [], genie_rooms = []):
         if len(notebooks) > 0:
             print("----------------------------------------------------")
@@ -331,7 +331,7 @@ class InstallerReport:
             print("----------------------------------------------------")
             print("--- Job initialization started (load demo data): ---")
             print(f"    - Job run available under: {self.workspace_url}/#job/{job_id}/run/{run_id}")
-        if cluster_id is not None:
+        if not serverless and cluster_id is not None:
             print("----------------------------------------------------")
             print("------------ Demo interactive cluster: -------------")
             print(f"    - {cluster_name}: {self.workspace_url}/#setting/clusters/{cluster_id}/configuration")
