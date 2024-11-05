@@ -29,27 +29,32 @@ class InstallerGenie:
                 warehouse = self.installer.get_or_create_endpoint(self.db.conf.name, demo_conf, warehouse_name = warehouse_name, throw_error=True)
                 warehouse_id = warehouse['endpoint_id']
                 self.load_genie_data(demo_conf, warehouse_id, debug)
-                path = self.db.get("2.0/workspace/get-status", {"path": install_path})
-                if 'object_id' not in path:
-                    raise GenieCreationException(f"folder {install_path} doesn't exist", None, path)
-                for room in demo_conf.genie_rooms:
-                    rooms.append(self.install_genie(demo_conf, room, path, warehouse_id, debug))
+                if len(demo_conf.genie_rooms) > 0:
+                    genie_path = f"{install_path}/{demo_conf.name}/_genie_spaces"
+                    #Make sure the genie folder exists
+                    self.db.post("2.0/workspace/mkdirs", {"path": genie_path})
+                    path = self.db.get("2.0/workspace/get-status", {"path": genie_path})
+                    if "error_code" in path:
+                        raise Exception(f"ERROR - wrong install path, can't save genie spaces here: {path}")
+                    for room in demo_conf.genie_rooms:
+                        rooms.append(self.install_genie(demo_conf, room, path, warehouse_id, debug))
             except Exception as e:
                 self.installer.report.display_genie_room_creation_error(e, demo_conf)
         return rooms
 
-    def install_genie(self, demo_conf: DemoConf, room: GenieRoom, path, warehouse_id, debug=True):
+    def install_genie(self, demo_conf: DemoConf, room: GenieRoom, genie_path, warehouse_id, debug=True):
         room_payload = {
             "display_name": room.display_name,
             "description": room.description,
             "warehouse_id": warehouse_id,
             "table_identifiers": room.table_identifiers,
-            "parent_folder": f"folders/{path['object_id']}",
+            "parent_folder": f'folders/{genie_path["object_id"]}',
             "run_as_type": "VIEWER"
         }
+        print(room_payload)
         created_room = self.db.post("2.0/data-rooms", json=room_payload)
         if 'id' not in created_room:
-            raise GenieCreationException(f"Error creating room {room_payload}", room, created_room)
+            raise GenieCreationException(f"Error creating room {room_payload} - {created_room}", room, created_room)
 
         if debug:
             print(f"Genie room created created_room: {created_room} - {room_payload}")
