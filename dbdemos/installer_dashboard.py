@@ -1,10 +1,13 @@
 from .conf import DemoConf
 import pkg_resources
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .installer import Installer
 
 
 class InstallerDashboard:
-    def __init__(self, installer):
+    def __init__(self, installer: 'Installer'):
         self.installer = installer
         self.db = installer.db
 
@@ -34,7 +37,7 @@ class InstallerDashboard:
         return definition
 
     def load_lakeview_dashboard(self, demo_conf: DemoConf, install_path, dashboard, warehouse_name = None):
-        endpoint = self.installer.get_or_create_endpoint(self.db.conf.name, warehouse_name = warehouse_name)
+        endpoint = self.installer.get_or_create_endpoint(self.db.conf.name, demo_conf, warehouse_name = warehouse_name)
         try:
             definition = self.installer.get_resource(f"bundles/{demo_conf.name}/install_package/_resources/dashboards/{dashboard['id']}.lvdash.json")
             definition = self.replace_dashboard_schema(demo_conf, definition)

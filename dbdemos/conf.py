@@ -146,8 +146,9 @@ class DBClient():
         return None
 
 class GenieRoom():
-    def __init__(self, display_name: str, description: str, table_identifiers: List[str], curated_questions: List[str], instructions: str, sql_instructions: List[dict]):
+    def __init__(self, display_name: str, id: str, description: str, table_identifiers: List[str], curated_questions: List[str], instructions: str, sql_instructions: List[dict]):
         self.display_name = display_name
+        self.id = id
         self.description = description
         self.instructions = instructions
         self.table_identifiers = table_identifiers
@@ -226,13 +227,13 @@ class DemoConf():
         self.dashboards = json_conf.get('dashboards', [])
         assert "bundle" in json_conf and json_conf["bundle"], "This demo isn't flaged for bundle. Please set bunde = True in the config file"
 
-        self.data_folders = []
+        self.data_folders: List[DataFolder] = []
         for data_folder in json_conf.get('data_folders', []):
             self.data_folders.append(DataFolder(data_folder['source_folder'], data_folder['source_format'], data_folder['target_table_name'], data_folder['target_format']))
 
-        self.genie_rooms = []
+        self.genie_rooms: List[GenieRoom] = []
         for genie_room in json_conf.get('genie_rooms', []):
-            self.genie_rooms.append(GenieRoom(genie_room['display_name'], genie_room.get('description', None),
+            self.genie_rooms.append(GenieRoom(genie_room['display_name'], genie_room.get('description', None), genie_room.get('id', None),
                                               genie_room['table_identifiers'], genie_room.get('curated_questions', []),
                                               genie_room.get('instructions', None), genie_room.get('sql_instructions', [])
                                               ))

@@ -3,15 +3,18 @@ import json
 import time
 
 from .exceptions.dbdemos_exception import WorkflowException
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .installer import Installer
 
 
 class InstallerWorkflow:
-    def __init__(self, installer):
+    def __init__(self, installer: 'Installer'):
         self.installer = installer
         self.db = installer.db
 
     #Start the init job if it exists
-    def install_workflows(self, demo_conf: DemoConf, use_cluster_id = None, debug = False):
+    def install_workflows(self, demo_conf: DemoConf, use_cluster_id = None, warehouse_name: str = None, debug = False):
         workflows = []
         if len(demo_conf.workflows) > 0:
             if debug:
@@ -21,19 +24,19 @@ class InstallerWorkflow:
                 definition = workflow['definition']
                 job_name = definition["settings"]["name"]
                 # add cloud specific setup
-                job_id, run_id = self.create_or_replace_job(demo_conf.name, definition, job_name, workflow['start_on_install'], use_cluster_id, debug)
+                job_id, run_id = self.create_or_replace_job(demo_conf, definition, job_name, workflow['start_on_install'], use_cluster_id, warehouse_name, debug)
                 # print(f"    Demo workflow available: {self.installer.db.conf.workspace_url}/#job/{job_id}/tasks")
                 workflows.append({"uid": job_id, "run_id": run_id, "id": workflow['id']})
         return workflows
 
     #create or update the init job if it exists
-    def create_demo_init_job(self, demo_conf: DemoConf, use_cluster_id = None, debug = False):
+    def create_demo_init_job(self, demo_conf: DemoConf, use_cluster_id = None, warehouse_name: str = None, debug = False):
         if "settings" in demo_conf.init_job:
             job_name = demo_conf.init_job["settings"]["name"]
             if debug:
                 print(f"    Searching for existing demo initialisation job {job_name}")
             #We have an init json
-            job_id, run_id = self.create_or_replace_job(demo_conf.name, demo_conf.init_job, job_name, False, use_cluster_id)
+            job_id, run_id = self.create_or_replace_job(demo_conf, demo_conf.init_job, job_name, False, use_cluster_id, warehouse_name, debug)
             return {"uid": job_id, "run_id": run_id, "id": "init-job"}
         return {"uid": None, "run_id": None, "id": None}
 
@@ -48,14 +51,14 @@ class InstallerWorkflow:
             init_job['run_id'] = j['run_id']
             return j['run_id']
 
-    def create_or_replace_job(self, demo_name: str, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None, debug = False):
+    def create_or_replace_job(self, demo_conf: DemoConf, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None, debug = False, warehouse_name: str = None):
         cloud = self.installer.get_current_cloud()
-        conf_template = ConfTemplate(self.db.conf.username, demo_name)
+        conf_template = ConfTemplate(self.db.conf.username, demo_conf.name)
         cluster_conf = self.installer.get_resource("resources/default_cluster_job_config.json")
         cluster_conf = json.loads(conf_template.replace_template_key(cluster_conf))
         cluster_conf_cloud = json.loads(self.installer.get_resource(f"resources/default_cluster_config-{cloud}.json"))
         merge_dict(cluster_conf, cluster_conf_cloud)
-        definition = self.replace_warehouse_id(definition)
+        definition = self.replace_warehouse_id(demo_conf, definition, warehouse_name)
         #Use a given interactive cluster, change the job setting accordingly.
         if use_cluster_id is not None:
             del definition["settings"]["job_clusters"]
@@ -106,10 +109,10 @@ class InstallerWorkflow:
             return job_id, j['run_id']
         return job_id, None
 
-    def replace_warehouse_id(self, definition):
+    def replace_warehouse_id(self, demo_conf: DemoConf, definition, warehouse_name: str = None):
         # Jobs need a warehouse ID. Let's replace it with the one created. TODO: should be in the template?
         if "{{SHARED_WAREHOUSE_ID}}" in json.dumps(definition):
-            endpoint = self.installer.get_or_create_endpoint(self.db.conf.name)
+            endpoint = self.installer.get_or_create_endpoint(self.db.conf.name, demo_conf, warehouse_name = warehouse_name)
             if endpoint is None:
                 print(
                     "ERROR: couldn't create or get a SQL endpoint for dbdemos. Do you have permission? Your workflow won't be able to execute the task.")

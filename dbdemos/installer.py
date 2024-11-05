@@ -2,13 +2,13 @@ import collections
 
 import pkg_resources
 
-from dbdemos.packager import Packager
 
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .exceptions.dbdemos_exception import ClusterPermissionException, ClusterCreationException, ClusterException, \
     ExistingResourceException, FolderDeletionException, DLTNotAvailableException, DLTCreationException, DLTException, \
     FolderCreationException, TokenException
 from .installer_report import InstallerReport
+from .installer_genie import InstallerGenie
 from .installer_dashboard import InstallerDashboard
 from .tracker import Tracker
 from .notebook_parser import NotebookParser
@@ -47,6 +47,7 @@ class Installer:
         self.installer_workflow = InstallerWorkflow(self)
         self.installer_repo = InstallerRepo(self)
         self.installer_dashboard = InstallerDashboard(self)
+        self.installer_genie = InstallerGenie(self)
         #Slows down on GCP as the dashboard API is very sensitive to back-pressure
         # 1 dashboard at a time to reduce import pression as it seems to be creating new errors.
         self.max_workers = 1 if self.get_current_cloud() == "GCP" else 1
@@ -77,6 +78,7 @@ class Installer:
                 return "https://"+self.get_dbutils_tags_safe()['browserHostName']
             except:
                 return "local"
+
     def get_dbutils_tags_safe(self):
         import json
         return json.loads(self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().safeToJson())['attributes']
@@ -226,7 +228,7 @@ class Installer:
             return False
 
     def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = None,
-                     use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False, warehouse_name = None):
+                     use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False, warehouse_name = None, skip_genie_rooms=False):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -247,10 +249,12 @@ class Installer:
         if (schema is not None and catalog is not None) and ("-" in schema or "-" in catalog):
             self.report.display_incorrect_schema_error(Exception('Please use a valid schema/catalog name.'), demo_conf)
 
+        if demo_name.startswith("aibi"):
+            use_current_cluster = True
         if serverless:
             use_current_cluster = True
             if not demo_conf.serverless_supported:
-                self.report.display_serverless_warn(Exception('This DBDemo content is not yet updated to Serverless/Test Drive!'), demo_conf)
+                self.report.display_serverless_warn(Exception('This DBDemo content is not yet updated to Serverless/Express!'), demo_conf)
 
         self.report.display_install_info(demo_conf, install_path, catalog, schema)
         self.tracker.track_install(demo_conf.category, demo_name)
@@ -266,16 +270,17 @@ class Installer:
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless)
         dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, warehouse_name, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
-        workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, debug)
-        init_job = self.installer_workflow.create_demo_init_job(demo_conf, use_cluster_id, debug)
+        workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, warehouse_name, debug)
+        init_job = self.installer_workflow.create_demo_init_job(demo_conf, use_cluster_id, warehouse_name, debug)
         all_workflows = workflows if init_job["id"] is None else workflows + [init_job]
-        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, all_workflows, repos, overwrite, use_current_cluster, debug)
+        genie_rooms = [] if skip_genie_rooms else self.installer_genie.install_genies(demo_conf, install_path, warehouse_name, debug)
+        notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, all_workflows, repos, overwrite, use_current_cluster, genie_rooms, debug)
         self.installer_workflow.start_demo_init_job(init_job, debug)
         for pipeline in pipeline_ids:
             if "run_after_creation" in pipeline and pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
 
-        self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, init_job['uid'], init_job['run_id'], cluster_id, cluster_name, pipeline_ids, dashboards, workflows)
+        self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, init_job['uid'], init_job['run_id'], cluster_id, cluster_name, pipeline_ids, dashboards, workflows, genie_rooms)
 
     def get_demo_datasource(self, warehouse_name = None):
         data_sources = self.db.get("2.0/preview/sql/data_sources")
@@ -284,6 +289,7 @@ class Installer:
                 if source['name'] == warehouse_name:
                     return source
             raise Exception(f"""Error creating the dashboard: cannot find warehouse with warehouse_name='{warehouse_name}' to load your dashboards. Use a different name and make sure the endpoint exists.""")
+        
         for source in data_sources:
             if source['name'] == "dbdemos-shared-endpoint":
                 return source
@@ -296,7 +302,7 @@ class Installer:
                 return source
         return None
 
-    def get_or_create_endpoint(self, username, default_endpoint_name ="dbdemos-shared-endpoint", warehouse_name = None):
+    def get_or_create_endpoint(self, username: str, demo_conf: DemoConf, default_endpoint_name: str ="dbdemos-shared-endpoint", warehouse_name: str = None, throw_error: bool = False):
         ds = self.get_demo_datasource(warehouse_name)
         if ds is not None:
             return ds
@@ -334,6 +340,9 @@ class Installer:
         if ds is not None:
             return ds
         print(f"ERROR: Couldn't create endpoint.")
+        if throw_error:
+            self.report.display_warehouse_creation_error(Exception("Couldn't create endpoint - see WARNINGS for more details."), demo_conf)
+            raise Exception("Couldn't create endpoint.")
         return None
 
     #Check if the folder already exists, and delete it if needed.
@@ -352,7 +361,7 @@ class Installer:
                 self.report.display_folder_permission(FolderDeletionException(install_path, d), demo_conf)
 
     def install_notebooks(self, demo_name: str, install_path: str, demo_conf: DemoConf, cluster_name: str, cluster_id: str,
-                          pipeline_ids, dashboards, workflows, repos, overwrite=False, use_current_cluster=False, debug=False):
+                          pipeline_ids, dashboards, workflows, repos, overwrite=False, use_current_cluster=False, genie_rooms = [], debug=False):
         assert len(demo_name) > 4, "wrong demo name. Fail to prevent potential delete errors."
         if debug:
             print(f'    Installing notebooks')
@@ -367,7 +376,8 @@ class Installer:
             parser = NotebookParser(self.get_resource(template_path))
             if notebook.add_cluster_setup_cell and not use_current_cluster:
                 self.add_cluster_setup_cell(parser, demo_name, cluster_name, cluster_id, self.db.conf.workspace_url)
-            parser.replace_dashboard_links(dashboards)
+            parser.replace_dynamic_links_lakeview_dashboards(dashboards)
+            parser.replace_dynamic_links_genie(genie_rooms)
             parser.remove_automl_result_links()
             parser.replace_schema(demo_conf)
             parser.replace_dynamic_links_pipeline(pipeline_ids)
@@ -460,11 +470,13 @@ class Installer:
             demo_conf.set_pipeline_id(pipeline["id"], id)
         return pipeline_ids
 
-    def load_demo_cluster(self, demo_name, demo_conf: DemoConf, update_cluster_if_exists, start_cluster = None, use_cluster_id: str = None):
+    def load_demo_cluster(self, demo_name, demo_conf: DemoConf, update_cluster_if_exists, start_cluster = None, use_cluster_id = None):
         if use_cluster_id is not None:
             return (use_cluster_id, "Interactive cluster you used for installation - make sure the cluster configuration matches.")
+        
         if demo_conf.create_cluster == False:
             return (None, "This demo doesn't require cluster")
+        
         #Do not start clusters by default in Databricks FE clusters to avoid costs as we have shared clusters for demos
         if start_cluster is None:
             start_cluster = not (self.db.conf.is_dev_env() or self.db.conf.is_fe_env())

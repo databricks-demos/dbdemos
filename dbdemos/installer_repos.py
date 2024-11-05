@@ -1,8 +1,12 @@
 from .conf import DemoConf
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .installer import Installer
+
 
 class InstallerRepo:
-    def __init__(self, installer):
+    def __init__(self, installer: 'Installer'):
         self.installer = installer
         self.db = installer.db
 

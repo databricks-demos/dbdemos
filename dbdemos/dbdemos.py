@@ -117,7 +117,7 @@ def help():
                   <div class="code">dbdemos.list_demos(category: str = None)</div>: list all demos available, can filter per category (ex: 'governance').<br/><br/>
                 </li>
                 <li>
-                  <div class="code">dbdemos.install(demo_name: str, path: str = "./", overwrite: bool = False, use_current_cluster = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS", catalog: str = None, schema: str = None, serverless: bool = None, warehouse_name: str = None)</div>: install the given demo to the given path.<br/><br/>
+                  <div class="code">dbdemos.install(demo_name: str, path: str = "./", overwrite: bool = False, use_current_cluster = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS", catalog: str = None, schema: str = None, serverless: bool = None, warehouse_name: str = None, skip_genie_rooms: bool = False)</div>: install the given demo to the given path.<br/><br/>
                   <ul>
                   <li>If overwrite is True, dbdemos will delete the given path folder and re-install the notebooks.</li>
                   <li>use_current_cluster = True will not start a new cluster to init the demo but use the current cluster instead. <strong>Set it to True it if you don't have cluster creation permission</strong>.</li>
@@ -126,6 +126,7 @@ def help():
                   <li>catalog and schema options let you chose where to load the data and other assets.</li>
                   <li>Dashboards require a warehouse, you can specify it with the warehouse_name='xx' option.</li>
                   <li>Dbdemos will detect serverless compute and use the current cluster when you're running serverless. You can force it with the serverless=True option.</li>
+                  <li>Genie rooms are in beta. You can skip the genie room installation with skip_genie_rooms = True.</li>
                   </ul><br/>
                 </li>
                 <li>
@@ -157,16 +158,18 @@ def list_demos(category = None, installer = None, pat_token = None):
         if (category is None or conf.category == category.lower()) and conf.name not in deprecated_demos:
             demos[conf.category].append(conf)
     if installer.report.displayHTML_available():
-        list_html(demos)
+        content = get_html_list_demos(demos)
+        from dbruntime.display import displayHTML
+        displayHTML(content)
     else:
         list_console(demos)
 
-def list_html(demos):
+def get_html_list_demos(demos):
     categories = list(demos.keys())
     content = f"""{CSS_LIST}<div class="dbdemo">
      <div style="padding: 10px 0px 20px 20px">"""
     for i, cat in enumerate(categories):
-        content += f"""<button category="{cat}" class="menu_button {"selected" if i == 0 else ""}" type="button"><span>{cat.capitalize()}</span></button>"""
+        content += f"""<button category="{cat}" class="menu_button {"selected" if i == 0 else ""}" type="button">{f'<span class="new_tag">NEW!</span>' if cat == 'aibi' else ''}<span>{cat.capitalize()}</span></button>"""
     content += """</div>"""
     for i, cat in enumerate(categories):
         content += f"""<div class="dbdemo_category" style="min-height: 200px; display: {"block" if i == 0 else "none"}" id="category-{cat}">"""
@@ -186,8 +189,7 @@ def list_html(demos):
             </div>"""
         content += """</div>"""
     content += f"""</div>{JS_LIST}"""
-    from dbruntime.display import displayHTML
-    displayHTML(content)
+    return content
 
 
 def list_console(demos):
@@ -211,7 +213,7 @@ def list_dashboards(category = None):
     pass
 
 def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None,
-            use_current_cluster: bool = False, current_cluster_id = None, warehouse_name = None, debug = False, catalog = None, schema = None, serverless=None):
+            use_current_cluster: bool = False, current_cluster_id = None, warehouse_name = None, debug = False, catalog = None, schema = None, serverless=None, skip_genie_rooms=False):
     if demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
         demo_name = "lakehouse-retail-c360"
@@ -225,7 +227,7 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
         #Force dashboard skip as dbsql isn't available to avoid any error.
         skip_dashboards = True
     installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster,
-                           debug = debug, catalog = catalog, schema = schema, serverless = serverless, warehouse_name=warehouse_name)
+                           debug = debug, catalog = catalog, schema = schema, serverless = serverless, warehouse_name=warehouse_name, skip_genie_rooms=skip_genie_rooms)
 
 
 def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None, use_current_cluster = False):

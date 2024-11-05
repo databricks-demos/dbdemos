@@ -35,7 +35,7 @@ def test_html():
     cluster_id="0320-175126-exzit1ks"
     cluster_name="dbdemos-lakehouse-fsi-fraud-quentin_ambard"
     pipelines_ids= [{"name": "dbdemos-fsi-fraud-detection", "uid": "30177e65-8729-4363-9e9c-7bff51caddc3", "id": "dlt-fsi-fraud", "run_after_creation": True}]
-    dashboards=[{"id": "9fc6a3bb-ff36-4e06-b5f9-912d7e77dc05", "name": "FSI Fraud Detection - dbdemos", "installed_id": "e1fa43f0-865d-4f5b-b884-64806fe2526a"}]
+    dashboards=[{"id": "9fc6a3bb-ff36-4e06-b5f9-912d7e77dc05", "name": "FSI Fraud Detection - dbdemos", "uid": "e1fa43f0-865d-4f5b-b884-64806fe2526a"}]
     workflows= []
 
     from pathlib import Path
@@ -48,5 +48,24 @@ def test_list():
     i = Installer("test","test","test","test","test","test")
     dbdemos.list_demos(None, i)
 
-test_list()
+def test_list_html():
+    deprecated_demos = ["uc-04-audit-log", "llm-dolly-chatbot"]
+    installer = Installer("http://localhost", pat_token="test")
+    from collections import defaultdict
+    demos = defaultdict(lambda: [])
+    
+    #Define category order
+    demos["lakehouse"] = []
+    for demo in installer.get_demos_available():
+        conf = installer.get_demo_conf(demo)
+        if len(demos[conf.category]) == 0:
+            demos[conf.category].append(conf)
+    content = dbdemos.get_html_list_demos(demos)
+    with open("./test_list_html.html", "w") as text_file:
+        text_file.write(content)
+    print(content)
+
+
+test_list_html()
+#test_list()
 #test_html()

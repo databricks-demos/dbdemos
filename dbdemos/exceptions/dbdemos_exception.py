@@ -34,6 +34,10 @@ class ExistingResourceException(Exception):
         self.install_path = install_path
         self.response = response
 
+class SQLQueryException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
 class DataLoaderException(Exception):
     def __init__(self, message):
         super().__init__(message)

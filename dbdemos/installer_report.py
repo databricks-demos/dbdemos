@@ -9,6 +9,7 @@ class InstallerReport:
     NOTEBOOK_SVG = """<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class=""><path fill-rule="evenodd" clip-rule="evenodd" d="M3 1.75A.75.75 0 013.75 1h10.5a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75H3.75a.75.75 0 01-.75-.75V12.5H1V11h2V8.75H1v-1.5h2V5H1V3.5h2V1.75zm1.5.75v11H6v-11H4.5zm3 0v11h6v-11h-6z" fill="currentColor"></path></svg>"""
     FOLDER_SVG = """<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class=""><path d="M.75 2a.75.75 0 00-.75.75v10.5c0 .414.336.75.75.75h14.5a.75.75 0 00.75-.75v-8.5a.75.75 0 00-.75-.75H7.81L6.617 2.805A2.75 2.75 0 004.672 2H.75z" fill="currentColor"></path></svg>"""
     DASHBOARD_SVG = """<svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class=""><path fill-rule="evenodd" clip-rule="evenodd" d="M1 1.75A.75.75 0 011.75 1h12.5a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75H1.75a.75.75 0 01-.75-.75V1.75zm1.5 8.75v3h4.75v-3H2.5zm0-1.5h4.75V2.5H2.5V9zm6.25-6.5v3h4.75v-3H8.75zm0 11V7h4.75v6.5H8.75z" fill="currentColor"></path></svg>"""
+    GENIE_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class=""><path fill="currentColor" fill-rule="evenodd" d="M0 2.75A.75.75 0 0 1 .75 2H8v1.5H1.5v9h13V10H16v3.25a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1-.75-.75zm12.987-.14a.75.75 0 0 0-1.474 0l-.137.728a1.93 1.93 0 0 1-1.538 1.538l-.727.137a.75.75 0 0 0 0 1.474l.727.137c.78.147 1.39.758 1.538 1.538l.137.727a.75.75 0 0 0 1.474 0l.137-.727c.147-.78.758-1.39 1.538-1.538l.727-.137a.75.75 0 0 0 0-1.474l-.727-.137a1.93 1.93 0 0 1-1.538-1.538z" clip-rule="evenodd"></path></svg>"""
 
     CSS_REPORT = """
     <style>
@@ -72,6 +73,7 @@ class InstallerReport:
         self.display_error(exception, f"This demo might not fully work on Serverless and Databricks Test Drive!<br/>"
                                       f"We're actively working to update this content to fully work on serverless.<br/>"
                                       f"Some of the notebooks might not work as expected as they are tested with DBRML, we'll be releasing an new version very shortly, stay tuned!<br/>", raise_error=False, warning=True)
+        
     def display_custom_schema_not_supported_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"This demo doesn't support custom catalog/schema yet.<br/>"
                                       f"Please open a Github issue to accelerate the support for this demo.<br/>"
@@ -84,6 +86,17 @@ class InstallerReport:
     def display_incorrect_schema_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"Incorrect schema/catalog name.<br/>"
                                       f"""Please use a correct catalog/schema name. Use '_' instead of '-'.""")
+
+    def display_warehouse_creation_error(self, exception: Exception, demo_conf: DemoConf):
+        self.display_error(exception, f"""This demo requires a warehouse to work and couldn't find one or create one!<br/>
+                                          You can specify the SQL warehouse you would like to use to load the dashboard with warehouse_name = 'xxx':
+                                          <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', warehouse_name = 'xxx')</div><br/>""")
+
+    def display_genie_room_creation_error(self, exception: Exception, demo_conf: DemoConf):
+        self.display_error(exception, f"""This demo couldn't install the genie room properly.<br/>
+                                          Genie room support for DBDemos is in beta. You can skip the genie room installation with skip_genie_rooms = True:
+                                          <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', skip_genie_rooms = True)</div><br/>""")
+
     def display_dashboard_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"""Couldn't create or update a dashboard. <br/>
                                           If this is a permission error, we recommend you to search the existing dashboard and delete it manually.<br/>
@@ -204,13 +217,15 @@ class InstallerReport:
             else:
                 print(html)
 
-    def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
+    def display_install_result(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, 
+                               pipelines_ids = [], dashboards = [], workflows = [], genie_rooms = []):
         if self.displayHTML_available():
-            self.display_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows)
+            self.display_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows, genie_rooms)
         else:
-            self.display_install_result_console(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows)
+            self.display_install_result_console(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows, genie_rooms)
 
-    def get_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
+    def get_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, 
+                                pipelines_ids = [], dashboards = [], workflows = [], genie_rooms = []):
         html = f"""{InstallerReport.CSS_REPORT}
         <div class="dbdemos_install">
             <img style="float:right; width: 180px; padding: 10px" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/{demo_name}.jpg" />
@@ -275,6 +290,12 @@ class InstallerReport:
                 else:
                     html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboardsv3/{d['uid']}">{d['name']}</a></div>"""
             html +="</div>"
+        if len(genie_rooms) > 0:
+            html += f"""<h2>Genie Spaces: Talk to your data</h2><div class="container_dbdemos">"""
+            for g in genie_rooms:
+                print(g)
+                html += f"""<div>{InstallerReport.GENIE_SVG} <a href="{self.workspace_url}/genie/rooms/{g['uid']}">{g['name']}</a></div>"""
+            html +="</div>"
         if len(workflows) > 0:
             html += f"""<h2>Workflows</h2><ul>"""
             for w in workflows:
@@ -292,12 +313,14 @@ class InstallerReport:
         html += cluster_section+"</div>"
         return html
 
-    def display_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
+    def display_install_result_html(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, 
+                                    pipelines_ids = [], dashboards = [], workflows = [], genie_rooms = []):
         from dbruntime.display import displayHTML
-        html = self.get_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows)
+        html = self.get_install_result_html(demo_name, description, title, install_path, notebooks, job_id, run_id, cluster_id, cluster_name, pipelines_ids, dashboards, workflows, genie_rooms)
         displayHTML(html)
 
-    def display_install_result_console(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, pipelines_ids = [], dashboards = [], workflows = []):
+    def display_install_result_console(self, demo_name, description, title, install_path = None, notebooks = [], job_id = None, run_id = None, cluster_id = None, cluster_name = None, 
+                                       pipelines_ids = [], dashboards = [], workflows = [], genie_rooms = []):
         if len(notebooks) > 0:
             print("----------------------------------------------------")
             print("-------------- Notebook installed: -----------------")
@@ -332,6 +355,11 @@ class InstallerReport:
                     print(f"    - ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}")
                 else:
                     print(f"    - {d['name']}: {self.workspace_url}/sql/dashboardsv3/{d['uid']}")
+        if len(genie_rooms) > 0:
+            print("----------------------------------------------------")
+            print("------------- Genie Spaces available: -----------")
+            for g in genie_rooms:
+                print(f"    - {g['name']}: {self.workspace_url}/genie/rooms/{g['uid']}")
         if len(workflows) > 0:
             print("----------------------------------------------------")
             print("-------------------- Workflows: --------------------")
