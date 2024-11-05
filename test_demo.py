@@ -48,6 +48,7 @@ try:
     bundle(conf, "product_demos/Data-Science/mlops-end2end")
 except Exception as e:
     print(f"Failure building the job: {e}")
+    raise e
 
 # Now that your demo is packaged, we can install it & test.
 # We recommend testing in a new workspace so that you have a fresh install

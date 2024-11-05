@@ -39,7 +39,6 @@ dbdemos.install('lakehouse-retail-c360', path='./', overwrite = True)
 * DBSQL dashboard & query creation permission
 * For UC demos: Unity Catalog metastore must be available (demo will be installed but won't work) 
 
-New with 0.2: dbdemos can import/export dahsboard without the import/export preview (using the dbsqlclone toolkit)
 
 ## Features
 
@@ -57,6 +56,9 @@ Demo not working? Can't use dbdemos? Please open a github issue. <br/>
 Make sure you mention the name of the demo.
 
 # DBDemos Developer options
+
+## Adding an AI/BI demo to dbdemos
+open [README_AIBI.md](README_AIBI.md) for more details on how to contribute & add an AI/BI demo.
 
 Read the following if you want to add a new demo bundle.
 
@@ -83,9 +85,11 @@ Within your notebook, to identify your workflow using the id in the bundle file,
 
 
 #### DBSQL dashboards:
-DBSQL dashboard are automatically downloaded during the process. No need to add them in the bundle file. Simply use links as following:
+Similar to workflows, your dashboard id must match the one in the bundle file.
 
-` <a href="/sql/dashboards/19394330-2274-4b4b-90ce-d415a7ff2130" target="_blank">Churn Analysis Dashboard</a>`
+Dashboards definition should be added to the _dashboards folder (make sure the file name matches the dashboard id: `churn-prediction.lvdash.json`).
+
+` <a dbdemos-dashboard-id="churn-prediction" href="/sql/dashboardsv3/19394330-2274-4b4b-90ce-d415a7ff2130" target="_blank">Churn Analysis Dashboard</a>`
 
 
 
@@ -162,7 +166,8 @@ This need to be a notebook & not a .json file (due to current api limitation).
         "settings": {
         ... full pipeline settings
     }
-  }]  
+  }],
+  "dashboards": [{"name": "[dbdemos] Retail Churn Prediction Dashboard",       "id": "churn-prediction"}] 
 }
 ```
 
