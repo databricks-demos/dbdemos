@@ -137,3 +137,18 @@ Reach out the demo team for a demo miniature
 https://www.dbdemos.ai/assets/img/dbdemos/aibi-marketing-campaign-dashboard-0.png
 
 https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/aibi-marketing-campaign.jpg
+
+
+
+# Packaging & testing your demo
+
+Open the `test_demo.py` file. Update the conf to match your databricks-notebooks repo fork/branch in the config json file.
+
+dbdemos needs a workspace and a repo to package the demo, make sure you configure it in the conf json file (use your fork).
+
+Make sure you update the bundle folder to match your demo:
+
+```
+    bundle(conf, "aibi/aibi-marketing-campaign")
+```
+

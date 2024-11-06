@@ -23,6 +23,26 @@ class InstallerReport:
     .dbdemos_block{
         display: block !important;
     }
+     .update_container {
+        display: flex;
+        gap: 20px;
+        padding: 10px;
+        margin: 10px 0;
+    }
+    .update_box {
+        flex: 1;
+        background-color: #f3fff9;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 .15rem 1.15rem 0 rgba(58, 59, 69, .15);
+        overflow: hidden;
+    }
+    .update_title {
+        font-weight: bold;
+        color: #34a853;
+        margin-bottom: 10px;
+        font-size: 1.4em;
+    }
     .code {
         padding: 5px;
         border: 1px solid #e4e4e4;
@@ -30,6 +50,12 @@ class InstallerReport:
         background-color: #f5f5f5;
         margin: 5px 0px 0px 0px;
         display: inline;
+    }
+    .update_image {
+        float: right;
+        width: 200px;
+        margin: 0 0 10px 10px;
+        border-radius: 5px;
     }
     .subfolder {
         padding-left: 30px;
@@ -192,10 +218,29 @@ class InstallerReport:
     def display_install_info(self, demo_conf: DemoConf, install_path, catalog: str, schema: str):
         print(f"Installing demo {demo_conf.name} under {install_path}, please wait...")
         print(f"""Help us improving dbdemos, share your feedback or create an issue if something isn't working: https://github.com/databricks-demos/dbdemos""")
-        info = ""
+        # -----------------------------------------
+        # Update the new demo here
+        # -----------------------------------------
+        info = """
+        <div class="update_container">
+            <div class="update_box">
+                <img src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/llm-tools-functions.jpg" class="update_image">
+                <div class="update_title">Discover our New GenAI demo!</div>
+                <p>Learn how Databricks makes it easy to create powerful, intelligent AI agents to augment your GenAI applications:<br><br>
+    <span class="code">dbdemos.install('llm-tools-functions')</span>
+    </p>
+            </div>
+            <div class="update_box">
+                <img src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/aibi-marketing-campaign.jpg" class="update_image">
+                <div class="update_title">Try AI/BI: Dashboard & Genie demos</div>
+                <p>Discover how Databricks simplifies data analysis by allowing teams to understand their data both visually and in natural language</p>
+                <p>Find all our AI/BI demo: <span class="code">dbdemos.list_demos()</span></p>
+            </div>
+        </div>
+        """
         if demo_conf.custom_schema_supported:
-            if catalog is None:
-                info += f"""This demo supports custom UC schema! The default schema is {demo_conf.default_catalog}.{demo_conf.default_schema}.
+            if not catalog:
+                info += f"""This demo supports utilizing custom Unity Catalog Schema's! The default schema is {demo_conf.default_catalog}.{demo_conf.default_schema}.
                 To install it somewhere else, run <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', catalog='xxx', schema='xxx')</div><br/>"""
             else:
                 info += f"""This demo content will be installed in the schema `{catalog}`.`{schema}`<br/>"""
