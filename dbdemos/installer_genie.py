@@ -108,7 +108,7 @@ class InstallerGenie:
 
     def load_genie_data(self, demo_conf: DemoConf, warehouse_id, debug=True):
         if demo_conf.data_folders:
-            print(f"Loading data in your schema {demo_conf.catalog}.{demo_conf.schema}, this might take a few seconds...")
+            print(f"Loading data in your schema {demo_conf.catalog}.{demo_conf.schema} using warehouse {warehouse_id}, this might take a few seconds (you can use another warehouse with the option: warehouse_name='xxx')...")
             ws = WorkspaceClient(token=self.installer.db.conf.pat_token, host=self.installer.db.conf.workspace_url)
             self.create_schema(ws, demo_conf, debug)
             with ThreadPoolExecutor(max_workers=3) as executor:
