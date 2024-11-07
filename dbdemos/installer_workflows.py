@@ -87,7 +87,7 @@ class InstallerWorkflow:
         if existing_job is not None:
             job_id = existing_job["job_id"]
             self.installer.db.post("/2.1/jobs/runs/cancel-all", {"job_id": job_id})
-            self.wait_for_run_completion(job_id, debug)
+            self.wait_for_run_completion(job_id, debug=debug)
             if debug:
                 print("    Updating existing job")
             job_config = {"job_id": job_id, "new_settings": definition["settings"]}

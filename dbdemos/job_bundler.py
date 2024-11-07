@@ -175,9 +175,16 @@ class JobBundler:
                     job_cluster["new_cluster"].pop('instance_pool_id', None)
                     job_cluster["new_cluster"]["node_type_id"] = job_cluster["new_cluster"]["node_type_id"]["AWS"]
                     job_cluster["new_cluster"]["driver_node_type_id"] = job_cluster["new_cluster"]["driver_node_type_id"]["AWS"]
-                #TODO: to be improved, we use only use AWS for now
+                elif self.db.conf.get_demo_pool() is not None:
+                    job_cluster["new_cluster"]["instance_pool_id"] = self.db.conf.get_demo_pool()
+                    job_cluster["new_cluster"].pop("node_type_id", None)
+                    job_cluster["new_cluster"].pop("enable_elastic_disk", None)
+                    job_cluster["new_cluster"].pop("aws_attributes", None)
                 elif 'instance_pool_id' in job_cluster["new_cluster"]:
                     job_cluster["new_cluster"].pop('node_type_id', None)
+                    job_cluster["new_cluster"].pop("enable_elastic_disk", None)
+                    job_cluster["new_cluster"].pop("aws_attributes", None)
+
                 job_cluster["new_cluster"].pop('cluster_name', None)
                 job_cluster["new_cluster"].pop('autotermination_minutes', None)
                 if job_cluster["new_cluster"]["spark_conf"].get("spark.databricks.cluster.profile", "") == "singleNode":
