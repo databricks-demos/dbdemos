@@ -49,6 +49,9 @@ class InstallerDashboard:
         f = self.db.post("2.0/workspace/mkdirs", {"path": dashboard_path})
         if "error_code" in f:
             raise Exception(f"ERROR - wrong install path, can't save dashboard here: {f}")
+        
+        #Avoid issue with / in the dashboard name (such as AI/BI)
+        dashboard['name'] = dashboard['name'].replace('/', '')
         dashboard_creation = self.db.post(f"2.0/lakeview/dashboards", {
             "display_name": dashboard['name'],
             "warehouse_id": endpoint['warehouse_id'],

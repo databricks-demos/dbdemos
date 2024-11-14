@@ -51,7 +51,7 @@ class InstallerWorkflow:
             init_job['run_id'] = j['run_id']
             return j['run_id']
 
-    def create_or_replace_job(self, demo_conf: DemoConf, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None, debug = False, warehouse_name: str = None):
+    def create_or_replace_job(self, demo_conf: DemoConf, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None, warehouse_name: str = None, debug = False):
         cloud = self.installer.get_current_cloud()
         conf_template = ConfTemplate(self.db.conf.username, demo_conf.name)
         cluster_conf = self.installer.get_resource("resources/default_cluster_job_config.json")
@@ -94,18 +94,18 @@ class InstallerWorkflow:
             r = self.installer.db.post("2.1/jobs/reset", job_config)
             if "error_code" in r:
                 self.installer.report.display_workflow_error(WorkflowException("Can't update the workflow",
-                                                                               f"error resetting the workflow, do you have permission?.", job_config, r), demo_name)
+                                                                               f"error resetting the workflow, do you have permission?.", job_config, r), demo_conf.name)
         else:
             if debug:
                 print("    Creating a new job for demo initialization (data & table setup).")
             r_jobs = self.installer.db.post("2.1/jobs/create", definition["settings"])
             if "error_code" in r_jobs:
-                self.installer.report.display_workflow_error(WorkflowException("Can't create the workflow", {}, definition["settings"], r_jobs), demo_name)
+                self.installer.report.display_workflow_error(WorkflowException("Can't create the workflow", {}, definition["settings"], r_jobs), demo_conf.name)
             job_id = r_jobs["job_id"]
         if run_now:
             j = self.installer.db.post("2.1/jobs/run-now", {"job_id": job_id})
             if "error_code" in j:
-                self.installer.report.display_workflow_error(WorkflowException("Can't start the workflow", {"job_id": job_id}, j), demo_name)
+                self.installer.report.display_workflow_error(WorkflowException("Can't start the workflow", {"job_id": job_id}, j), demo_conf.name)
             return job_id, j['run_id']
         return job_id, None
 
