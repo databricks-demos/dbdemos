@@ -14,7 +14,7 @@ class InstallerWorkflow:
         self.db = installer.db
 
     #Start the init job if it exists
-    def install_workflows(self, demo_conf: DemoConf, use_cluster_id = None, warehouse_name: str = None, debug = False):
+    def install_workflows(self, demo_conf: DemoConf, use_cluster_id = None, warehouse_name: str = None, serverless = False, debug = False):
         workflows = []
         if len(demo_conf.workflows) > 0:
             if debug:
@@ -24,34 +24,34 @@ class InstallerWorkflow:
                 definition = workflow['definition']
                 job_name = definition["settings"]["name"]
                 # add cloud specific setup
-                job_id, run_id = self.create_or_replace_job(demo_conf, definition, job_name, workflow['start_on_install'], use_cluster_id, warehouse_name, debug)
+                job_id, run_id = self.create_or_replace_job(demo_conf, definition, job_name, workflow['start_on_install'], use_cluster_id, warehouse_name, serverless, debug)
                 # print(f"    Demo workflow available: {self.installer.db.conf.workspace_url}/#job/{job_id}/tasks")
                 workflows.append({"uid": job_id, "run_id": run_id, "id": workflow['id']})
         return workflows
 
     #create or update the init job if it exists
-    def create_demo_init_job(self, demo_conf: DemoConf, use_cluster_id = None, warehouse_name: str = None, debug = False):
+    def create_demo_init_job(self, demo_conf: DemoConf, use_cluster_id = None, warehouse_name: str = None, serverless = False, debug = False):
         if "settings" in demo_conf.init_job:
             job_name = demo_conf.init_job["settings"]["name"]
             if debug:
                 print(f"    Searching for existing demo initialisation job {job_name}")
             #We have an init json
-            job_id, run_id = self.create_or_replace_job(demo_conf, demo_conf.init_job, job_name, False, use_cluster_id, warehouse_name, debug)
+            job_id, run_id = self.create_or_replace_job(demo_conf, demo_conf.init_job, job_name, False, use_cluster_id, warehouse_name, serverless, debug)
             return {"uid": job_id, "run_id": run_id, "id": "init-job"}
         return {"uid": None, "run_id": None, "id": None}
 
     #Start the init job if it exists.
-    def start_demo_init_job(self, init_job, debug = False):
+    def start_demo_init_job(self, demo_conf: DemoConf, init_job, debug = False):
         if init_job['uid'] is not None:
             j = self.installer.db.post("2.1/jobs/run-now", {"job_id": init_job['uid']})
             if debug:
                 print(f'Starting init job {init_job}: {j}')
             if "error_code" in j:
-                self.installer.report.display_workflow_error(WorkflowException("Can't start the workflow", {"job_id": job_id}, j), demo_name)
+                self.installer.report.display_workflow_error(WorkflowException("Can't start the workflow", {"job_id": init_job['uid']}, init_job, j), demo_conf.name)
             init_job['run_id'] = j['run_id']
             return j['run_id']
 
-    def create_or_replace_job(self, demo_conf: DemoConf, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None, warehouse_name: str = None, debug = False):
+    def create_or_replace_job(self, demo_conf: DemoConf, definition: dict,  job_name: str, run_now: bool, use_cluster_id = None, warehouse_name: str = None, serverless = False, debug = False):
         cloud = self.installer.get_current_cloud()
         conf_template = ConfTemplate(self.db.conf.username, demo_conf.name)
         cluster_conf = self.installer.get_resource("resources/default_cluster_job_config.json")
@@ -74,15 +74,23 @@ class InstallerWorkflow:
                     #Let's make sure we add our dev pool for faster startup
                     if self.db.conf.get_demo_pool() is not None:
                         cluster["new_cluster"]["instance_pool_id"] = self.db.conf.get_demo_pool()
-                        if "node_type_id" in cluster["new_cluster"]: del cluster["new_cluster"]["node_type_id"]
-                        if "enable_elastic_disk" in cluster["new_cluster"]: del cluster["new_cluster"]["enable_elastic_disk"]
-                        if "aws_attributes" in cluster["new_cluster"]: del cluster["new_cluster"]["aws_attributes"]
+                        cluster["new_cluster"].pop("node_type_id", None)
+                        cluster["new_cluster"].pop("enable_elastic_disk", None) 
+                        cluster["new_cluster"].pop("aws_attributes", None)
 
         # Add support for clsuter specific task
         for task in definition["settings"]["tasks"]:
             if "new_cluster" in task:
                 merge_dict(task["new_cluster"], cluster_conf, override=False)
 
+        # if we're installing from a serverless cluster, update the job to be fully serverless
+        if serverless:
+            for task in definition["settings"]["tasks"]:
+                task.pop("new_cluster", None)
+                task.pop("job_cluster_key", None)
+                task.pop("existing_cluster_id", None)
+            definition["settings"].pop("job_clusters", None)
+        
         existing_job = self.installer.db.find_job(job_name)
         if existing_job is not None:
             job_id = existing_job["job_id"]

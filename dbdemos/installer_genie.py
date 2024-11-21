@@ -25,8 +25,8 @@ class InstallerGenie:
             print(f"Installing genie room {demo_conf.genie_rooms}")
             print(f"Loading data folders {demo_conf.data_folders}")
         if len(demo_conf.genie_rooms) > 0 or len(demo_conf.data_folders) > 0:
+            warehouse = self.installer.get_or_create_endpoint(self.db.conf.name, demo_conf, warehouse_name = warehouse_name, throw_error=True)
             try:
-                warehouse = self.installer.get_or_create_endpoint(self.db.conf.name, demo_conf, warehouse_name = warehouse_name, throw_error=True)
                 warehouse_id = warehouse['endpoint_id']
                 self.load_genie_data(demo_conf, warehouse_id, debug)
                 if len(demo_conf.genie_rooms) > 0:

@@ -123,22 +123,6 @@ class NotebookParser:
         else:
             self.content = self.content.replace(old, new)
 
-    def get_dashboard_ids(self):
-        pattern = re.compile(
-            r'(?:'
-            # HTML <a> tag pattern
-            r'<a[^>]*?/sql/dashboards/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})[^>]*?>.*?</a>'
-            r'|'
-            # Markdown link pattern
-            r'\[.*?\]\(/sql/dashboards/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)'
-            r')',
-            re.IGNORECASE
-        )
-        #pattern = re.compile(r'\/sql\/dashboards\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', re.IGNORECASE)
-        matches = re.findall(pattern, self.content)
-        # Extract non-empty UUIDs from the matches
-        return [uuid for match in matches for uuid in match if uuid]
-
     def add_extra_cell(self, cell_content, position = 1):
         command = {
             "version": "CommandV1",

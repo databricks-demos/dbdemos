@@ -118,6 +118,11 @@ class InstallerReport:
                                           You can specify the SQL warehouse you would like to use to load the dashboard with warehouse_name = 'xxx':
                                           <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', warehouse_name = 'xxx')</div><br/>""")
 
+    def display_unknow_warehouse_error(self, exception: Exception, demo_conf: DemoConf, warehouse_name: str):
+        self.display_error(exception, f"""Can't find your warehouse!<br/>
+                                          The warehouse you specified: {warehouse_name} can't be find. Make sure it exists and you have access to it.
+                                          <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', warehouse_name = 'xxx')</div><br/>""")
+
     def display_genie_room_creation_error(self, exception: Exception, demo_conf: DemoConf):
         self.display_error(exception, f"""This demo couldn't install the genie room properly.<br/>
                                           Genie room support for DBDemos is in beta. You can skip the genie room installation with skip_genie_rooms = True:

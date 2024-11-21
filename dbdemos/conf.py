@@ -84,7 +84,8 @@ class DBClient():
             #TODO: should add that in the requests lib adapter for all requests.
             if r.status_code == 429 and retry < 2:
                 import time
-                wait_time = 30 * (retry+1)
+                import random
+                wait_time = 15 * (retry+1) + random.randint(2*retry, 10*retry)
                 print(f'WARN: hitting api request limit 429 error: {path}. Sleeping {wait_time}sec and retrying...')
                 time.sleep(wait_time)
                 print('Retrying call.')

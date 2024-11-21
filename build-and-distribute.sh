@@ -8,3 +8,4 @@ echo "Package built under dist/ - updating pypi with new version..."
 ls -alh ./dist
 twine upload dist/*
 echo "Upload ok - available as pip install dbdemos"
+#TODO: should enforce commit before packaging and add a release tag in both dbdemos and dbdemos-notebooks

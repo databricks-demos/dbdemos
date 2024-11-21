@@ -65,11 +65,12 @@ def bundle():
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-smart-claims")
-    bundler.add_bundle("aibi/aibi-marketing-campaign")
-    bundler.add_bundle("aibi/aibi-portfolio-assistant")
-    bundler.add_bundle("aibi/aibi-supply-chain-forecasting")
-    bundler.add_bundle("aibi/aibi-sales-pipeline-review")
-    bundler.add_bundle("aibi/aibi-patient-genomics")
+    #bundler.add_bundle("aibi/aibi-marketing-campaign")
+    #bundler.add_bundle("aibi/aibi-portfolio-assistant")
+    #bundler.add_bundle("aibi/aibi-supply-chain-forecasting")
+    #bundler.add_bundle("aibi/aibi-sales-pipeline-review")
+    #bundler.add_bundle("aibi/aibi-patient-genomics")
+    bundler.add_bundle("aibi/aibi-customer-support")
 
 
     #bundler.add_bundle("product_demos/dbt-on-databricks")
@@ -100,7 +101,6 @@ def bundle():
     #bundler.add_bundle("product_demos/Data-Science/feature-store")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
-    #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/lakehouse-monitor")
     #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/sql-ai-functions")
     """
     bundler.add_bundle("product_demos/Unity-Catalog/uc-05-upgrade")
@@ -116,12 +116,12 @@ def bundle():
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
-    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False)
+    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=True)
 
     packager = Packager(conf, bundler)
     packager.package_all()
 
-bundle()
+#bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -172,8 +172,8 @@ dbdemos.list_demos(pat_token=c['pat_token'])
 #dbdemos.list_demos(None)
 
 #dbdemos.install("llm-rag-chatbot", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_rag', cloud="AWS", start_cluster = False,  skip_dashboards=True, use_current_cluster=True, debug = True)
-#dbdemos.install("lakehouse-monitoring", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_lhm', cloud="AWS", start_cluster = False,  skip_dashboards=False, use_current_cluster=True, debug = True)
-#dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
+dbdemos.install("lakehouse-monitoring", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_lhm', cloud="AWS", start_cluster = False,  skip_dashboards=False, use_current_cluster=True, debug = True)
+#dbdemos.install("uc-04-system-tables", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True, serverless=True)
 
 #dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", schema='test_quentin', catalog='dbdemos')
 #dbdemos.install("lakehouse-fsi-credit", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, skip_dashboards=True)
@@ -193,11 +193,12 @@ dbdemos.list_demos(pat_token=c['pat_token'])
 #dbdemos.create_cluster("uc-05-upgrade", c['username'], c['pat_token'], c['url'], "GCP")
 
 
-dbdemos.install("aibi-marketing-campaign", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
-dbdemos.install("aibi-portfolio-assistant", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
-dbdemos.install("aibi-supply-chain-forecasting", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
-dbdemos.install("aibi-sales-pipeline-review", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
-dbdemos.install("aibi-patient-genomics", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
+#dbdemos.install("aibi-marketing-campaign", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
+#dbdemos.install("aibi-portfolio-assistant", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
+#dbdemos.install("aibi-supply-chain-forecasting", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
+#dbdemos.install("aibi-sales-pipeline-review", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
+#dbdemos.install("aibi-patient-genomics", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
+dbdemos.install("aibi-customer-support", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
 
 
 

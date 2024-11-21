@@ -270,12 +270,12 @@ class Installer:
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless)
         dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, warehouse_name, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
-        workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, warehouse_name, debug)
-        init_job = self.installer_workflow.create_demo_init_job(demo_conf, use_cluster_id, warehouse_name, debug)
+        workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, warehouse_name, serverless, debug)
+        init_job = self.installer_workflow.create_demo_init_job(demo_conf, use_cluster_id, warehouse_name, serverless, debug)
         all_workflows = workflows if init_job["id"] is None else workflows + [init_job]
         genie_rooms = [] if skip_genie_rooms else self.installer_genie.install_genies(demo_conf, install_path, warehouse_name, debug)
         notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, all_workflows, repos, overwrite, use_current_cluster, genie_rooms, debug)
-        self.installer_workflow.start_demo_init_job(init_job, debug)
+        self.installer_workflow.start_demo_init_job(demo_conf, init_job, debug)
         for pipeline in pipeline_ids:
             if "run_after_creation" in pipeline and pipeline["run_after_creation"]:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
@@ -295,6 +295,10 @@ class Installer:
                 return source
         #Try to fallback to an existing shared endpoint.
         for source in data_sources:
+            #Default serverless warehouse in express workspaces
+            if "serverless starter warehouse" in source['name'].lower():
+                return source
+        for source in data_sources:
             if "shared-sql-endpoint" in source['name'].lower():
                 return source
         for source in data_sources:
@@ -303,7 +307,11 @@ class Installer:
         return None
 
     def get_or_create_endpoint(self, username: str, demo_conf: DemoConf, default_endpoint_name: str ="dbdemos-shared-endpoint", warehouse_name: str = None, throw_error: bool = False):
-        ds = self.get_demo_datasource(warehouse_name)
+        try:
+            ds = self.get_demo_datasource(warehouse_name)
+        except Exception as e:
+            self.report.display_unknow_warehouse_error(e, demo_conf, warehouse_name)
+    
         if ds is not None:
             return ds
         def get_definition(serverless, name):
@@ -339,10 +347,9 @@ class Installer:
         ds = self.get_demo_datasource()
         if ds is not None:
             return ds
-        print(f"ERROR: Couldn't create endpoint.")
+        print(f"ERROR: Couldn't create endpoint. Use the option warehouse_name={warehouse_name} to specify a different warehouse during the installation.")
         if throw_error:
             self.report.display_warehouse_creation_error(Exception("Couldn't create endpoint - see WARNINGS for more details."), demo_conf)
-            raise Exception("Couldn't create endpoint.")
         return None
 
     #Check if the folder already exists, and delete it if needed.

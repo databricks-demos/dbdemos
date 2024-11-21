@@ -21,14 +21,14 @@ class Packager:
     def package_all(self, iframe_root_src = "./"):
         def package_demo(demo_conf: DemoConf):
             self.clean_bundle(demo_conf)
-            dashboard_ids = self.package_demo(demo_conf)
+            self.package_demo(demo_conf)
             if len(demo_conf.dashboards) > 0:
                 self.extract_lakeview_dashboards(demo_conf)
             self.build_minisite(demo_conf, iframe_root_src)
 
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            confs = [ demo_conf for _, demo_conf in self.jobBundler.bundles.items()]
-            collections.deque(executor.map(package_demo, confs))
+        confs = [demo_conf for _, demo_conf in self.jobBundler.bundles.items()]
+        for demo_conf in confs:
+            package_demo(demo_conf)
 
     def clean_bundle(self, demo_conf: DemoConf):
         if Path(demo_conf.get_bundle_root_path()).exists():
@@ -61,10 +61,12 @@ class Packager:
 
         def download_notebook_html(notebook):
             full_path = demo_conf.get_bundle_path()+"/"+notebook.get_clean_path()+".html"
+            print(f"downloading {notebook.path} to {full_path}")
             Path(full_path[:full_path.rindex("/")]).mkdir(parents=True, exist_ok=True)
             if not notebook.pre_run:
                 repo_path = self.jobBundler.conf.get_repo_path()+"/"+demo_conf.path+"/"+notebook.path
                 repo_path = os.path.realpath(repo_path)
+                #print(f"downloading from repo {repo_path}")
                 file = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "HTML", "direct_download": False})
                 if 'error_code' in file:
                     raise Exception(f"Couldn't find file {repo_path} in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
@@ -73,6 +75,7 @@ class Packager:
                 tasks = [t for t in run['tasks'] if t['notebook_task']['notebook_path'].endswith(notebook.get_clean_path())]
                 if len(tasks) == 0:
                     raise Exception(f"couldn't find task for notebook {notebook.path}. Please re-run the job & make sure the stating git repo is synch / reseted.")
+                #print(f"Exporting notebook from job run {tasks[0]['run_id']}")
                 notebook_result = self.db.get("2.1/jobs/runs/export", {'run_id': tasks[0]['run_id'], 'views_to_export': 'ALL'})
                 if "views" not in notebook_result:
                     raise Exception(f"couldn't get notebook for run {tasks[0]['run_id']} - {notebook.path}. {demo_conf.name}. You probably did a run repair. Please re run the job.")
@@ -94,40 +97,37 @@ class Packager:
                 requires_global_setup = True
             with open(full_path, "w") as f:
                 f.write(parser.get_html())
-            return (requires_global_setup, requires_global_setup_v2, parser.get_dashboard_ids())
+            return (requires_global_setup, requires_global_setup_v2)
 
-        dashboard_ids = []
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            requires_global_setup = False
-            requires_global_setup_v2 = False
-            for rv1, rv2, ids in executor.map(download_notebook_html, demo_conf.notebooks):
-                dashboard_ids += ids
-                if rv1:
-                    requires_global_setup = True
-                if rv2:
-                    requires_global_setup_v2 = True
+        requires_global_setup = False
+        requires_global_setup_v2 = False
+        for notebook in demo_conf.notebooks:
+            rv1, rv2 = download_notebook_html(notebook)
+            if rv1:
+                requires_global_setup = True
+            if rv2:
+                requires_global_setup_v2 = True
 
-            #Add the global notebook if required
-            # TODO: not ideal, it's a bit messy need to re-think that
-            if requires_global_setup:
-                init_notebook = DemoNotebook("_resources/00-global-setup", "Global init", "Global init")
-                demo_conf.add_notebook(init_notebook)
-                file = self.db.get("2.0/workspace/export", {"path": self.jobBundler.conf.get_repo_path() +"/"+ init_notebook.path, "format": "HTML", "direct_download": False})
-                if 'error_code' in file:
-                    raise Exception(f"Couldn't find file '{self.jobBundler.conf.get_repo_path()}/{init_notebook.path}' in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
-                html = base64.b64decode(file['content']).decode('utf-8')
-                with open(demo_conf.get_bundle_path() + "/" + init_notebook.path+".html", "w") as f:
-                    f.write(html)
-            if requires_global_setup_v2:
-                init_notebook = DemoNotebook("_resources/00-global-setup-v2", "Global init", "Global init")
-                demo_conf.add_notebook(init_notebook)
-                file = self.db.get("2.0/workspace/export", {"path": self.jobBundler.conf.get_repo_path() +"/"+ init_notebook.path, "format": "HTML", "direct_download": False})
-                if 'error_code' in file:
-                    raise Exception(f"Couldn't find file '{self.jobBundler.conf.get_repo_path()}/{init_notebook.path}' in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
-                html = base64.b64decode(file['content']).decode('utf-8')
-                with open(demo_conf.get_bundle_path() + "/" + init_notebook.path+".html", "w") as f:
-                    f.write(html)
-        return dashboard_ids
+        #Add the global notebook if required
+        # TODO: not ideal, it's a bit messy need to re-think that
+        if requires_global_setup:
+            init_notebook = DemoNotebook("_resources/00-global-setup", "Global init", "Global init")
+            demo_conf.add_notebook(init_notebook)
+            file = self.db.get("2.0/workspace/export", {"path": self.jobBundler.conf.get_repo_path() +"/"+ init_notebook.path, "format": "HTML", "direct_download": False})
+            if 'error_code' in file:
+                raise Exception(f"Couldn't find file '{self.jobBundler.conf.get_repo_path()}/{init_notebook.path}' in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
+            html = base64.b64decode(file['content']).decode('utf-8')
+            with open(demo_conf.get_bundle_path() + "/" + init_notebook.path+".html", "w") as f:
+                f.write(html)
+        if requires_global_setup_v2:
+            init_notebook = DemoNotebook("_resources/00-global-setup-v2", "Global init", "Global init")
+            demo_conf.add_notebook(init_notebook)
+            file = self.db.get("2.0/workspace/export", {"path": self.jobBundler.conf.get_repo_path() +"/"+ init_notebook.path, "format": "HTML", "direct_download": False})
+            if 'error_code' in file:
+                raise Exception(f"Couldn't find file '{self.jobBundler.conf.get_repo_path()}/{init_notebook.path}' in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
+            html = base64.b64decode(file['content']).decode('utf-8')
+            with open(demo_conf.get_bundle_path() + "/" + init_notebook.path+".html", "w") as f:
+                f.write(html)
 
     def get_html_menu(self, path: str, title: str, description: str, notebook_link: str):
         # Add padding for subfolder for better visualization
