@@ -157,11 +157,13 @@ class GenieRoom():
         self.curated_questions = curated_questions
 
 class DataFolder():
-    def __init__(self, source_folder: str, source_format: str, target_table_name: str, target_format: str = "delta"):
+    def __init__(self, source_folder: str, source_format: str, target_table_name: str = None, target_volume_folder_name: str = None, target_format: str = "delta"):
+        assert target_volume_folder_name or target_table_name, "Error, data folder should either has target_table_name or target_volume_folder_name set"
         self.source_folder = source_folder
         self.source_format = source_format
         self.target_table_name = target_table_name
         self.target_format = target_format
+        self.target_volume_folder_name = target_volume_folder_name
 
 class DemoNotebook():
     def __init__(self, path: str, title: str, description: str, pre_run: bool = False, publish_on_website: bool = False,
@@ -230,7 +232,8 @@ class DemoConf():
 
         self.data_folders: List[DataFolder] = []
         for data_folder in json_conf.get('data_folders', []):
-            self.data_folders.append(DataFolder(data_folder['source_folder'], data_folder['source_format'], data_folder['target_table_name'], data_folder['target_format']))
+            self.data_folders.append(DataFolder(data_folder['source_folder'], data_folder['source_format'], data_folder.get('target_table_name', None), 
+                                                data_folder.get('target_volume_folder', None), data_folder['target_format']))
 
         self.genie_rooms: List[GenieRoom] = []
         for genie_room in json_conf.get('genie_rooms', []):
