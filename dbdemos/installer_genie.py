@@ -14,22 +14,23 @@ if TYPE_CHECKING:
 
 
 class InstallerGenie:
+    VOLUME_NAME = "dbdemos_raw_data"
+
     def __init__(self, installer: 'Installer'):
         self.installer = installer
         self.db = installer.db
         self.sql_query_executor = SQLQueryExecutor()
 
-    def install_genies(self, demo_conf: DemoConf, install_path, warehouse_name, debug=True):
+    def install_genies(self, demo_conf: DemoConf, install_path: str, warehouse_name: str, skip_genie_rooms: bool, debug=True):
         rooms = []
-        if debug:
-            print(f"Installing genie room {demo_conf.genie_rooms}")
-            print(f"Loading data folders {demo_conf.data_folders}")
         if len(demo_conf.genie_rooms) > 0 or len(demo_conf.data_folders) > 0:
             warehouse = self.installer.get_or_create_endpoint(self.db.conf.name, demo_conf, warehouse_name = warehouse_name, throw_error=True)
             try:
                 warehouse_id = warehouse['endpoint_id']
                 self.load_genie_data(demo_conf, warehouse_id, debug)
-                if len(demo_conf.genie_rooms) > 0:
+                if not skip_genie_rooms and len(demo_conf.genie_rooms) > 0:
+                    if debug:
+                        print(f"Installing genie room {demo_conf.genie_rooms}")
                     genie_path = f"{install_path}/{demo_conf.name}/_genie_spaces"
                     #Make sure the genie folder exists
                     self.db.post("2.0/workspace/mkdirs", {"path": genie_path})
@@ -111,9 +112,12 @@ class InstallerGenie:
             print(f"Loading data in your schema {demo_conf.catalog}.{demo_conf.schema} using warehouse {warehouse_id}, this might take a few seconds (you can use another warehouse with the option: warehouse_name='xxx')...")
             ws = WorkspaceClient(token=self.installer.db.conf.pat_token, host=self.installer.db.conf.workspace_url)
             self.create_schema(ws, demo_conf, debug)
+            if any(d.target_volume_folder_name is not None for d in demo_conf.data_folders):
+                self.create_raw_data_volume(ws, demo_conf, debug)
+
             with ThreadPoolExecutor(max_workers=3) as executor:
                 futures = [executor.submit(self.load_data, ws, data_folder, warehouse_id, demo_conf, debug) 
-                          for data_folder in demo_conf.data_folders]
+                        for data_folder in demo_conf.data_folders]
                 for future in futures:
                     future.result()
 
@@ -121,73 +125,110 @@ class InstallerGenie:
         return json.loads(self.installer.get_dbutils_tags_safe()['clusterId'])
 
     def load_data(self, ws: WorkspaceClient, data_folder: DataFolder, warehouse_id, conf: DemoConf, debug=True):
-        sql_query = f"""CREATE TABLE IF NOT EXISTS {conf.catalog}.{conf.schema}.{data_folder.target_table_name} as 
-                       SELECT * FROM read_files('s3://dbdemos-dataset/{data_folder.source_folder}',  
-                       format => '{data_folder.source_format}', 
-                       pathGlobFilter => '*.{data_folder.source_format}')"""
-        if debug:
-            print(f"Loading data {data_folder}: {sql_query}")
-        self.sql_query_executor.execute_query(ws, sql_query, warehouse_id=warehouse_id, debug=debug)
-    
-
-
-
-    # --------------------------------------------------------------------------------------------------------------------------------------------  
-    # Experimental, first upload data to the volume as some warehouse don't have access to the S3 bucket directly.
-    # --------------------------------------------------------------------------------------------------------------------------------------------  
-    def load_data_to_volume(self, ws: WorkspaceClient, data_folder: DataFolder, warehouse_id, conf: DemoConf, debug=True):
-        import boto3
-        from botocore.client import Config
-        from botocore import UNSIGNED
-        print(f"Loading data {data_folder}")
-        s3 = boto3.client('s3', region_name='us-west-2', config=Config(signature_version=UNSIGNED))
-        bucket = "dbdemos-dataset"
-        
-        try:
-            files = []
-            for page in s3.get_paginator('list_objects_v2').paginate(Bucket=bucket, Prefix=data_folder.source_folder):
-                if "Contents" in page:
-                    files.extend([obj["Key"] for obj in page["Contents"]])
-            
-            if debug:
-                print(f"Found {len(files)} files in s3://{bucket}/{data_folder.source_folder}")
-                
-            volume_name = f"{conf.catalog}/{conf.schema}/dbdemos_raw_data"
+        # Load table to a table
+        if data_folder.target_table_name:
             try:
-                volume = ws.volumes.read(f"{conf.catalog}.{conf.schema}.dbdemos_raw_data")
+                sql_query = f"""CREATE TABLE IF NOT EXISTS {conf.catalog}.{conf.schema}.{data_folder.target_table_name} as 
+                            SELECT * FROM read_files('s3://dbdemos-dataset/{data_folder.source_folder}',  
+                            format => '{data_folder.source_format}', 
+                            pathGlobFilter => '*.{data_folder.source_format}')"""
+                if debug:
+                    print(f"Loading data {data_folder}: {sql_query}")
+                self.sql_query_executor.execute_query(ws, sql_query, warehouse_id=warehouse_id, debug=debug)
+            except Exception as e:
+                if "com.amazonaws.auth.BasicSessionCredentials" in str(e):
+                    print("INFO: Basic Credential error detected downloading the files from our demo bucket. Will try to load data to volume first, please wait as this is a slower workflow...")
+                    self.create_raw_data_volume(ws, conf, debug)
+                    self.load_data_to_volume(ws, data_folder, conf, debug)
+                    self.create_table_from_volume(ws, data_folder, warehouse_id, conf, debug)
+                else:
+                    raise DataLoaderException(f"Error loading data from S3: {str(e)}")
+        else:
+            self.load_data_to_volume(ws, data_folder, conf, debug)
+    
+    # Class-level lock for volume creation
+    import threading
+    _volume_creation_lock = threading.Lock()
+
+    def create_raw_data_volume(self, ws: WorkspaceClient, demo_conf: DemoConf, debug=True):
+        with InstallerGenie._volume_creation_lock:
+            full_volume_name = f"{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}"
+            try:
+                ws.volumes.read(f"{demo_conf.catalog}.{demo_conf.schema}.{InstallerGenie.VOLUME_NAME}")
             except Exception as e:
                 if debug:
-                    print(f"Volume {volume_name} doesn't seem to exist, creating it - {e}")
+                    print(f"Volume {full_volume_name} doesn't seem to exist, creating it - {e}")
                 try:
-                    volume = ws.volumes.create(
-                        catalog_name=conf.catalog,
-                        schema_name=conf.schema,
-                        name="dbdemos_raw_data",
+                    ws.volumes.create(
+                        catalog_name=demo_conf.catalog,
+                        schema_name=demo_conf.schema,
+                        name=InstallerGenie.VOLUME_NAME,
                         volume_type=VolumeType.MANAGED
                     )
                 except Exception as e:  
-                    raise DataLoaderException(f"Can't create volume {volume_name} and it doesn't seem to be existing. <br/>"
+                    raise DataLoaderException(f"Can't create volume {full_volume_name} to load data demo, and it doesn't seem to be existing. <br/>"
                                             f"Please create the volume or grant you USAGE/READ permission, or install the demo in another catalog: dbdemos.install(xxx, catalog=xxx, schema=xxx, warehouse_id=xx).<br/>"
                                             f" {e}")
+
+
+    # --------------------------------------------------------------------------------------------------------------------------------------------  
+    # Experimental, first upload data to the volume as some warehouse don't have access to the S3 bucket directly when instance profiles exist.
+    # --------------------------------------------------------------------------------------------------------------------------------------------  
+    def load_data_through_volume(self, ws: WorkspaceClient, data_folders: list[DataFolder], warehouse_id: str, demo_conf: DemoConf, debug=True):
+        print('INFO: Basic Credential error detected downloading the files from our demo S3 bucket. Will try to load data to volume first, please wait as this might take a while...')
+        self.create_raw_data_volume(ws, demo_conf, debug)
+
+        def load_data_and_create_table(ws: WorkspaceClient, data_folder: DataFolder, warehouse_id: str, demo_conf: DemoConf, debug=True):
+            self.load_data_to_volume(ws, demo_conf, data_folder, debug)
+            self.create_table_from_volume(ws, data_folder, warehouse_id, demo_conf, debug)
+
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            futures = [executor.submit(load_data_and_create_table, ws, data_folder, warehouse_id, demo_conf, debug)
+                    for data_folder in data_folders]
+            for future in futures:
+                future.result()
+
+
+    def load_data_to_volume(self, ws: WorkspaceClient, data_folder: DataFolder, demo_conf: DemoConf, debug=True):
+        assert data_folder.source_format in ["csv", "json", "parquet"], "data loader through volume only support csv, json and parquet"
+
+        import requests
+        import collections
+        try:
+            # Get list of files from GitHub API, to avoid adding a S3 boto dependency just for this
+            github_path = f"https://api.github.com/repos/databricks-demos/dbdemos-dataset/contents/{data_folder.source_folder}"
+            if debug:
+                print(f"Getting files from {github_path}")
+            files = requests.get(github_path).json()
+            files = [f['download_url'] for f in files]
             
-            def copy_file(s3_path):
-                if not s3_path.endswith('/'):
-                    file_name = s3_path.split('/')[-1]
-                    target_path = f"/Volumes/{volume_name}/{data_folder.source_folder}/{file_name}"
+            if debug:
+                print(f"Found {len(files)} files in GitHub repo for {data_folder.source_folder}")
+                            
+            def copy_file(file_url):
+                if not file_url.endswith('/'):
+                    file_name = file_url.split('/')[-1]
+                    folder = data_folder.target_volume_folder_name if data_folder.target_volume_folder_name else data_folder.source_folder
+                    target_path = f"/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}/{file_name}"
                     
+                    s3_url = file_url.replace("https://raw.githubusercontent.com/databricks-demos/dbdemos-dataset/main/", 
+                                            "https://dbdemos-dataset.s3.amazonaws.com/")
                     if debug:
-                        print(f"Copying {s3_path} to {target_path}")
-                        
-                    response = s3.get_object(Bucket=bucket, Key=s3_path)
-                    ws.files.upload(target_path, response['Body'].read(), overwrite=False)
+                        print(f"Copying {s3_url} to {target_path}")
+                    response = requests.get(s3_url)
+                    response.raise_for_status()
+                    print(f"File {file_name} in memory. sending to volume...")
+                    ws.files.upload(target_path, response.content, overwrite=True)
+                    print(f"File {file_name} in volume!")
             
             with ThreadPoolExecutor(max_workers=5) as executor:
-                list(executor.map(copy_file, files))
-
-            self.sql_query_executor.execute_query(ws, f"""CREATE TABLE IF NOT EXISTS {conf.catalog}.{conf.schema}.{data_folder.target_table_name} as 
-                                                SELECT * FROM read_files('/Volumes/{volume_name}/{data_folder.source_folder}',  
-                                                format => '{data_folder.source_format}', 
-                                                pathGlobFilter => '*.{data_folder.source_format}')""", warehouse_id=warehouse_id, debug=debug)
+                collections.deque(executor.map(copy_file, files))
 
         except Exception as e:
             raise DataLoaderException(f"Error loading data from S3: {str(e)}")
+
+    def create_table_from_volume(self, ws: WorkspaceClient, data_folder: DataFolder, warehouse_id, conf: DemoConf, debug=True):
+        self.sql_query_executor.execute_query(ws, f"""CREATE TABLE IF NOT EXISTS {conf.catalog}.{conf.schema}.{data_folder.target_table_name} as 
+                                            SELECT * FROM read_files('/Volumes/{conf.catalog}/{conf.schema}/{InstallerGenie.VOLUME_NAME}/{data_folder.source_folder}',  
+                                            format => '{data_folder.source_format}', 
+                                            pathGlobFilter => '*.{data_folder.source_format}')""", warehouse_id=warehouse_id, debug=debug)
