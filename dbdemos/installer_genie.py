@@ -44,6 +44,8 @@ class InstallerGenie:
         return rooms
 
     def install_genie(self, demo_conf: DemoConf, room: GenieRoom, genie_path, warehouse_id, debug=True):
+        #Genie rooms don't allow / anymore
+        room.display_name = room.display_name.replace("/", "-")
         room_payload = {
             "display_name": room.display_name,
             "description": room.description,
