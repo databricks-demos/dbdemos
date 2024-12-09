@@ -1,5 +1,6 @@
 #increase the release (needs pip install bump)
-git checkout main && ggpull
+git checkout main || exit 1
+git pull || exit 1
 bump
 #package
 rm -rf ./dist/*
