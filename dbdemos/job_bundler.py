@@ -130,6 +130,10 @@ class JobBundler:
                                 print(f"skipping job execution {demo_conf.name} as it was already run and skip_execution=True.")
                             else:
                                 #last run was using the same commit version.
+                                #TODO: speedup build:
+                                # - get the diff between earliest task commit id and head commit id as a function
+                                # - if the demo folder is not in the list of file changed, then skip the build with execute=False 
+                                # ==> this will reuse the previous run if nothing was changed in-between 
                                 tasks_with_different_commit = [t for t in run['tasks'] if t['git_source']['git_snapshot']['used_commit'] != self.head_commit_id]
                                 if len(tasks_with_different_commit) == 0:
                                     execute = False

@@ -85,11 +85,35 @@ class InstallerWorkflow:
 
         # if we're installing from a serverless cluster, update the job to be fully serverless
         if serverless:
+            environments = []
             for task in definition["settings"]["tasks"]:
                 task.pop("new_cluster", None)
                 task.pop("job_cluster_key", None)
                 task.pop("existing_cluster_id", None)
+                
+                # Serverless doesn't support libraries. Instead, they have environements and we can link these env to each task.
+                # Extract libraries if they exist and convert to environment for serverless compute.
+                if "libraries" in task:
+                    env_key = "env_" + task["task_key"]
+                    dependencies = []
+                    for lib in task["libraries"]:
+                        if "pypi" in lib and "package" in lib["pypi"]:
+                            dependencies.append(lib["pypi"]["package"])
+                    
+                    if dependencies:
+                        environments.append({
+                            "environment_key": env_key,
+                            "spec": {
+                                "client": "1",
+                                "dependencies": dependencies
+                            }
+                        })
+                        task["environment_key"] = env_key
+                    task.pop("libraries", None)
+            
             definition["settings"].pop("job_clusters", None)
+            if environments:
+                definition["settings"]["environments"] = environments
         
         existing_job = self.installer.db.find_job(job_name)
         if existing_job is not None:
