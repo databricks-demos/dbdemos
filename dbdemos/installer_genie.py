@@ -219,9 +219,11 @@ class InstallerGenie:
                         print(f"Copying {s3_url} to {target_path}")
                     response = requests.get(s3_url)
                     response.raise_for_status()
-                    print(f"File {file_name} in memory. sending to volume...")
+                    if debug:
+                        print(f"File {file_name} in memory. sending to volume...")
                     ws.files.upload(target_path, response.content, overwrite=True)
-                    print(f"File {file_name} in volume!")
+                    if debug:
+                        print(f"File {file_name} in volume!")
             
             with ThreadPoolExecutor(max_workers=5) as executor:
                 collections.deque(executor.map(copy_file, files))
