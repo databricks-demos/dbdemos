@@ -21,6 +21,7 @@ def bundle():
     bundler = JobBundler(conf)
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
     bundler.reset_staging_repo(skip_pull=False, )
+    bundler.load_bundles_conf()
     # Or manually add bundle to run faster:
     """
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
@@ -62,7 +63,7 @@ def bundle():
 
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-credit-decisioning")
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
+    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     #bundler.add_bundle("demo-FSI/lakehouse-fsi-smart-claims")
     #bundler.add_bundle("aibi/aibi-marketing-campaign")
@@ -111,17 +112,16 @@ def bundle():
     #bundler.add_bundle("product_demos/streaming-sessionization")
     #bundler.add_bundle("product_demos/Data-Science/feature-store")
     #bundler.load_bundles_conf()
-
     """
 
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
-    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False)
+    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False, recreate_jobs=False)
 
     packager = Packager(conf, bundler)
     packager.package_all()
 
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:

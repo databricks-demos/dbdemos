@@ -11,5 +11,9 @@ setup(
     include_package_data=True,
     install_requires=["requests", "pandas", "databricks-sdk>=0.38.0"],
     license="Databricks License",
-    license_files = ('LICENSE',)
+    license_files = ('LICENSE',),
+    tests_require=[
+        "pytest"
+    ],
+    python_requires=">=3.7"
 )
