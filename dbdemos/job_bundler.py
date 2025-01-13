@@ -125,7 +125,6 @@ class JobBundler:
             "Authorization": f"token {self.conf.github_token}"
         }
         # Get the latest commit (head) from the default branch
-        print("~~~~~~~~~~", f"https://api.github.com/repos/{owner}/{repo}/commits/HEAD", "~~~~~~~~~~")
         response = requests.get(f"https://api.github.com/repos/{owner}/{repo}/commits/HEAD", headers=headers)
         if response.status_code != 200:
             raise Exception(f"Error fetching head commit: {response.status_code}, {response.text}")
@@ -184,7 +183,6 @@ class JobBundler:
                           f"{self.conf.workspace_url}/#job/{demo_conf.job_id}/run/{demo_conf.run_id}")
                 i += 1
                 time.sleep(5)
-    import json
 
     def create_bundle_job(self, demo_conf: DemoConf, recreate_jobs: bool = False):
         notebooks_to_run = demo_conf.get_notebooks_to_run()
@@ -224,7 +222,6 @@ class JobBundler:
                     del job_cluster["new_cluster"]["autoscale"]
                     job_cluster["new_cluster"]["num_workers"] = 0
             default_job_conf['tasks'] = []
-
             for i, notebook in enumerate(notebooks_to_run):
                 task = {
                     "task_key": f"bundle_{demo_conf.name}_{i}",
@@ -263,7 +260,7 @@ class JobBundler:
         else:
             # create the job from scratch
             print(f"test job doesn't exist for {demo_conf.name}, creating a new one")
-            r = self.db.post("2.1/jobs/creatze", job_conf)
+            r = self.db.post("2.1/jobs/create", job_conf)
             if 'job_id' not in r:
                 raise Exception(f"Error starting the job for demo {demo_conf.name}: {r}. Please check your cluster/job setup {job_conf}")
             return r['job_id']
@@ -280,10 +277,8 @@ class JobBundler:
             "Accept": "application/vnd.github.v3+json",
             "Authorization": f"token {self.conf.github_token}"
         }
-
         if last_commit is None:
             last_commit = ""
-
         # Compare the base commit with the latest commit
         compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{base_commit}...{last_commit}"
         compare_response = requests.get(compare_url, headers=headers)
