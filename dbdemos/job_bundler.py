@@ -108,7 +108,6 @@ class JobBundler:
 
     def start_and_wait_bundle_jobs(self, force_execution: bool = False, skip_execution: bool = False, recreate_jobs: bool = False):
         self.create_or_update_bundle_jobs(recreate_jobs)
-        self.cancel_bundle_jobs()
         self.run_bundle_jobs(force_execution, skip_execution)
         self.wait_for_bundle_jobs_completion()
 
@@ -118,13 +117,6 @@ class JobBundler:
             def create_bundle_job(demo_conf):
                 demo_conf.job_id = self.create_bundle_job(demo_conf, recreate_jobs)
             collections.deque(executor.map(create_bundle_job, confs))
-
-    def cancel_bundle_jobs(self):
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            def cancel_job(demo_conf):
-                if demo_conf.job_id is not None:
-                    self.db.post("2.1/jobs/runs/cancel-all", {"job_id": demo_conf.job_id})
-            collections.deque(executor.map(cancel_job, [c[1] for c in self.bundles.items()]))
 
     def get_head_commit(self):
         owner, repo = self.conf.repo_url.split('/')[-2:]
@@ -149,15 +141,12 @@ class JobBundler:
                     if 'runs' in runs and len(runs['runs']) > 0:
                         run = runs['runs'][0]
                         if run["status"]["state"] != "TERMINATED":
-                            print(f"Job {demo_conf.name} status is {run["status"]["state"]}, cancelling it...")   
-                            self.db.post("2.1/jobs/runs/cancel-all", {"job_id": demo_conf.job_id})
-                            time.sleep(5)
-                            # Wait for the job to be terminated after cancellation
-                            while self.db.get("2.1/jobs/runs/get", {"run_id": run['run_id']})["state"]["life_cycle_state"] != "TERMINATED":
-                                print(f"Waiting for job {demo_conf.name} to be terminated after cancellation...")   
-                                time.sleep(10)
+                            run = self.cancel_job_run(demo_conf, run)
                         if not force_execution:
-                            if run["status"]["state"] == "SUCCESS":
+                            if "termination_details" not in run["status"]:
+                                raise Exception(f"termination_details missing, should not happen. Job {demo_conf.name} status is {run['status']}")
+                            elif run["status"]["termination_details"]["code"] == "SUCCESS":
+                                print(f"Job {demo_conf.name} status is {run['status']['termination_details']}...")
                                 if skip_execution:
                                     execute = False
                                     demo_conf.run_id = run['run_id']
@@ -298,5 +287,18 @@ class JobBundler:
             return [file['filename'] for file in files]
         else:
             raise Exception(f"Error fetching latest commit: {compare_response.status_code}, {compare_response.text}")
+
+    def cancel_job_run(self, demo_conf: DemoConf, run):
+        """Cancel a running job and wait for termination"""
+        print(f"Job {demo_conf.name} status is {run['status']['state']}, cancelling it...")   
+        self.db.post("2.1/jobs/runs/cancel-all", {"job_id": demo_conf.job_id})
+        time.sleep(5)
+        while True:
+            run = self.db.get("2.1/jobs/runs/get", {"run_id": run['run_id']})
+            if run["status"]["state"] == "TERMINATED":
+                break
+            print(f"Waiting for job {demo_conf.name} to be terminated after cancellation...")   
+            time.sleep(10)
+        return run
 
   
