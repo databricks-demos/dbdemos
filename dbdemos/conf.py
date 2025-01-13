@@ -35,6 +35,7 @@ class Conf():
         self.default_cluster_job_template = default_cluster_job_template
         self.repo_staging_path = repo_staging_path
         self.repo_name = repo_name
+        assert ".git" not in repo_url, "repo_url should not contain .git"
         self.repo_url = repo_url
         self.branch = branch
         self.github_token = github_token
