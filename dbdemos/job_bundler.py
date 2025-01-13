@@ -222,6 +222,11 @@ class JobBundler:
                     del job_cluster["new_cluster"]["autoscale"]
                     job_cluster["new_cluster"]["num_workers"] = 0
             default_job_conf['tasks'] = []
+
+            # Added for unit testing 01/13/2025. Enforcing single user to reduce
+            #  complexity of testing.
+            default_job_conf["run_as"] = {"user_name": self.conf.run_test_as_username}
+
             for i, notebook in enumerate(notebooks_to_run):
                 task = {
                     "task_key": f"bundle_{demo_conf.name}_{i}",
@@ -278,7 +283,7 @@ class JobBundler:
             "Authorization": f"token {self.conf.github_token}"
         }
         if last_commit is None:
-            last_commit = ""
+            last_commit = self.get_head_commit()
         # Compare the base commit with the latest commit
         compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{base_commit}...{last_commit}"
         compare_response = requests.get(compare_url, headers=headers)
