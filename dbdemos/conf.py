@@ -23,7 +23,7 @@ def merge_dict(a, b, path=None, override = True):
 
 class Conf():
     def __init__(self, username: str, workspace_url: str, org_id: str, pat_token: str, default_cluster_template: str = None, default_cluster_job_template = None,
-                 repo_staging_path: str = None, repo_name: str = None, repo_url: str = None, branch: str = "master"):
+                 repo_staging_path: str = None, repo_name: str = None, repo_url: str = None, branch: str = "master", github_token = None):
         self.username = username
         name = self.username[:self.username.rfind('@')]
         self.name = re.sub("[^A-Za-z0-9]", '_', name)
@@ -37,6 +37,7 @@ class Conf():
         self.repo_name = repo_name
         self.repo_url = repo_url
         self.branch = branch
+        self.github_token = github_token
 
     def get_repo_path(self):
         return self.repo_staging_path+"/"+self.repo_name
@@ -46,7 +47,7 @@ class Conf():
         if self.org_id == "1444828305810485" or "e2-demo-field-eng" in self.workspace_url:
             return "0727-104344-hauls13-pool-uftxk0r6"
         if self.org_id == "1660015457675682" or self.is_dev_env():
-            return "0213-111033-rowed79-pool-zb80houq"
+            return "1025-140806-yup112-pool-yz565bma"
         if self.org_id == "5206439413157315":
             return "1010-172835-slues66-pool-7dhzc23j"
         if self.org_id == "984752964297111":

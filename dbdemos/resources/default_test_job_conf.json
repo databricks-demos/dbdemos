@@ -11,7 +11,7 @@
     {
       "job_cluster_key": "field_demo_test",
       "new_cluster": {
-        "spark_version": "14.3.x-cpu-ml-scala2.12",
+        "spark_version": "15.4.x-cpu-ml-scala2.12",
         "custom_tags": {
           "project": "dbdemos",
           "demo_bundle_job": "autoloader",

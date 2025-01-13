@@ -54,41 +54,51 @@
   background-color: red;
   color: white;
   font-size: 13px;
-  padding: 2px 4px 5px;
+  padding: 2px 7px;
   border-radius: 3px;
   margin-right: 5px;
 }
 </style>
 <div class="dbdemo">
-     <div style="padding: 10px 0px 20px 20px"><button category="lakehouse" class="menu_button selected" type="button"><span>Lakehouse</span></button><button category="data-science" class="menu_button " type="button"><span>Data-science</span></button><button category="DBSQL" class="menu_button " type="button"><span>Dbsql</span></button><button category="governance" class="menu_button " type="button"><span>Governance</span></button><button category="data-engineering" class="menu_button " type="button"><span>Data-engineering</span></button><button category="AI-BI" class="menu_button " type="button"><span class="new_tag">NEW!</span><span>Ai-bi</span></button></div><div class="dbdemo_category" style="min-height: 200px; display: block" id="category-lakehouse">
+     <div style="padding: 10px 0px 20px 20px"><button category="lakehouse" class="menu_button selected" type="button"><span>Lakehouse</span></button><button category="data-science" class="menu_button " type="button"><span>Data-science</span></button><button category="data-engineering" class="menu_button " type="button"><span>Data-engineering</span></button><button category="AI-BI" class="menu_button " type="button"><span class="new_tag">NEW!</span><span>Ai-bi</span></button><button category="governance" class="menu_button " type="button"><span>Governance</span></button><button category="DBSQL" class="menu_button " type="button"><span>Dbsql</span></button></div><div class="dbdemo_category" style="min-height: 200px; display: block" id="category-lakehouse">
             <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/lakehouse-retail-c360.jpg" />
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/lakehouse-fsi-credit.jpg" />
               <div class="dbdemo_description">
-                <h2>Lakehouse for C360: Reducing Customer Churn</h2>
-                Centralize customer data and reduce churn: Ingestion (DLT), BI, Predictive Maintenance (ML), Governance (UC), Orchestration.
+                <h2>Lakehouse for Retail Banking: Credit Decisioning</h2>
+                Build your banking data platform and identify credit worthy customers
               </div>
               <div class="code"> 
-                dbdemos.install('lakehouse-retail-c360')
+                dbdemos.install('lakehouse-fsi-credit')
               </div>
             </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-data-science">
             <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/pandas-on-spark.jpg" />
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/mlops-end2end.jpg" />
               <div class="dbdemo_description">
-                <h2>Pandas API with spark backend (Koalas)</h2>
-                Let you Data Science team scale to TB of data while working with Pandas API, without having to learn & move to another framework.
+                <h2>MLOps - End 2 end pipeline</h2>
+                Automate your model deployment with MLFlow and UC, end 2 end!
               </div>
               <div class="code"> 
-                dbdemos.install('pandas-on-spark')
+                dbdemos.install('mlops-end2end')
               </div>
-            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-DBSQL">
+            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-data-engineering">
             <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/sql-ai-functions.jpg" />
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/cdc-pipeline.jpg" />
               <div class="dbdemo_description">
-                <h2>AI Functions: query LLM with DBSQL</h2>
-                Call Azure OpenAI's model from your Lakehouse data using AI_GENERATE_TEXT()
+                <h2>CDC Pipeline with Delta</h2>
+                Process CDC data to build an entire pipeline and materialize your operational tables in your lakehouse.
               </div>
               <div class="code"> 
-                dbdemos.install('sql-ai-functions')
+                dbdemos.install('cdc-pipeline')
+              </div>
+            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-AI-BI">
+            <div class="dbdemo_box">
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/aibi-sales-pipeline-review.jpg" />
+              <div class="dbdemo_description">
+                <h2>AI/BI: Sales Pipeline Review</h2>
+                Optimize your sales pipeline visibility and insights with AI/BI Dashboards, and leverage Genie to ask questions about your data in natural language.
+              </div>
+              <div class="code"> 
+                dbdemos.install('aibi-sales-pipeline-review')
               </div>
             </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-governance">
             <div class="dbdemo_box">
@@ -100,25 +110,15 @@
               <div class="code"> 
                 dbdemos.install('uc-01-acl')
               </div>
-            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-data-engineering">
+            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-DBSQL">
             <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/auto-loader.jpg" />
+              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/identity-pk-fk.jpg" />
               <div class="dbdemo_description">
-                <h2>Databricks Autoloader (cloudfile)</h2>
-                Incremental ingestion on your cloud storage folder.
+                <h2>Data Warehousing with Identity, Primary Key & Foreign Key</h2>
+                Define your schema with auto incremental column and Primary + Foreign Key. Ideal for Data Warehouse & BI support!
               </div>
               <div class="code"> 
-                dbdemos.install('auto-loader')
-              </div>
-            </div></div><div class="dbdemo_category" style="min-height: 200px; display: none" id="category-AI-BI">
-            <div class="dbdemo_box">
-              <img class="dbdemo_logo" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/aibi-marketing-campaign.jpg" />
-              <div class="dbdemo_description">
-                <h2>AI/BI: Marketing Campaign effectiveness</h2>
-                Analyze your Marketing Campaign effectiveness leveraging AI/BI Dashboard. Deep dive into your data and metrics, asking plain question through Genie Room.
-              </div>
-              <div class="code"> 
-                dbdemos.install('aibi-marketing-campaign')
+                dbdemos.install('identity-pk-fk')
               </div>
             </div></div></div><script>
     const buttons = document.querySelectorAll('.menu_button');

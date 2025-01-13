@@ -5,6 +5,7 @@ import re
 import base64
 from concurrent.futures import ThreadPoolExecutor
 import collections
+import requests
 
 class JobBundler:
     def __init__(self, conf: Conf):
@@ -27,19 +28,28 @@ class JobBundler:
         #if not self.staging_reseted:
         #    self.reset_staging_repo()
         print("scanning folder for bundles...")
-        def find_conf_files(path, list, depth = 0):
-            objects = self.db.get("2.0/workspace/list", {"path": path})["objects"]
+        from threading import Lock
+
+        bundle_set = set()
+        bundle_lock = Lock()
+
+        def find_conf_files(path, depth = 0):
+            objects = self.db.get("2.0/workspace/list", {"path": path})
+            if "objects" not in objects:
+                return
+            objects = objects["objects"]
             with ThreadPoolExecutor(max_workers=3 if depth <= 2 else 1) as executor:
-                params = [(o['path'], list, depth+1) for o in objects if o['object_type'] == 'DIRECTORY']
-                for r in executor.map(lambda args, f=find_conf_files: f(*args), params):
-                    list.update(r)
+                params = [(o['path'], depth+1) for o in objects if o['object_type'] == 'DIRECTORY']
+                for _ in executor.map(lambda args, f=find_conf_files: f(*args), params):
+                    pass
                 for o in objects:
                     if o['object_type'] == 'NOTEBOOK' and o['path'].endswith("/bundle_config"):
-                        list.add(o['path'])
-                return list
-        bundles = find_conf_files(self.conf.get_repo_path(), set())
+                        with bundle_lock:
+                            bundle_set.add(o['path'])
+
+        find_conf_files(self.conf.get_repo_path())
         with ThreadPoolExecutor(max_workers=5) as executor:
-            collections.deque(executor.map(self.add_bundle_from_config, bundles))
+            collections.deque(executor.map(self.add_bundle_from_config, bundle_set))
 
     def add_bundle_from_config(self, bundle_config_paths):
         #Remove the /Repos/xxx from the path (we need it from the repo root)
@@ -96,52 +106,79 @@ class JobBundler:
             self.head_commit_id = r['head_commit_id']
         self.staging_reseted = True
 
-    def start_and_wait_bundle_jobs(self, force_execution: bool = False, skip_execution: bool = False):
-        self.create_or_update_bundle_jobs()
+    def start_and_wait_bundle_jobs(self, force_execution: bool = False, skip_execution: bool = False, recreate_jobs: bool = False):
+        self.create_or_update_bundle_jobs(recreate_jobs)
         self.cancel_bundle_jobs()
         self.run_bundle_jobs(force_execution, skip_execution)
         self.wait_for_bundle_jobs_completion()
 
-    def create_or_update_bundle_jobs(self):
-        with ThreadPoolExecutor(max_workers=10) as executor:
+    def create_or_update_bundle_jobs(self, recreate_jobs: bool = False):
+        with ThreadPoolExecutor(max_workers=5) as executor:
             confs = [c[1] for c in self.bundles.items()]
             def create_bundle_job(demo_conf):
-                demo_conf.job_id = self.create_bundle_job(demo_conf)
+                demo_conf.job_id = self.create_bundle_job(demo_conf, recreate_jobs)
             collections.deque(executor.map(create_bundle_job, confs))
 
     def cancel_bundle_jobs(self):
-        for _, demo_conf in self.bundles.items():
-            if demo_conf.job_id is not None:
-                self.db.post("2.1/jobs/runs/cancel-all", {"job_id": demo_conf.job_id})
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            def cancel_job(demo_conf):
+                if demo_conf.job_id is not None:
+                    self.db.post("2.1/jobs/runs/cancel-all", {"job_id": demo_conf.job_id})
+            collections.deque(executor.map(cancel_job, [c[1] for c in self.bundles.items()]))
 
+    def get_head_commit(self):
+        owner, repo = self.conf.repo_url.split('/')[-2:]
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": f"token {self.conf.github_token}"
+        }
+        # Get the latest commit (head) from the default branch
+        response = requests.get(f"https://api.github.com/repos/{owner}/{repo}/commits/HEAD", headers=headers)
+        if response.status_code != 200:
+            raise Exception(f"Error fetching head commit: {response.status_code}, {response.text}")
+        return response.json()['sha']
+    
     def run_bundle_jobs(self, force_execution: bool = False, skip_execution = False):
-        for _, demo_conf in self.bundles.items():
-            if demo_conf.job_id is not None:
-                execute = True
-                if not force_execution:
+        head_commit = self.get_head_commit()
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            def run_job(demo_conf):
+                if demo_conf.job_id is not None:
+                    execute = True
                     runs = self.db.get("2.1/jobs/runs/list", {"job_id": demo_conf.job_id, 'limit': 2, 'expand_tasks': "true"})
                     #Last run was successful
                     if 'runs' in runs and len(runs['runs']) > 0:
                         run = runs['runs'][0]
-                        if run["state"]["life_cycle_state"] == "TERMINATED" and run["state"]["result_state"] == "SUCCESS":
-                            if skip_execution:
-                                execute = False
-                                demo_conf.run_id = run['run_id']
-                                print(f"skipping job execution {demo_conf.name} as it was already run and skip_execution=True.")
-                            else:
-                                #last run was using the same commit version.
-                                #TODO: speedup build:
-                                # - get the diff between earliest task commit id and head commit id as a function
-                                # - if the demo folder is not in the list of file changed, then skip the build with execute=False 
-                                # ==> this will reuse the previous run if nothing was changed in-between 
-                                tasks_with_different_commit = [t for t in run['tasks'] if t['git_source']['git_snapshot']['used_commit'] != self.head_commit_id]
-                                if len(tasks_with_different_commit) == 0:
+                        if run["status"]["state"] != "TERMINATED":
+                            print(f"Job {demo_conf.name} status is {run["status"]["state"]}, cancelling it...")   
+                            self.db.post("2.1/jobs/runs/cancel-all", {"job_id": demo_conf.job_id})
+                            time.sleep(5)
+                            # Wait for the job to be terminated after cancellation
+                            while self.db.get("2.1/jobs/runs/get", {"run_id": run['run_id']})["state"]["life_cycle_state"] != "TERMINATED":
+                                print(f"Waiting for job {demo_conf.name} to be terminated after cancellation...")   
+                                time.sleep(10)
+                        if not force_execution:
+                            if run["status"]["state"] == "SUCCESS":
+                                if skip_execution:
                                     execute = False
                                     demo_conf.run_id = run['run_id']
-                                    print(f"skipping job execution for {demo_conf.name} as previous run is already at staging. run with force_execution=true to override this check.")
-                if execute:
-                    run = self.db.post("2.1/jobs/run-now", {"job_id": demo_conf.job_id})
-                    demo_conf.run_id = run["run_id"]
+                                    print(f"skipping job execution {demo_conf.name} as it was already run and skip_execution=True.")
+                                else:
+                                    #last run was using the same commit version.
+                                    most_recent_commit = ''
+                                    for task in run['tasks']:
+                                        task_commit = task['git_source']['git_snapshot'].get('used_commit', '')
+                                        if task_commit > most_recent_commit:
+                                            most_recent_commit = task_commit
+                                    if not self.check_if_demo_file_changed_since_commit(demo_conf, most_recent_commit, head_commit) and most_recent_commit != '':
+                                        execute = False
+                                        demo_conf.run_id = run['run_id']
+                                        print(f"skipping job execution for {demo_conf.name} as no files changed since last run. run with force_execution=true to override this check.")
+                                    
+                    if execute:
+                        run = self.db.post("2.1/jobs/run-now", {"job_id": demo_conf.job_id})
+                        demo_conf.run_id = run["run_id"]
+
+            collections.deque(executor.map(run_job, [c[1] for c in self.bundles.items()]))
 
     def wait_for_bundle_jobs_completion(self):
         for _, demo_conf in self.bundles.items():
@@ -158,7 +195,7 @@ class JobBundler:
                 i += 1
                 time.sleep(5)
 
-    def create_bundle_job(self, demo_conf: DemoConf):
+    def create_bundle_job(self, demo_conf: DemoConf, recreate_jobs: bool = False):
         notebooks_to_run = demo_conf.get_notebooks_to_run()
         if len(notebooks_to_run) == 0:
             return None
@@ -217,11 +254,14 @@ class JobBundler:
             if "depends_on" in default_job_conf['tasks'][0]:
                 del default_job_conf['tasks'][0]["depends_on"]
 
-            return self.create_or_update_job(demo_conf, default_job_conf)
+            return self.create_or_update_job(demo_conf, default_job_conf, recreate_jobs)
 
-    def create_or_update_job(self, demo_conf: DemoConf, job_conf: dict):
+    def create_or_update_job(self, demo_conf: DemoConf, job_conf: dict, recreate_jobs: bool = False):
         print(f'searching for job {job_conf["name"]}')
         existing_job = self.db.find_job(job_conf["name"])
+        if recreate_jobs:
+            self.db.post("2.1/jobs/delete", {'job_id': existing_job['job_id']})
+            existing_job = None
         if existing_job is not None:
             # update the job
             print(f"test job {existing_job['job_id']} already existing for {demo_conf.name}, updating it with last config")
@@ -234,3 +274,29 @@ class JobBundler:
             if 'job_id' not in r:
                 raise Exception(f"Error starting the job for demo {demo_conf.name}: {r}. Please check your cluster/job setup {job_conf}")
             return r['job_id']
+
+    def check_if_demo_file_changed_since_commit(self, demo_conf: DemoConf, base_commit, last_commit = None):
+        if base_commit is None or base_commit == '':
+            return True
+        owner, repo = self.conf.repo_url.split('/')[-2:]
+        files = self.get_changed_files_since_commit(owner, repo, base_commit, last_commit)
+        return any(f.startswith(demo_conf.path) for f in files)
+
+    def get_changed_files_since_commit(self, owner, repo, base_commit, last_commit = None):
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": f"token {self.conf.github_token}"
+        }
+            
+        # Compare the base commit with the latest commit
+        compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{base_commit}...{last_commit}"
+        compare_response = requests.get(compare_url, headers=headers)
+
+        if compare_response.status_code == 200:
+            data = compare_response.json()
+            files = data['files']
+            return [file['filename'] for file in files]
+        else:
+            raise Exception(f"Error fetching latest commit: {compare_response.status_code}, {compare_response.text}")
+
+  

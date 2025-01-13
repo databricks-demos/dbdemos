@@ -14,114 +14,28 @@ with open("./dbdemos/resources/default_test_job_conf.json", "r") as cc:
 
 conf = Conf(c['username'], c['url'], c['org_id'], c['pat_token'],
             default_cluster_template, default_cluster_job_template,
-            c['repo_staging_path'], c['repo_name'], c['repo_url'], c['branch'])
+            c['repo_staging_path'], c['repo_name'], c['repo_url'], c['branch'], github_token=c['github_token'])
 
 
 def bundle():
     bundler = JobBundler(conf)
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
     bundler.reset_staging_repo(skip_pull=False, )
+    bundler.load_bundles_conf()
     # Or manually add bundle to run faster:
     """
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
-    #bundler.add_bundle("product_demos/Unity-Catalog/04-Audit-log")
-    bundler.add_bundle("product_demos/Data-Science/computer-vision-dl")
-    bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
-    bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
-    bundler.add_bundle("product_demos/Unity-Catalog/03-Data-lineage")
-    
-    bundler.add_bundle("product_demos/DBSQL-Datawarehousing/01-FK-PK-Indentity-Data-modeling")
-    bundler.add_bundle("product_demos/Data-Science/Koalas")
-    bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
-    bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-CDC")
-    bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
-    bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-loans")
-    bundler.add_bundle("product_demos/Auto-Loader (cloudFiles)")
-    bundler.add_bundle("product_demos/Unity-Catalog/03-Data-lineage")
-    bundler.add_bundle("product_demos/streaming-sessionization")
-    bundler.add_bundle("product_demos/Delta-Live-Table/Delta-Live-Table-Unit-Test")
-"""
-    #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/lakehouse-monitor")
-    #bundler.add_bundle("product_demos/Delta-Lake")
-    #bundler.add_bundle("product_demos/Data-Science/computer-vision-dl")
-    #bundler.add_bundle("product_demos/Unity-Catalog/01-Table-ACL")
-    #bundler.add_bundle("product_demos/Unity-Catalog/uc-04-system-tables")
-    #bundler.add_bundle("product_demos/streaming-sessionization")
-
-    """
-    Update UC full=
-    """
-    #bundler.add_bundle("product_demos/Delta-Live-Table/dlt-cdc")
-    #bundler.add_bundle("product_demos/Delta-Live-Table/dlt-loans")
-    #bundler.add_bundle("product_demos/Delta-Live-Table/dlt-unit-test")
-    #bundler.add_bundle("product_demos/cdc-pipeline")
-    #bundler.add_bundle("product_demos/auto-loader")
-    #bundler.add_bundle("demo-FSI/lakehouse-fsi-credit-decisioning")
-    #bundler.add_bundle("product_demos/Delta-Live-Table/dlt-cdc")
-
-    #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
-    #bundler.add_bundle("demo-FSI/lakehouse-fsi-credit-decisioning")
-    bundler.add_bundle("demo-retail/lakehouse-retail-c360")
-    #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
-    #bundler.add_bundle("demo-FSI/lakehouse-fsi-smart-claims")
-    #bundler.add_bundle("aibi/aibi-marketing-campaign")
-    #bundler.add_bundle("aibi/aibi-portfolio-assistant")
-    #bundler.add_bundle("aibi/aibi-supply-chain-forecasting")
-    #bundler.add_bundle("aibi/aibi-sales-pipeline-review")
-    #bundler.add_bundle("aibi/aibi-patient-genomics")
-    #bundler.add_bundle("aibi/aibi-customer-support")
-
-
-    #bundler.add_bundle("product_demos/dbt-on-databricks")
-    """
-    
-    bundler.add_bundle("product_demos/Delta-Live-Table/dlt-loans")
-    bundler.add_bundle("product_demos/Delta-Live-Table/dlt-unit-test")
-
-    bundler.add_bundle("product_demos/Unity-Catalog/uc-01-acl")
-    bundler.add_bundle("product_demos/Unity-Catalog/uc-02-external-location")
-    bundler.add_bundle("product_demos/Unity-Catalog/uc-03-data-lineage")
-    bundler.add_bundle("product_demos/Unity-Catalog/uc-04-system-tables")
-
-    bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
-
-    
-    
-    bundler.add_bundle("product_demos/Delta-Live-Table/dlt-unit-test")
-
-    bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
-    """
-    #bundler.add_bundle("product_demos/Data-Science/chatbot-rag-llm")
-    #bundler.add_bundle("product_demos/Data-Science/llm-fine-tuning")
-    #bundler.add_bundle("product_demos/Data-Science/llm-tools-functions")
-    #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
-    #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/lakehouse-monitor")
-    #bundler.add_bundle("demo-HLS/lakehouse-patient-readmission")
-    #bundler.add_bundle("product_demos/Data-Science/feature-store")
-    #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
-    #bundler.add_bundle("demo-FSI/lakehouse-fsi-fraud-detection")
-    #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/sql-ai-functions")
-    """
-    bundler.add_bundle("product_demos/Unity-Catalog/uc-05-upgrade")
-
-    #bundler.add_bundle("product_demos/Delta-Lake")
-    #bundler.add_bundle("product_demos/Data-Science/llm-dolly-chatbot")
-    #bundler.add_bundle("product_demos/DBSQL-Datawarehousing/sql-ai-functions")
-    #bundler.add_bundle("product_demos/streaming-sessionization")
-    #bundler.add_bundle("product_demos/Data-Science/feature-store")
     #bundler.load_bundles_conf()
-
     """
-
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
-    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False)
+    bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False, recreate_jobs=False)
 
     packager = Packager(conf, bundler)
     packager.package_all()
 
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
@@ -202,4 +116,4 @@ dbdemos.list_demos(pat_token=c['pat_token'])
 
 
 
-dbdemos.install("dbt-on-databricks", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True, serverless=True)
+#dbdemos.install("dbt-on-databricks", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True, serverless=True)
