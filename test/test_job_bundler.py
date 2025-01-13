@@ -1,14 +1,19 @@
 import unittest
 from dbdemos.job_bundler import JobBundler
 from dbdemos.conf import Conf
+import json
 
 class TestJobBundler(unittest.TestCase):
     def setUp(self):
+        with open('local_conf.json', 'r') as f:
+            local_conf = json.load(f)
+        
         self.conf = Conf(username="test_user@test.com", 
                         workspace_url="https://test.cloud.databricks.com", 
                         org_id="1234567890", 
                         pat_token="test_token",
                         repo_url="https://github.com/databricks-demos/dbdemos-notebooks",
+                        github_token=local_conf.get('github_token'),
                         branch="main")
         self.job_bundler = JobBundler(self.conf)
 
