@@ -23,7 +23,7 @@ def merge_dict(a, b, path=None, override = True):
 
 class Conf():
     def __init__(self, username: str, workspace_url: str, org_id: str, pat_token: str, default_cluster_template: str = None, default_cluster_job_template = None,
-                 repo_staging_path: str = None, repo_name: str = None, repo_url: str = None, branch: str = "master", github_token = None):
+                 repo_staging_path: str = None, repo_name: str = None, repo_url: str = None, branch: str = "master", github_token = None, run_test_as_username="quentin.ambard@databricks.com"):
         self.username = username
         name = self.username[:self.username.rfind('@')]
         self.name = re.sub("[^A-Za-z0-9]", '_', name)
@@ -38,6 +38,7 @@ class Conf():
         self.repo_url = repo_url
         self.branch = branch
         self.github_token = github_token
+        self.run_test_as_username = run_test_as_username
 
     def get_repo_path(self):
         return self.repo_staging_path+"/"+self.repo_name

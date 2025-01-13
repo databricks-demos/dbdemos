@@ -199,6 +199,7 @@ class JobBundler:
             #Update the job cluster with the specific demo setup if any
             for job_cluster in default_job_conf["job_clusters"]:
                 merge_dict(job_cluster["new_cluster"], cluster_conf)
+                job_cluster["new_cluster"]["single_user_name"] = self.conf.run_test_as_username
                 # Custom instance (ex: gpu), not i3, remove the pool
                 # expected format: {"AWS": "g5.4xlarge", "AZURE": "Standard_NC8as_T4_v3", "GCP": "a2-highgpu-1g"}
                 if "node_type_id" in job_cluster["new_cluster"] and "AWS" in job_cluster["new_cluster"]["node_type_id"]:
@@ -276,7 +277,8 @@ class JobBundler:
             "Accept": "application/vnd.github.v3+json",
             "Authorization": f"token {self.conf.github_token}"
         }
-            
+        if last_commit is None:
+            last_commit = ""
         # Compare the base commit with the latest commit
         compare_url = f"https://api.github.com/repos/{owner}/{repo}/compare/{base_commit}...{last_commit}"
         compare_response = requests.get(compare_url, headers=headers)
