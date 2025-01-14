@@ -35,7 +35,7 @@ class Conf():
         self.default_cluster_job_template = default_cluster_job_template
         self.repo_staging_path = repo_staging_path
         self.repo_name = repo_name
-        assert ".git" not in repo_url, "repo_url should not contain .git"
+        assert repo_url is None or ".git" not in repo_url, "repo_url should not contain .git"
         self.repo_url = repo_url
         self.branch = branch
         self.github_token = github_token
@@ -231,8 +231,10 @@ class DemoConf():
         self.custom_message = json_conf.get('custom_message', "")
         self.create_cluster = json_conf.get('create_cluster', True)
         self.dashboards = json_conf.get('dashboards', [])
+        self.sql_queries = json_conf.get('sql_queries', [])
         assert "bundle" in json_conf and json_conf["bundle"], "This demo isn't flaged for bundle. Please set bunde = True in the config file"
 
+        
         self.data_folders: List[DataFolder] = []
         for data_folder in json_conf.get('data_folders', []):
             self.data_folders.append(DataFolder(data_folder['source_folder'], data_folder['source_format'], data_folder.get('target_table_name', None), 

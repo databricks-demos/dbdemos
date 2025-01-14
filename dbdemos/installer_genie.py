@@ -122,6 +122,16 @@ class InstallerGenie:
                         for data_folder in demo_conf.data_folders]
                 for future in futures:
                     future.result()
+        if demo_conf.sql_queries:
+            self.run_sql_queries(ws, demo_conf, warehouse_id, debug)
+
+    def run_sql_queries(self, ws: WorkspaceClient, demo_conf: DemoConf, warehouse_id, debug=True):
+        for query_batch in demo_conf.sql_queries:
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                futures = [executor.submit(self.sql_query_executor.execute_query, ws, query, warehouse_id=warehouse_id, debug=debug) 
+                          for query in query_batch]
+                for future in futures:
+                    future.result()
 
     def get_current_cluster_id(self):
         return json.loads(self.installer.get_dbutils_tags_safe()['clusterId'])
