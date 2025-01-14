@@ -45,7 +45,8 @@ class SQLQueryExecutor:
     def execute_query(self, ws: WorkspaceClient, query: str, timeout: int = 50, warehouse_id: str = None, debug: bool = False) -> tuple[ResultData, ResultManifest]:
         if not warehouse_id:
             warehouse_id = self.get_or_create_shared_warehouse(ws)
-        
+        if debug:
+            print(f"Executing query: {query} with warehouse {warehouse_id}")
         # Execute the query with a maximum wait timeout of 50 seconds
         statement = ws.statement_execution.execute_statement(
             warehouse_id=warehouse_id,
