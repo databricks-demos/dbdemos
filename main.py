@@ -21,10 +21,10 @@ def bundle():
     bundler = JobBundler(conf)
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
     bundler.reset_staging_repo(skip_pull=False, )
-    #bundler.load_bundles_conf()
+    bundler.load_bundles_conf()
     # Or manually add bundle to run faster:
-    bundler.add_bundle("aibi/aibi-sales-pipeline-review")
     """
+    bundler.add_bundle("aibi/aibi-sales-pipeline-review")
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
     #bundler.load_bundles_conf()
