@@ -28,10 +28,10 @@ class InstallerDashboard:
 
     def replace_dashboard_schema(self, demo_conf: DemoConf, definition: str):
         import re
-        #main__build is used during the build process to avoid collision with default main.
-        re.sub(r"`?main__build`?\.", "main", definition)
-        definition = definition.replace("main__build.", f"main.")
-        definition = definition.replace("`main__build`.", f"`main`.")
+        #main__build is used during the build process to avoid collision with default main. #main_build is used because agent don't support __ in their catalog name.
+        definition = re.sub(r"`?main[_]{1,2}build`?\.", "main", definition)
+        definition = re.sub(r"main[_]{1,2}build\.", "main.", definition)
+        definition = re.sub(r"`main[_]{1,2}build`\.", "`main`.", definition)
         if demo_conf.custom_schema_supported:
             return re.sub(r"`?" + re.escape(demo_conf.default_catalog) + r"`?\.`?" + re.escape(demo_conf.default_schema) + r"`?", f"`{demo_conf.catalog}`.`{demo_conf.schema}`", definition)
         return definition
