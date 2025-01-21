@@ -243,13 +243,13 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
                            debug = debug, catalog = catalog, schema = schema, serverless = serverless, warehouse_name=warehouse_name, skip_genie_rooms=skip_genie_rooms)
 
 
-def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None, use_current_cluster = False):
+def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None, use_current_cluster = False, catalog = None, schema = None):
     """
     Install all the bundle demos.
     """
     installer = Installer(username, pat_token, workspace_url, cloud)
     for demo_name in installer.get_demos_available():
-        installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster)
+        installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster, catalog = catalog, schema = schema)
 
 def check_status_all(username = None, pat_token = None, workspace_url = None, cloud = "AWS"):
     """
