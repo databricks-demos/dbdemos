@@ -112,7 +112,7 @@ class JobBundler:
         self.wait_for_bundle_jobs_completion()
 
     def create_or_update_bundle_jobs(self, recreate_jobs: bool = False):
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=10) as executor:
             confs = [c[1] for c in self.bundles.items()]
             def create_bundle_job(demo_conf):
                 demo_conf.job_id = self.create_bundle_job(demo_conf, recreate_jobs)

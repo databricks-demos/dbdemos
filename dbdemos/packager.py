@@ -87,38 +87,30 @@ class Packager:
             #parser.remove_static_settings()
             parser.hide_commands_and_results()
             #Moving away from the initial 00-global-setup, remove it once migration is completed
-            requires_global_setup = False
             requires_global_setup_v2 = False
             if parser.contains("00-global-setup-v2"):
                 parser.replace_in_notebook('(?:\.\.\/)*_resources\/00-global-setup-v2', './00-global-setup-v2', True)
                 requires_global_setup_v2 = True
             elif parser.contains("00-global-setup"):
-                parser.replace_in_notebook('(?:\.\.\/)*_resources\/00-global-setup', './00-global-setup', True)
-                requires_global_setup = True
+                raise Exception("00-global-setup is deprecated. Please use 00-global-setup-v2 instead.")
             with open(full_path, "w") as f:
                 f.write(parser.get_html())
-            return (requires_global_setup, requires_global_setup_v2)
+            return requires_global_setup_v2
 
-        requires_global_setup = False
         requires_global_setup_v2 = False
-        for notebook in demo_conf.notebooks:
-            rv1, rv2 = download_notebook_html(notebook)
-            if rv1:
-                requires_global_setup = True
-            if rv2:
-                requires_global_setup_v2 = True
+        
+        # Process notebooks in parallel with max 5 workers
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            # Submit all notebooks for processing and collect futures
+            futures = [executor.submit(download_notebook_html, notebook) for notebook in demo_conf.notebooks]
+            
+            # Process results as they complete
+            for future in futures:
+                rv1 = future.result()
+                if rv1:
+                    requires_global_setup_v2 = True
 
         #Add the global notebook if required
-        # TODO: not ideal, it's a bit messy need to re-think that
-        if requires_global_setup:
-            init_notebook = DemoNotebook("_resources/00-global-setup", "Global init", "Global init")
-            demo_conf.add_notebook(init_notebook)
-            file = self.db.get("2.0/workspace/export", {"path": self.jobBundler.conf.get_repo_path() +"/"+ init_notebook.path, "format": "HTML", "direct_download": False})
-            if 'error_code' in file:
-                raise Exception(f"Couldn't find file '{self.jobBundler.conf.get_repo_path()}/{init_notebook.path}' in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
-            html = base64.b64decode(file['content']).decode('utf-8')
-            with open(demo_conf.get_bundle_path() + "/" + init_notebook.path+".html", "w") as f:
-                f.write(html)
         if requires_global_setup_v2:
             init_notebook = DemoNotebook("_resources/00-global-setup-v2", "Global init", "Global init")
             demo_conf.add_notebook(init_notebook)
