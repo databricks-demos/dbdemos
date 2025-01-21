@@ -25,10 +25,10 @@ class Packager:
             if len(demo_conf.dashboards) > 0:
                 self.extract_lakeview_dashboards(demo_conf)
             self.build_minisite(demo_conf, iframe_root_src)
-
-        confs = [demo_conf for _, demo_conf in self.jobBundler.bundles.items()]
-        for demo_conf in confs:
-            package_demo(demo_conf)
+            
+        confs = [demo_conf for _, demo_conf in self.jobBundler.bundles.items()]        
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            collections.deque(executor.map(package_demo, confs))
 
     def clean_bundle(self, demo_conf: DemoConf):
         if Path(demo_conf.get_bundle_root_path()).exists():
@@ -100,7 +100,7 @@ class Packager:
         requires_global_setup_v2 = False
         
         # Process notebooks in parallel with max 5 workers
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=10) as executor:
             # Submit all notebooks for processing and collect futures
             futures = [executor.submit(download_notebook_html, notebook) for notebook in demo_conf.notebooks]
             
