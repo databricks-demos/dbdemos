@@ -259,13 +259,17 @@ def check_status_all(username = None, pat_token = None, workspace_url = None, cl
     for demo_name in installer.get_demos_available():
         check_status(demo_name, username, pat_token, workspace_url, cloud)
 
-def check_status(demo_name:str, username = None, pat_token = None, workspace_url = None, cloud = "AWS"):
+def check_status(demo_name:str, username = None, pat_token = None, workspace_url = None, cloud = "AWS", catalog = None, schema = None):
     """
     Check the status of the given demo installation. Will pool the installation job if any and wait for its completion.
     Throw an error if the job wasn't successful.
     """
     installer = Installer(username, pat_token, workspace_url, cloud)
-    demo_conf = installer.get_demo_conf(demo_name)
+    demo_conf = installer.get_demo_conf(demo_name, catalog, schema)
+    if schema is None:
+        schema = demo_conf.default_schema
+    if catalog is None:
+        catalog = demo_conf.default_catalog
     if "settings" in demo_conf.init_job:
         job_name = demo_conf.init_job["settings"]["name"]
         existing_job = installer.db.find_job(job_name)
