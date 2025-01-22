@@ -232,8 +232,7 @@ class DemoConf():
         self.create_cluster = json_conf.get('create_cluster', True)
         self.dashboards = json_conf.get('dashboards', [])
         self.sql_queries = json_conf.get('sql_queries', [])
-        assert "bundle" in json_conf and json_conf["bundle"], "This demo isn't flaged for bundle. Please set bunde = True in the config file"
-
+        self.bundle = json_conf.get('bundle', False)
         
         self.data_folders: List[DataFolder] = []
         for data_folder in json_conf.get('data_folders', []):

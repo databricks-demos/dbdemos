@@ -241,13 +241,13 @@ class Installer:
         if serverless is None:
             serverless = self.cluster_is_serverless()
         self.check_demo_name(demo_name)
+        demo_conf = self.get_demo_conf(demo_name, catalog, schema, install_path+"/"+demo_name)
+        if (schema is not None or catalog is not None) and not demo_conf.custom_schema_supported:
+            self.report.display_custom_schema_not_supported_error(Exception(f'Custom schema not supported for {demo_conf.name}'), demo_conf)
         if schema is None:
             schema = demo_conf.default_schema
         if catalog is None:
             catalog = demo_conf.default_catalog
-        demo_conf = self.get_demo_conf(demo_name, catalog, schema, install_path+"/"+demo_name)
-        if (schema is not None or catalog is not None) and not demo_conf.custom_schema_supported:
-            self.report.display_custom_schema_not_supported_error(Exception('Custom schema not supported'), demo_conf)
         if "-" in schema or "-" in catalog:
             self.report.display_incorrect_schema_error(Exception('Please use a valid schema/catalog name.'), demo_conf)
 

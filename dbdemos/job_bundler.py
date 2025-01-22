@@ -84,7 +84,10 @@ class JobBundler:
         except Exception as e:
             raise Exception(f"incorrect json setting for {config_path}: {e}. The cell should contain a python object. Please use double quote.\n {j}")
         demo_conf = DemoConf(bundle_path, json_conf)
-        self.bundles[bundle_path] = demo_conf
+        if not demo_conf.bundle:
+            print(f'SKIPPING DEMO {demo_conf.name} as it is not flagged for bundle.')
+        else:
+            self.bundles[bundle_path] = demo_conf
 
     def reset_staging_repo(self, skip_pull = False):
         repo_path = self.conf.get_repo_path()
