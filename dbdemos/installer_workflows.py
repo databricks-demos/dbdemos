@@ -104,7 +104,7 @@ class InstallerWorkflow:
                         environments.append({
                             "environment_key": env_key,
                             "spec": {
-                                "client": "1",
+                                "client": "2",
                                 "dependencies": dependencies
                             }
                         })
