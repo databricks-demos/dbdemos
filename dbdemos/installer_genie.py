@@ -212,6 +212,8 @@ class InstallerGenie:
             if debug:
                 print(f"Getting files from {github_path}")
             files = requests.get(github_path).json()
+            if 'message' in files:
+                print(f"Error getting files from {github_path}: {files}")
             files = [f['download_url'] for f in files]
             
             if debug:
