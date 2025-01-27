@@ -1,5 +1,6 @@
 dbdemos/exceptions/__pycache__
 __pycache__
+update-minisite-dbdemos-website.sh
 local_conf_awsevent.json
 local_conf_cse2.json
 local_conf_gcp.json
