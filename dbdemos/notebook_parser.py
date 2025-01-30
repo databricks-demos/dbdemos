@@ -192,6 +192,8 @@ class NotebookParser:
     def set_environement_metadata(self, client_version: str = "2"):
         content = json.loads(self.content)
         env_metadata = content.get("environmentMetadata", {})
+        if env_metadata is None:
+            env_metadata = {}
         if "client" not in env_metadata:
             env_metadata["client"] = client_version
         content["environmentMetadata"] = env_metadata
