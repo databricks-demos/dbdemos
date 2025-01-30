@@ -187,6 +187,16 @@ class NotebookParser:
             </script>
             </body>""", self.html)
 
+    #Set the environment metadata to the notebook.
+    # TODO: might want to re-evaluate this once we move to ipynb format as it'll be set in the ipynb file, as metadata.
+    def set_environement_metadata(self, client_version: str = "2"):
+        content = json.loads(self.content)
+        env_metadata = content.get("environmentMetadata", {})
+        if "client" not in env_metadata:
+            env_metadata["client"] = client_version
+        content["environmentMetadata"] = env_metadata
+        self.content = json.dumps(content)
+
     def hide_commands_and_results(self):
         #
         self.replace_in_notebook('e2-demo-tools', 'xxxx', True)
