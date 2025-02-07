@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<body>
+
+dbdemos.ai - Demos for Databricks
+<strong>dbdemos.ai has a new home under databricks.com!</strong><br/>
+Redirecting to <a href="https://www.databricks.com/resources/demos/tutorials?itm_data=demo_center">https://www.databricks.com/resources/demos/tutorials</a>..
+
+
+<!-- WELCOME -->
+
+
+<script type="text/javascript">
+    // Function to update the countdown display
+    function updateCountdown(seconds) {
+      const countdownDiv = document.getElementById("countdown");
+      countdownDiv.textContent = seconds;
+    }
+
+    // Function to redirect after countdown
+    function redirectAfterCountdown(url, seconds) {
+      updateCountdown(seconds);
+
+      if (seconds > 0) {
+        setTimeout(() => {
+          redirectAfterCountdown(url, seconds - 1);
+        }, 1000);
+      } else {
+        window.location.href = url;
+      }
+    }
+
+    // Start the countdown and redirection
+    const targetUrl = "https://www.databricks.com/resources/demos/tutorials?itm_data=demo_center";
+    window.location.href = targetUrl;
+    //const countdownDuration = 5;
+    //redirectAfterCountdown(targetUrl, countdownDuration);
+</script>
+
+</body>
+</html>
