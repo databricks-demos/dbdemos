@@ -158,7 +158,8 @@ class JobBundler:
                                     #last run was using the same commit version.
                                     most_recent_commit = ''
                                     for task in run['tasks']:
-                                        task_commit = task['git_source']['git_snapshot'].get('used_commit', '')
+                                        # Safely get the commit if git_source and git_snapshot exist
+                                        task_commit = task.get('git_source', {}).get('git_snapshot', {}).get('used_commit', '')
                                         if task_commit > most_recent_commit:
                                             most_recent_commit = task_commit
                                     if not self.check_if_demo_file_changed_since_commit(demo_conf, most_recent_commit, head_commit) and most_recent_commit != '':
