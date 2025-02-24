@@ -182,7 +182,7 @@ class InstallerReport:
     def display_token_error(self, exception: TokenException, demo_name: str):
         self.display_error(exception, f"""dbdemos couldn't not programmatically acquire a pat token to call the API to install the demo.<br/>
                                          This can be due to the following:
-                                         <ul><li>Legacy cluster being used with admin protection for “<a href="https://docs.databricks.com/administration-guide/account-settings/no-isolation-shared.html">No isolation shared</a>” (account level setting)."</li>
+                                         <ul><li>Legacy cluster being used with admin protection for "<a href="https://docs.databricks.com/administration-guide/account-settings/no-isolation-shared.html">No isolation shared</a>" (account level setting)."</li>
                                          <li>Restriction on Shared cluster</li></ul>
                                          Please use a cluster with Access mode set to Isolation, Single User and re-run your dbdemos command.<br/>
                                          Alternatively, you can use a PAT token in the install:
@@ -424,3 +424,15 @@ class InstallerReport:
         if len(first) > 0:
             first.sort(key=lambda n: n.get_clean_path())
             print(f"Start with the first notebook {demo_name}/{first[0].get_clean_path()}{cluster_instruction}: {self.workspace_url}/#workspace{install_path}/{demo_name}/{first[0].get_clean_path()}.")
+
+    def display_schema_creation_error(self, exception: Exception, demo_conf: DemoConf):
+        self.display_error(exception, f"""Can't create catalog/schema `{demo_conf.catalog}`.`{demo_conf.schema}`. <br/>
+                                        Please verify you have the proper permissions to create catalogs and schemas, or install the demo in another location:<br/>
+                                        <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', catalog='{demo_conf.catalog}', schema='{demo_conf.schema}', create_schema=True)</div><br/>
+                                        Error details: {str(exception)}""")
+
+    def display_schema_not_found_error(self, exception: Exception, demo_conf: DemoConf):
+        self.display_error(exception, f"""The catalog/schema `{demo_conf.catalog}`.`{demo_conf.schema}` doesn't exist. <br/>
+                                        Either create it manually, or set create_schema=True to let dbdemos create it for you:<br/>
+                                        <div class="code dbdemos_block">dbdemos.install('{demo_conf.name}', catalog='{demo_conf.catalog}', schema='{demo_conf.schema}', create_schema=True)</div><br/>
+                                        Error details: {str(exception)}""")

@@ -227,7 +227,8 @@ def list_dashboards(category = None):
     pass
 
 def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None,
-            use_current_cluster: bool = False, current_cluster_id = None, warehouse_name = None, debug = False, catalog = None, schema = None, serverless=None, skip_genie_rooms=False):
+            use_current_cluster: bool = False, current_cluster_id = None, warehouse_name = None, debug = False, catalog = None, schema = None, serverless=None, skip_genie_rooms=False, 
+            create_schema=True):
     check_version()
     if demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
@@ -242,7 +243,7 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
         #Force dashboard skip as dbsql isn't available to avoid any error.
         skip_dashboards = True
     installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster,
-                           debug = debug, catalog = catalog, schema = schema, serverless = serverless, warehouse_name=warehouse_name, skip_genie_rooms=skip_genie_rooms)
+                           debug = debug, catalog = catalog, schema = schema, serverless = serverless, warehouse_name=warehouse_name, skip_genie_rooms=skip_genie_rooms, create_schema=create_schema)
 
 
 def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None, use_current_cluster = False, catalog = None, schema = None):
