@@ -6,6 +6,12 @@ setup(
     name = 'dbdemos',
     #some version number you may wish to add - increment this after every update
     version='0.6.9',
+    author="Databricks",
+    author_email=["quentin.ambard@databricks.com", "cal.reynolds@databricks.com"],
+    description="Install databricks demos: notebooks, Delta Live Table Pipeline, DBSQL Dashboards, ML Models etc.",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/databricks-demos/dbdemos",
     packages=find_packages(exclude=["tests", "tests.*"]),
     setup_requires=["wheel"],
     include_package_data=True,

@@ -130,7 +130,7 @@ class JobBundler:
         # Get the latest commit (head) from the default branch
         response = requests.get(f"https://api.github.com/repos/{owner}/{repo}/commits/HEAD", headers=headers)
         if response.status_code != 200:
-            raise Exception(f"Error fetching head commit: {response.status_code}, {response.text}")
+            raise Exception(f"Error fetching head commit: {response.status_code}, {response.text}. Please check your github token in your conf file, or get a new in https://github.com/settings/tokens.")
         return response.json()['sha']
     
     def run_bundle_jobs(self, force_execution: bool = False, skip_execution = False):

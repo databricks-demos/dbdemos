@@ -81,39 +81,10 @@ class InstallerGenie:
                 print(f"genie room SQL instructions: {instructions}")
         return {"id": room.id, "uid": created_room['id'], 'name': room.display_name}
 
-
-    def create_schema(self, ws, demo_conf: DemoConf, debug=True):
-        ws = WorkspaceClient(token=self.installer.db.conf.pat_token, host=self.installer.db.conf.workspace_url)
-        try:
-            catalog = ws.catalogs.get(demo_conf.catalog)
-        except Exception as e:
-            if debug:
-                print(f"Can't describe catalog {demo_conf.catalog}. Will now try to create it. Error: {e}")
-            try:
-                catalog = ws.catalogs.create(demo_conf.catalog)
-            except Exception as e:
-                raise DataLoaderException(f"Can't create catalog `{demo_conf.catalog}` and it doesn't seem to be existing. <br/>"
-                                        f"Please create the catalog or grant you USAGE/READ permission, or install the demo in another catalog= dbdemos.install(xxx, catalog=xxx, schema=xxx).<br/>"
-                                        f" {e} ")
-
-        schema_full_name = f"{demo_conf.catalog}.{demo_conf.schema}"
-        try:
-            schema = ws.schemas.get(schema_full_name)
-        except Exception as e:
-            if debug:
-                print(f"Can't describe schema {schema_full_name}. {e} Will now try to create it. Error:{e}")
-            try:
-                schema = ws.schemas.create(demo_conf.schema, catalog_name=demo_conf.catalog)
-            except Exception as e:
-                raise DataLoaderException(f"Can't create schema {schema_full_name} and it doesn't seem to be existing. <br/>"
-                                        f"Please create the catalog or grant you USAGE/READ permission, or install the demo in another catalog: dbdemos.install(xxx, catalog=xxx, schema=xxx, warehouse_id=xx).<br/>"
-                                        f" {e}")
-
     def load_genie_data(self, demo_conf: DemoConf, warehouse_id, debug=True):
         if demo_conf.data_folders:
             print(f"Loading data in your schema {demo_conf.catalog}.{demo_conf.schema} using warehouse {warehouse_id}, this might take a few seconds (you can use another warehouse with the option: warehouse_name='xxx')...")
             ws = WorkspaceClient(token=self.installer.db.conf.pat_token, host=self.installer.db.conf.workspace_url)
-            self.create_schema(ws, demo_conf, debug)
             if any(d.target_volume_folder_name is not None for d in demo_conf.data_folders):
                 self.create_raw_data_volume(ws, demo_conf, debug)
 

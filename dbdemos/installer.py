@@ -24,6 +24,7 @@ from datetime import date
 import urllib
 import threading
 import requests
+from databricks.sdk import WorkspaceClient
 
 class Installer:
     def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS", org_id: str = None, current_cluster_id: str = None):
@@ -227,8 +228,40 @@ class Installer:
             print(f"Couldn't get cluster serverless status. Will consider it False. {e}")
             return False
 
+    def create_or_check_schema(self, demo_conf: DemoConf, create_schema: bool, debug=True):
+        """Create or verify schema exists based on create_schema parameter"""
+        ws = WorkspaceClient(token=self.db.conf.pat_token, host=self.db.conf.workspace_url)
+        try:
+            catalog = ws.catalogs.get(demo_conf.catalog)
+        except Exception as e:
+            if create_schema:
+                if debug:
+                    print(f"Can't describe catalog {demo_conf.catalog}. Will now try to create it. Error: {e}")
+                try:
+                    print(f"Catalog {demo_conf.catalog} doesn't exist. Creating it. You can set create_schema=False to avoid catalog and schema creation.")
+                    catalog = ws.catalogs.create(demo_conf.catalog)
+                except Exception as e:
+                    self.report.display_schema_creation_error(e, demo_conf)
+            else:
+                self.report.display_schema_not_found_error(e, demo_conf)
+
+        schema_full_name = f"{demo_conf.catalog}.{demo_conf.schema}"
+        try:
+            schema = ws.schemas.get(schema_full_name)
+        except Exception as e:
+            if create_schema:
+                if debug:
+                    print(f"Can't describe schema {schema_full_name}. Will now try to create it. Error: {e}")
+                try:
+                    schema = ws.schemas.create(demo_conf.schema, catalog_name=demo_conf.catalog)
+                except Exception as e:
+                    self.report.display_schema_creation_error(e, demo_conf)
+            else:
+                self.report.display_schema_not_found_error(e, demo_conf)
+
     def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = None,
-                     use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False, warehouse_name = None, skip_genie_rooms=False):
+                     use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False, warehouse_name = None, skip_genie_rooms=False, 
+                     create_schema=True):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -250,6 +283,10 @@ class Installer:
             catalog = demo_conf.default_catalog
         if "-" in schema or "-" in catalog:
             self.report.display_incorrect_schema_error(Exception('Please use a valid schema/catalog name.'), demo_conf)
+
+        # Add schema validation/creation after demo_conf initialization
+        if demo_conf.custom_schema_supported:
+            self.create_or_check_schema(demo_conf, create_schema, debug)
 
         if demo_name.startswith("aibi"):
             use_current_cluster = True
@@ -283,6 +320,7 @@ class Installer:
                 self.db.post(f"2.0/pipelines/{pipeline['uid']}/updates", { "full_refresh": True })
 
         self.report.display_install_result(demo_name, demo_conf.description, demo_conf.title, install_path, notebooks, init_job['uid'], init_job['run_id'], serverless, cluster_id, cluster_name, pipeline_ids, dashboards, workflows, genie_rooms)
+
 
     def get_demo_datasource(self, warehouse_name = None):
         data_sources = self.db.get("2.0/preview/sql/data_sources")
