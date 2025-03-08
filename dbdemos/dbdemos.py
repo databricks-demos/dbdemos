@@ -313,8 +313,9 @@ def check_version():
         
         # Compare versions
         if pkg_resources.parse_version(latest_version) > pkg_resources.parse_version(installed_version):
-            print(f"\nWARNING: You are using dbdemos version {installed_version}, however version {latest_version} is available.")
-            print("You should consider upgrading via '%pip install --upgrade dbdemos'")
+            print(f"\nWARNING: You are using dbdemos version {installed_version}, however version {latest_version} is available. You should consider upgrading:")
+            print("%pip install --upgrade dbdemos")
+            print("dbutils.library.restartPython()")
             
     except Exception as e:
         # Silently handle any errors during version check

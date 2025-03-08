@@ -56,6 +56,8 @@ class Packager:
             self.jobBundler.reset_staging_repo()
         if len(demo_conf.get_notebooks_to_run()) > 0:
             run = self.db.get("2.1/jobs/runs/get", {"run_id": demo_conf.run_id, "include_history": False})
+            if 'state' not in run:
+                raise Exception(f"Can't get the last job {self.db.conf.workspace_url}/#job/{demo_conf.job_id}/run/{demo_conf.run_id} state for demo {demo_conf.name}: {run}")
             if run['state']['result_state'] != 'SUCCESS':
                 raise Exception(f"last job {self.db.conf.workspace_url}/#job/{demo_conf.job_id}/run/{demo_conf.run_id} failed for demo {demo_conf.name}. Can't package the demo. {run['state']}")
 
