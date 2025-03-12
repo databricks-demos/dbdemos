@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 import urllib
 import threading
-import requests
+from dbdemos.sql_query import SQLQueryExecutor
 from databricks.sdk import WorkspaceClient
 
 class Installer:
@@ -49,6 +49,7 @@ class Installer:
         self.installer_repo = InstallerRepo(self)
         self.installer_dashboard = InstallerDashboard(self)
         self.installer_genie = InstallerGenie(self)
+        self.sql_query_executor = SQLQueryExecutor()
         #Slows down on GCP as the dashboard API is very sensitive to back-pressure
         # 1 dashboard at a time to reduce import pression as it seems to be creating new errors.
         self.max_workers = 1 if self.get_current_cloud() == "GCP" else 1
@@ -238,8 +239,9 @@ class Installer:
                 if debug:
                     print(f"Can't describe catalog {demo_conf.catalog}. Will now try to create it. Error: {e}")
                 try:
-                    print(f"Catalog {demo_conf.catalog} doesn't exist. Creating it. You can set create_schema=False to avoid catalog and schema creation.")
-                    catalog = ws.catalogs.create(demo_conf.catalog)
+                    print(f"Catalog {demo_conf.catalog} doesn't exist. Creating it. You can set create_schema=False to avoid catalog and schema creation, or install in another catalog with catalog=<catalog_name>.")
+                    self.sql_query_executor.execute_query(ws, f"CREATE CATALOG IF NOT EXISTS {demo_conf.catalog}")
+                    #note: ws.catalogs.create(demo_conf.catalog) this doesn't work properly in serverless workspaces with default storage for now (Metastore storage root URL does not exist error)
                 except Exception as e:
                     self.report.display_schema_creation_error(e, demo_conf)
             else:
