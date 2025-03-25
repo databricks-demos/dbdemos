@@ -171,6 +171,15 @@ class InstallerReport:
                                          Pipeline configuration: <div class="code dbdemos_block">{json.dumps(exception.pipeline_conf)}</div>
                                          API response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""", raise_error=False, warning=True)
 
+    def display_pipeline_error_migration(self, exception: DLTException):
+        self.display_error(exception, f"""{exception.description}. <br/>
+                                         Skipping pipelines. Your demo will be installed without DLT pipelines.<br/><br/>
+                                         <strong>Details</strong><br/>
+                                         DBDemos updated its API to use the latest DLT features. You installed your pipeline on an older version which needs to be updated.<br/>
+                                         The easiest fix is to delete the existing pipeline and re-install the demo to get the latest DLT features.<br/>
+                                         Pipeline configuration: <div class="code dbdemos_block">{json.dumps(exception.pipeline_conf)}</div>
+                                         API response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""", raise_error=False, warning=True)
+
     def display_workflow_error(self, exception: WorkflowException, demo_name: str):
         self.display_error(exception, f"""{exception.details}. <br/>
                                          dbdemos creates jobs to load your demo data. If you don't have cluster creation permission, you can start the job using the current cluster.

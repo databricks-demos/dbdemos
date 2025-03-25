@@ -261,7 +261,7 @@ class Installer:
 
     def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = None,
                      use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False, warehouse_name = None, skip_genie_rooms=False, 
-                     create_schema=True):
+                     create_schema=True, policy_id = None, cluster_custom_settings = None):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -306,7 +306,7 @@ class Installer:
             self.report.display_cluster_creation_warn(e, demo_conf)
             cluster_name = "Current Cluster"
         self.check_if_install_folder_exists(demo_name, install_path, demo_conf, overwrite, debug)
-        pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless)
+        pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless, policy_id, cluster_custom_settings)
         dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, warehouse_name, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
         workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, warehouse_name, serverless, debug)
@@ -460,11 +460,16 @@ class Installer:
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
 
-    def load_demo_pipelines(self, demo_name, demo_conf: DemoConf, debug=False, serverless=False):
+    def load_demo_pipelines(self, demo_name, demo_conf: DemoConf, debug=False, serverless=False, policy_id = None, cluster_custom_settings = None):
         #default cluster conf
         pipeline_ids = []
         for pipeline in demo_conf.pipelines:
             definition = pipeline["definition"]
+            if "event_log" not in definition:
+                definition["event_log"] = {"catalog": demo_conf.catalog, "schema": demo_conf.schema, "name": "dlt_event_log_"}
+            if "target" in definition:
+                definition["schema"] = definition["target"]
+                del definition["target"] #target is deprecated now (https://docs.databricks.com/api/workspace/pipelines/create#schema)
             #Force channel to current due to ES-1079180
             #definition["channel"] = "CURRENT"
             today = date.today().strftime("%Y-%m-%d")
@@ -473,15 +478,21 @@ class Installer:
                 del definition['clusters']
                 definition['photon'] = True
                 definition['serverless'] = True
+                if policy_id is not None:
+                    self.report.display_pipeline_error(DLTCreationException(f"Policy ID is not supported for serverless pipelines, {policy_id}", definition, None))
             else:
                 #enforce demo tagging in the cluster
                 for cluster in definition["clusters"]:
                     merge_dict(cluster, {"custom_tags": {"project": "dbdemos", "demo": demo_name, "demo_install_date": today}})
+                    if policy_id is not None:
+                        cluster["policy_id"] = policy_id
                     if self.db.conf.get_demo_pool() is not None:
                         cluster["instance_pool_id"] = self.db.conf.get_demo_pool()
                         if "node_type_id" in cluster: del cluster["node_type_id"]
                         if "enable_elastic_disk" in cluster: del cluster["enable_elastic_disk"]
                         if "aws_attributes" in cluster: del cluster["aws_attributes"]
+                    if cluster_custom_settings is not None:
+                        merge_dict(cluster, cluster_custom_settings)
 
             existing_pipeline = self.get_pipeline(definition["name"])
             if debug:
@@ -505,7 +516,10 @@ class Installer:
                 p = self.db.put("2.0/pipelines/"+id, definition)
                 if 'error_code' in p:
                     pipeline_ids.append({"name": pipeline["definition"]["name"], "uid": "INSTALLATION_ERROR", "id": pipeline["id"], "error": True})
-                    self.report.display_pipeline_error(DLTCreationException(f"Error updating the DLT pipeline {id}: {p['error_code']}", definition, p))
+                    if 'complete the migration' in str(p).lower():
+                        self.report.display_pipeline_error_migration(DLTCreationException(f"Please delete the existing DLT pipeline id {id} before re-installing this demo.", definition, p))
+                    else:
+                        self.report.display_pipeline_error(DLTCreationException(f"Error updating the DLT pipeline {id}: {p['error_code']}", definition, p))
                     continue
             permissions = self.db.patch(f"2.0/preview/permissions/pipelines/{id}", {
                 "access_control_list": [{"group_name": "users", "permission_level": "CAN_MANAGE"}]
