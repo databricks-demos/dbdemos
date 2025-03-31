@@ -150,7 +150,7 @@ class DBClient():
         return None
 
 class GenieRoom():
-    def __init__(self, id: str, display_name: str, description: str, table_identifiers: List[str], curated_questions: List[str], instructions: str, sql_instructions: List[dict]):
+    def __init__(self, id: str, display_name: str, description: str, table_identifiers: List[str], curated_questions: List[str], instructions: str, sql_instructions: List[dict], function_names: List[str]):
         self.display_name = display_name
         self.id = id
         self.description = description
@@ -158,7 +158,7 @@ class GenieRoom():
         self.table_identifiers = table_identifiers
         self.sql_instructions = sql_instructions
         self.curated_questions = curated_questions
-
+        self.function_names = function_names
 class DataFolder():
     def __init__(self, source_folder: str, source_format: str, target_table_name: str = None, target_volume_folder_name: str = None, target_format: str = "delta"):
         assert target_volume_folder_name or target_table_name, "Error, data folder should either has target_table_name or target_volume_folder_name set"
@@ -243,8 +243,8 @@ class DemoConf():
         for genie_room in json_conf.get('genie_rooms', []):
             self.genie_rooms.append(GenieRoom(genie_room['id'], genie_room.get('display_name', None), genie_room.get('description', None),
                                               genie_room['table_identifiers'], genie_room.get('curated_questions', []),
-                                              genie_room.get('instructions', None), genie_room.get('sql_instructions', [])
-                                              ))
+                                              genie_room.get('instructions', None), genie_room.get('sql_instructions', []),
+                                              genie_room.get('function_names', [])))
 
         for n in json_conf.get('notebooks', []):
             add_cluster_setup_cell = n.get('add_cluster_setup_cell', False)
