@@ -37,7 +37,7 @@ def bundle():
     packager = Packager(conf, bundler)
     packager.package_all()
 
-#bundle()
+bundle()
 
 #Loads conf to install on cse2.
 with open("local_conf_E2FE.json", "r") as r:
