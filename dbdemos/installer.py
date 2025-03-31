@@ -261,7 +261,7 @@ class Installer:
 
     def install_demo(self, demo_name, install_path, overwrite=False, update_cluster_if_exists = True, skip_dashboards = False, start_cluster = None,
                      use_current_cluster = False, debug = False, catalog = None, schema = None, serverless=False, warehouse_name = None, skip_genie_rooms=False, 
-                     create_schema=True, policy_id = None, cluster_custom_settings = None):
+                     create_schema=True, dlt_policy_id = None, dlt_compute_settings = None):
         # first get the demo conf.
         if install_path is None:
             install_path = self.get_current_folder()
@@ -306,7 +306,7 @@ class Installer:
             self.report.display_cluster_creation_warn(e, demo_conf)
             cluster_name = "Current Cluster"
         self.check_if_install_folder_exists(demo_name, install_path, demo_conf, overwrite, debug)
-        pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless, policy_id, cluster_custom_settings)
+        pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless, dlt_policy_id, dlt_compute_settings)
         dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, warehouse_name, debug)
         repos = self.installer_repo.install_repos(demo_conf, debug)
         workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, warehouse_name, serverless, debug)
@@ -460,7 +460,7 @@ class Installer:
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
 
-    def load_demo_pipelines(self, demo_name, demo_conf: DemoConf, debug=False, serverless=False, policy_id = None, cluster_custom_settings = None):
+    def load_demo_pipelines(self, demo_name, demo_conf: DemoConf, debug=False, serverless=False, dlt_policy_id = None, dlt_compute_settings = None):
         #default cluster conf
         pipeline_ids = []
         for pipeline in demo_conf.pipelines:
@@ -478,21 +478,21 @@ class Installer:
                 del definition['clusters']
                 definition['photon'] = True
                 definition['serverless'] = True
-                if policy_id is not None:
-                    self.report.display_pipeline_error(DLTCreationException(f"Policy ID is not supported for serverless pipelines, {policy_id}", definition, None))
+                if dlt_policy_id is not None:
+                    self.report.display_pipeline_error(DLTCreationException(f"Policy ID is not supported for serverless pipelines, {dlt_policy_id}", definition, None))
             else:
                 #enforce demo tagging in the cluster
                 for cluster in definition["clusters"]:
                     merge_dict(cluster, {"custom_tags": {"project": "dbdemos", "demo": demo_name, "demo_install_date": today}})
-                    if policy_id is not None:
-                        cluster["policy_id"] = policy_id
+                    if dlt_policy_id is not None:
+                        cluster["dlt_policy_id"] = dlt_policy_id
                     if self.db.conf.get_demo_pool() is not None:
                         cluster["instance_pool_id"] = self.db.conf.get_demo_pool()
                         if "node_type_id" in cluster: del cluster["node_type_id"]
                         if "enable_elastic_disk" in cluster: del cluster["enable_elastic_disk"]
                         if "aws_attributes" in cluster: del cluster["aws_attributes"]
-                    if cluster_custom_settings is not None:
-                        merge_dict(cluster, cluster_custom_settings)
+                    if dlt_compute_settings is not None:
+                        merge_dict(cluster, dlt_compute_settings)
 
             existing_pipeline = self.get_pipeline(definition["name"])
             if debug:
