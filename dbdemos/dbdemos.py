@@ -125,7 +125,7 @@ def help():
                   <div class="code">dbdemos.list_demos(category: str = None)</div>: list all demos available, can filter per category (ex: 'governance').<br/><br/>
                 </li>
                 <li>
-                  <div class="code">dbdemos.install(demo_name: str, path: str = "./", overwrite: bool = False, use_current_cluster = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS", catalog: str = None, schema: str = None, serverless: bool = None, warehouse_name: str = None, skip_genie_rooms: bool = False)</div>: install the given demo to the given path.<br/><br/>
+                  <div class="code">dbdemos.install(demo_name: str, path: str = "./", overwrite: bool = False, use_current_cluster = False, username: str = None, pat_token: str = None, workspace_url: str = None, skip_dashboards: bool = False, cloud: str = "AWS", catalog: str = None, schema: str = None, serverless: bool = None, warehouse_name: str = None, skip_genie_rooms: bool = False, policy_id: str = None, cluster_custom_settings: dict = None)</div>: install the given demo to the given path.<br/><br/>
                   <ul>
                   <li>If overwrite is True, dbdemos will delete the given path folder and re-install the notebooks.</li>
                   <li>use_current_cluster = True will not start a new cluster to init the demo but use the current cluster instead. <strong>Set it to True it if you don't have cluster creation permission</strong>.</li>
@@ -135,6 +135,7 @@ def help():
                   <li>Dashboards require a warehouse, you can specify it with the warehouse_name='xx' option.</li>
                   <li>Dbdemos will detect serverless compute and use the current cluster when you're running serverless. You can force it with the serverless=True option.</li>
                   <li>Genie rooms are in beta. You can skip the genie room installation with skip_genie_rooms = True.</li>
+                  <li>policy_id will be used in the dlt (example: "0003963E5B551CE4"). Use it with cluster_custom_settings = {"autoscale": {"min_workers": 1, "max_workers": 5}} to respect the policy requirements.</li>
                   </ul><br/>
                 </li>
                 <li>
@@ -228,7 +229,7 @@ def list_dashboards(category = None):
 
 def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None,
             use_current_cluster: bool = False, current_cluster_id = None, warehouse_name = None, debug = False, catalog = None, schema = None, serverless=None, skip_genie_rooms=False, 
-            create_schema=True):
+            create_schema=True, policy_id = None, cluster_custom_settings = None):
     check_version()
     if demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
@@ -243,16 +244,16 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
         #Force dashboard skip as dbsql isn't available to avoid any error.
         skip_dashboards = True
     installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster,
-                           debug = debug, catalog = catalog, schema = schema, serverless = serverless, warehouse_name=warehouse_name, skip_genie_rooms=skip_genie_rooms, create_schema=create_schema)
+                           debug = debug, catalog = catalog, schema = schema, serverless = serverless, warehouse_name=warehouse_name, skip_genie_rooms=skip_genie_rooms, create_schema=create_schema, policy_id = policy_id, cluster_custom_settings = cluster_custom_settings)
 
 
-def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None, use_current_cluster = False, catalog = None, schema = None):
+def install_all(path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster = None, use_current_cluster = False, catalog = None, schema = None, policy_id = None, cluster_custom_settings = None):
     """
     Install all the bundle demos.
     """
     installer = Installer(username, pat_token, workspace_url, cloud)
     for demo_name in installer.get_demos_available():
-        installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster, catalog = catalog, schema = schema)
+        installer.install_demo(demo_name, path, overwrite, skip_dashboards = skip_dashboards, start_cluster = start_cluster, use_current_cluster = use_current_cluster, catalog = catalog, schema = schema, policy_id = policy_id, cluster_custom_settings = cluster_custom_settings)
 
 def check_status_all(username = None, pat_token = None, workspace_url = None, cloud = "AWS"):
     """

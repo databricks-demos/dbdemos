@@ -5,7 +5,7 @@ echo "Current branch: $CURRENT_BRANCH"
 #increase the release (needs pip install bump)
 git checkout main || exit 1
 git pull || exit 1
-# bump
+bump
 
 # Get the current version number
 VERSION=$(python -c "from dbdemos import __version__; print(__version__)")
@@ -99,6 +99,7 @@ create_release_with_asset "databricks-demos/dbdemos"
 create_release_with_asset "databricks-demos/dbdemos-notebooks"
 create_release_with_asset "databricks-demos/dbdemos-dataset"
 create_release_with_asset "databricks-demos/dbdemos-resources"
+
 # Return to original branch
 git checkout $CURRENT_BRANCH || exit 1
 
