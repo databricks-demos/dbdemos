@@ -79,6 +79,20 @@ class JobBundler:
         j = "\n".join(lines)
         j = re.sub(r'[:\s*]True', ' true', j)
         j = re.sub(r'[:\s*]False', ' false', j)
+        
+        # Handle triple-quoted multi-line strings by converting them to valid JSON strings
+        pattern = r'"""([\s\S]*?)"""'
+        
+        def replace_multiline(match):
+            # Get the content of the multi-line string
+            string_content = match.group(1)
+            # Escape newlines and other special characters for JSON
+            escaped = json.dumps(string_content)
+            # Return the escaped string (without the outer quotes that dumps adds)
+            return escaped
+        
+        j = re.sub(pattern, replace_multiline, j)
+        
         try:
             json_conf = json.loads(j)
         except Exception as e:
