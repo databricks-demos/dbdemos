@@ -21,8 +21,8 @@ def bundle():
     bundler = JobBundler(conf)
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
     bundler.reset_staging_repo(skip_pull=False, )
-    #bundler.load_bundles_conf()
-    bundler.add_bundle("product_demos/Unity-Catalog/uc-05-upgrade")
+    bundler.load_bundles_conf()
+    #bundler.add_bundle("product_demos/Unity-Catalog/uc-05-upgrade")
     # Or manually add bundle to run faster:
     """
     bundler.add_bundle("aibi/aibi-sales-pipeline-review")
@@ -64,7 +64,7 @@ dbdemos.list_demos(pat_token=c['pat_token'])
 
     
 #dbdemos.install("dlt-cdc", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, debug=True, dlt_policy_id = "0003963E5B551CE4", dlt_compute_settings = {"autoscale": {"min_workers": 1, "max_workers": 5}})
-dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, debug=True)
+#dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, debug=True)
 #dbdemos.install("dlt-unit-test", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, debug=True)
 
 #dbdemos.install("llm-tools-functions", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"], schema='test_quentin_rag', catalog='dbdemos', debug=True)
