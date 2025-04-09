@@ -472,8 +472,8 @@ class Installer:
             if "target" in definition:
                 definition["schema"] = definition["target"]
                 del definition["target"] #target is deprecated now (https://docs.databricks.com/api/workspace/pipelines/create#schema)
-            #Force channel to current due to ES-1079180
-            #definition["channel"] = "CURRENT"
+            #Force channel to current due to issue with PREVIEW on serverless with python verison
+            definition["channel"] = "CURRENT"
             today = date.today().strftime("%Y-%m-%d")
             #modify cluster definitions if serverless
             if serverless:
