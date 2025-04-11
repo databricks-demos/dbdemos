@@ -52,18 +52,10 @@ class Packager:
                 f.write(dashboard_file)
 
 
-    def process_folder_content(self, folder, full_path):
-        # Decode base64 content from the folder dict
-        folder_content = base64.b64decode(folder['content'])
-        
-        # Write the zip file directly
-        with open(full_path + ".zip", "wb") as f:
-            f.write(folder_content)
-
-    def process_file_content(self, file, full_path):
+    def process_file_content(self, file, destination_path, extension = ""):
         # Decode base64 content from the folder dict
         file_content = base64.b64decode(file['content'])
-        with open(full_path, "wb") as f:
+        with open(destination_path + extension, "wb") as f:
             f.write(file_content)
 
     def process_notebook_content(self, html, full_path):
@@ -117,7 +109,7 @@ class Packager:
                     return self.process_notebook_content(html, full_path+".html")
                 elif status['object_type'] == 'DIRECTORY':
                     folder = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "AUTO", "direct_download": True})
-                    return self.process_folder_content(folder, full_path)
+                    return self.process_file_content(folder, full_path, ".zip")
                 elif status['object_type'] == 'FILE':
                     file = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "AUTO", "direct_download": True})
                     return self.process_file_content(file, full_path)
