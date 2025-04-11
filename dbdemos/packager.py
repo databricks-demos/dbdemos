@@ -53,7 +53,6 @@ class Packager:
 
 
     def process_folder_content(self, folder, full_path):
-        print(f"processing folder {full_path}")
         # Decode base64 content from the folder dict
         folder_content = base64.b64decode(folder['content'])
         
@@ -62,8 +61,10 @@ class Packager:
             f.write(folder_content)
 
     def process_file_content(self, file, full_path):
-        with open(full_path, "w") as f:
-            f.write(file['content'])
+        # Decode base64 content from the folder dict
+        file_content = base64.b64decode(file['content'])
+        with open(full_path, "wb") as f:
+            f.write(file_content)
 
     def process_notebook_content(self, html, full_path):
         #Replace notebook content.

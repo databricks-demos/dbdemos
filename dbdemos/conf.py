@@ -100,7 +100,6 @@ class DBClient():
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
         headers = self.conf.headers
         if data is not None:
-            print(f"---------------------------PUT {url} with data", flush=True)
             files = {'file': ('file', data, 'application/octet-stream')}
             with requests.put(url, headers=headers, files=files, timeout=60) as r:
                 return self.get_json_result(url, r)
