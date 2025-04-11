@@ -206,8 +206,12 @@ class Installer:
         conf_template = ConfTemplate(self.db.conf.username, demo_name, catalog, schema, demo_folder)
         return DemoConf(demo_name, json.loads(conf_template.replace_template_key(demo)), catalog, schema)
 
-    def get_resource(self, path):
-        return pkg_resources.resource_string("dbdemos", path).decode('UTF-8')
+    def get_resource(self, path, decode=True):
+        resource = pkg_resources.resource_string("dbdemos", path)
+        return resource.decode('UTF-8') if decode else resource
+    
+    def resource_isdir(self, path):
+        return pkg_resources.resource_isdir("dbdemos", path)
 
     def test_premium_pricing(self):
         try:
@@ -419,23 +423,9 @@ class Installer:
         #Avoid multiple mkdirs in parallel as it's creating error.
         folders_created_lock = threading.Lock()
         def load_notebook(notebook):
-            return load_notebook_path(notebook, "bundles/"+demo_name+"/install_package/"+notebook.get_clean_path()+".html")
+            return load_notebook_path(notebook, "bundles/"+demo_name+"/install_package/"+notebook.get_clean_path())
 
         def load_notebook_path(notebook: DemoNotebook, template_path):
-            parser = NotebookParser(self.get_resource(template_path))
-            if notebook.add_cluster_setup_cell and not use_current_cluster:
-                self.add_cluster_setup_cell(parser, demo_name, cluster_name, cluster_id, self.db.conf.workspace_url)
-            parser.replace_dynamic_links_lakeview_dashboards(dashboards)
-            parser.replace_dynamic_links_genie(genie_rooms)
-            parser.remove_automl_result_links()
-            parser.replace_schema(demo_conf)
-            parser.replace_dynamic_links_pipeline(pipeline_ids)
-            parser.replace_dynamic_links_repo(repos)
-            parser.remove_delete_cell()
-            parser.replace_dynamic_links_workflow(workflows)
-            parser.set_tracker_tag(self.get_org_id(), self.get_uid(), demo_conf.category, demo_name, notebook.get_clean_path())
-            content = parser.get_html()
-            content = base64.b64encode(content.encode("utf-8")).decode("utf-8")
             parent = str(Path(install_path+"/"+notebook.get_clean_path()).parent)
             with folders_created_lock:
                 if parent not in folders_created:
@@ -444,9 +434,37 @@ class Installer:
                     if 'error_code' in r:
                         if r['error_code'] == "RESOURCE_ALREADY_EXISTS":
                             self.report.display_folder_creation_error(FolderCreationException(install_path, r), demo_conf)
-            r = self.db.post("2.0/workspace/import", {"path": install_path+"/"+notebook.get_clean_path(), "content": content, "format": "HTML"})
-            if 'error_code' in r:
-                self.report.display_folder_creation_error(FolderCreationException(f"{install_path}/{notebook.get_clean_path()}", r), demo_conf)
+            if notebook.object_type == "FILE":
+                file = self.get_resource(template_path, decode=False)
+                file_encoded = base64.b64encode(file).decode("utf-8")
+                r = self.db.post(f"2.0/workspace/import", {"path": install_path+"/"+notebook.get_clean_path(), "content": file_encoded, "format": "AUTO", "overwrite": False})
+                if 'error_code' in r:
+                    self.report.display_folder_creation_error(FolderCreationException(f"{install_path}/{notebook.get_clean_path()}", r), demo_conf)
+            elif notebook.object_type == "DIRECTORY":
+                zip_folder = self.get_resource(template_path+".zip", decode=False)
+                zip_folder_encoded = base64.b64encode(zip_folder).decode("utf-8")
+                r = self.db.post(f"2.0/workspace/import", {"path": install_path+"/"+notebook.get_clean_path()+".zip", "content": zip_folder_encoded, "format": "AUTO", "overwrite": False})
+                if 'error_code' in r:
+                    self.report.display_folder_creation_error(FolderCreationException(f"{install_path}/{notebook.get_clean_path()}", r), demo_conf)
+            else:
+                html = self.get_resource(template_path+".html")
+                parser = NotebookParser(html)
+                if notebook.add_cluster_setup_cell and not use_current_cluster:
+                    self.add_cluster_setup_cell(parser, demo_name, cluster_name, cluster_id, self.db.conf.workspace_url)
+                parser.replace_dynamic_links_lakeview_dashboards(dashboards)
+                parser.replace_dynamic_links_genie(genie_rooms)
+                parser.remove_automl_result_links()
+                parser.replace_schema(demo_conf)
+                parser.replace_dynamic_links_pipeline(pipeline_ids)
+                parser.replace_dynamic_links_repo(repos)
+                parser.remove_delete_cell()
+                parser.replace_dynamic_links_workflow(workflows)
+                parser.set_tracker_tag(self.get_org_id(), self.get_uid(), demo_conf.category, demo_name, notebook.get_clean_path())
+                content = parser.get_html()
+                content = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+                r = self.db.post("2.0/workspace/import", {"path": install_path+"/"+notebook.get_clean_path(), "content": content, "format": "HTML"})
+                if 'error_code' in r:
+                    self.report.display_folder_creation_error(FolderCreationException(f"{install_path}/{notebook.get_clean_path()}", r), demo_conf)
             return notebook
 
         #Always adds the licence notebooks
@@ -457,7 +475,7 @@ class Installer:
                 DemoNotebook("_resources/README", "README", "Readme")
             ]
             def load_notebook_template(notebook):
-                load_notebook_path(notebook, f"template/{notebook.title}.html")
+                load_notebook_path(notebook, f"template/{notebook.title}")
             collections.deque(executor.map(load_notebook_template, notebooks))
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             return [n for n in executor.map(load_notebook, demo_conf.notebooks)]
