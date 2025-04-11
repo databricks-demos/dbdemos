@@ -5,6 +5,7 @@ import requests
 import urllib
 from datetime import date
 import re
+import threading
 
 from requests import Response
 
@@ -84,7 +85,6 @@ class DBClient():
     def post(self, path: str, json: dict = {}, retry = 0):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
         with requests.post(url, headers = self.conf.headers, json=json, timeout=60) as r:
-            #TODO: should add that in the requests lib adapter for all requests.
             if r.status_code == 429 and retry < 2:
                 import time
                 import random
@@ -96,10 +96,16 @@ class DBClient():
             else:
                 return self.get_json_result(url, r)
 
-    def put(self, path: str, json: dict = {}):
+    def put(self, path: str, json: dict = None, data: bytes = None):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
-        with requests.put(url, headers = self.conf.headers, json=json, timeout=60) as r:
-            return self.get_json_result(url, r)
+        headers = self.conf.headers
+        if data is not None:
+            files = {'file': ('file', data, 'application/octet-stream')}
+            with requests.put(url, headers=headers, files=files, timeout=60) as r:
+                return self.get_json_result(url, r)
+        else:
+            with requests.put(url, headers=headers, json=json, timeout=60) as r:
+                return self.get_json_result(url, r)
 
     def patch(self, path: str, json: dict = {}):
         url = self.conf.workspace_url+"/api/"+self.clean_path(path)
@@ -170,7 +176,7 @@ class DataFolder():
 
 class DemoNotebook():
     def __init__(self, path: str, title: str, description: str, pre_run: bool = False, publish_on_website: bool = False,
-                 add_cluster_setup_cell: bool = False, parameters: dict = {}, depends_on_previous: bool = True, libraries: list = [], warehouse_id = None):
+                 add_cluster_setup_cell: bool = False, parameters: dict = {}, depends_on_previous: bool = True, libraries: list = [], warehouse_id = None, object_type = None):
         self.path = path
         self.title = title
         self.description = description
@@ -181,6 +187,7 @@ class DemoNotebook():
         self.depends_on_previous = depends_on_previous
         self.libraries = libraries
         self.warehouse_id = warehouse_id
+        self.object_type = object_type
 
     def __repr__(self):
         return self.path
@@ -253,10 +260,19 @@ class DemoConf():
             libraries = n.get('libraries', [])
             warehouse_id = n.get('warehouse_id', None)
             self.notebooks.append(DemoNotebook(n['path'], n['title'], n['description'], n['pre_run'], n['publish_on_website'],
-                                               add_cluster_setup_cell, params, depends_on_previous, libraries, warehouse_id))
+                                               add_cluster_setup_cell, params, depends_on_previous, libraries, warehouse_id, n.get('object_type', None)))
+
+        self._notebook_lock = threading.Lock()
 
     def __repr__(self):
         return self.path + "("+str(self.notebooks)+")"
+
+    def update_notebook_object_type(self, notebook: DemoNotebook, object_type: str):
+        with self._notebook_lock:
+            for n in self.json_conf['notebooks']:
+                if n['path'] == notebook.path:
+                    n['object_type'] = object_type
+                    break
 
     def add_notebook(self, notebook):
         self.notebooks.append(notebook)

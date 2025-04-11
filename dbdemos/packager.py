@@ -10,6 +10,8 @@ import base64
 from .job_bundler import JobBundler
 from concurrent.futures import ThreadPoolExecutor
 import collections
+import zipfile
+import io
 
 
 class Packager:
@@ -50,6 +52,31 @@ class Packager:
                 f.write(dashboard_file)
 
 
+    def process_file_content(self, file, destination_path, extension = ""):
+        # Decode base64 content from the folder dict
+        file_content = base64.b64decode(file['content'])
+        with open(destination_path + extension, "wb") as f:
+            f.write(file_content)
+
+    def process_notebook_content(self, html, full_path):
+        #Replace notebook content.
+        parser = NotebookParser(html)
+        parser.remove_uncomment_tag()
+        parser.set_environement_metadata()
+        parser.remove_dbdemos_build()
+        #parser.remove_static_settings()
+        parser.hide_commands_and_results()
+        #Moving away from the initial 00-global-setup, remove it once migration is completed
+        requires_global_setup_v2 = False
+        if parser.contains("00-global-setup-v2"):
+            parser.replace_in_notebook('(?:\.\.\/)*_resources\/00-global-setup-v2', './00-global-setup-v2', True)
+            requires_global_setup_v2 = True
+        elif parser.contains("00-global-setup"):
+            raise Exception("00-global-setup is deprecated. Please use 00-global-setup-v2 instead.")
+        with open(full_path, "w") as f:
+            f.write(parser.get_html())
+            return requires_global_setup_v2
+
     def package_demo(self, demo_conf: DemoConf):
         print(f"packaging demo {demo_conf.name} ({demo_conf.path})")
         if len(demo_conf.get_notebooks_to_publish()) > 0 and not self.jobBundler.staging_reseted:
@@ -61,18 +88,33 @@ class Packager:
             if run['state']['result_state'] != 'SUCCESS':
                 raise Exception(f"last job {self.db.conf.workspace_url}/#job/{demo_conf.job_id}/run/{demo_conf.run_id} failed for demo {demo_conf.name}. Can't package the demo. {run['state']}")
 
-        def download_notebook_html(notebook):
-            full_path = demo_conf.get_bundle_path()+"/"+notebook.get_clean_path()+".html"
+        def download_notebook_html(notebook: DemoNotebook):
+            full_path = demo_conf.get_bundle_path()+"/"+notebook.get_clean_path()
             print(f"downloading {notebook.path} to {full_path}")
             Path(full_path[:full_path.rindex("/")]).mkdir(parents=True, exist_ok=True)
             if not notebook.pre_run:
                 repo_path = self.jobBundler.conf.get_repo_path()+"/"+demo_conf.path+"/"+notebook.path
                 repo_path = os.path.realpath(repo_path)
                 #print(f"downloading from repo {repo_path}")
-                file = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "HTML", "direct_download": False})
-                if 'error_code' in file:
-                    raise Exception(f"Couldn't find file {repo_path} in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
-                html = base64.b64decode(file['content']).decode('utf-8')
+                status = self.db.get("2.0/workspace/get-status", {"path": repo_path})
+                if 'error_code' in status:
+                    raise Exception(f"Couldn't find file {repo_path} in workspace. Check notebook path in bundle conf file. {status['error_code']} - {status['message']}")
+                #We add the type of the object in the conf to know how to load it back.
+                demo_conf.update_notebook_object_type(notebook, status['object_type'])
+                if status['object_type'] == 'NOTEBOOK':
+                    file = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "HTML", "direct_download": False})
+                    if 'error_code' in file:
+                        raise Exception(f"Couldn't find file {repo_path} in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
+                    html = base64.b64decode(file['content']).decode('utf-8')
+                    return self.process_notebook_content(html, full_path+".html")
+                elif status['object_type'] == 'DIRECTORY':
+                    folder = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "AUTO", "direct_download": True})
+                    return self.process_file_content(folder, full_path, ".zip")
+                elif status['object_type'] == 'FILE':
+                    file = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "AUTO", "direct_download": True})
+                    return self.process_file_content(file, full_path)
+                else:
+                    raise Exception(f"Unsupported object type {status['object_type']} for {repo_path}")
             else:
                 tasks = [t for t in run['tasks'] if t['notebook_task']['notebook_path'].endswith(notebook.get_clean_path())]
                 if len(tasks) == 0:
@@ -82,23 +124,8 @@ class Packager:
                 if "views" not in notebook_result:
                     raise Exception(f"couldn't get notebook for run {tasks[0]['run_id']} - {notebook.path}. {demo_conf.name}. You probably did a run repair. Please re run the job.")
                 html = notebook_result["views"][0]["content"]
-            #Replace notebook content.
-            parser = NotebookParser(html)
-            parser.remove_uncomment_tag()
-            parser.set_environement_metadata()
-            parser.remove_dbdemos_build()
-            #parser.remove_static_settings()
-            parser.hide_commands_and_results()
-            #Moving away from the initial 00-global-setup, remove it once migration is completed
-            requires_global_setup_v2 = False
-            if parser.contains("00-global-setup-v2"):
-                parser.replace_in_notebook('(?:\.\.\/)*_resources\/00-global-setup-v2', './00-global-setup-v2', True)
-                requires_global_setup_v2 = True
-            elif parser.contains("00-global-setup"):
-                raise Exception("00-global-setup is deprecated. Please use 00-global-setup-v2 instead.")
-            with open(full_path, "w") as f:
-                f.write(parser.get_html())
-            return requires_global_setup_v2
+                return self.process_notebook_content(html, full_path+".html")
+            
 
         requires_global_setup_v2 = False
         
