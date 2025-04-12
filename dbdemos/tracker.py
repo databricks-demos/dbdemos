@@ -1,14 +1,21 @@
 import requests
 import urllib.parse
+import hashlib
 
 class Tracker:
     #Set this value to false to disable dbdemo toolkit tracker.
     enable_tracker = True
     URL = "https://ppxrzfxige.execute-api.us-west-2.amazonaws.com/v1/analytics"
 
-    def __init__(self, org_id, uid):
+    def __init__(self, org_id, uid, email = None):
         self.org_id = org_id
         self.uid = uid
+        # This is aggregating user behavior within Databricks at the org level to better understand dbdemos usage and improve the product.
+        # We are not collecting any email/PII data. Please reach out to the demo team if you have any questions.
+        if email is not None and email.endswith("@databricks.com"):
+            self.email = email
+        else:
+            self.email = None
 
     def track_install(self, category, demo_name):
         self.track(category, demo_name, "INSTALL")
@@ -18,6 +25,11 @@ class Tracker:
     
     def track_list(self):
         self.track("list_demos", "list_demos", "LIST")
+
+    def get_user_hash(self):
+        if self.email is None or not self.email.endswith("@databricks.com"):
+            return None
+        return hashlib.sha256(self.email.encode()).hexdigest()
 
     def get_track_url(self, category, demo_name, event, notebook = ""):
         params = self.get_track_params(category, demo_name, event, notebook)
@@ -35,6 +47,9 @@ class Tracker:
                   "event": event,
                   "path": f"/_dbdemos/{category}/{demo_name}{notebook}", #legacy tracking "dp"
                   "version": 1}
+        user_hash = self.get_user_hash()
+        if user_hash is not None:
+            params["user_hash"] = user_hash
         return params
 
 

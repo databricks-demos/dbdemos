@@ -42,7 +42,7 @@ class Installer:
         if self.current_cluster_id is None:
             self.current_cluster_id = self.get_current_cluster_id()
         conf = Conf(username, workspace_url, org_id, pat_token)
-        self.tracker = Tracker(org_id, self.get_uid())
+        self.tracker = Tracker(org_id, self.get_uid(), username)
         self.db = DBClient(conf)
         self.report = InstallerReport(self.db.conf.workspace_url)
         self.installer_workflow = InstallerWorkflow(self)
@@ -459,7 +459,7 @@ class Installer:
                 parser.replace_dynamic_links_repo(repos)
                 parser.remove_delete_cell()
                 parser.replace_dynamic_links_workflow(workflows)
-                parser.set_tracker_tag(self.get_org_id(), self.get_uid(), demo_conf.category, demo_name, notebook.get_clean_path())
+                parser.set_tracker_tag(self.get_org_id(), self.get_uid(), demo_conf.category, demo_name, notebook.get_clean_path(), self.db.conf.username)
                 content = parser.get_html()
                 content = base64.b64encode(content.encode("utf-8")).decode("utf-8")
                 r = self.db.post("2.0/workspace/import", {"path": install_path+"/"+notebook.get_clean_path(), "content": content, "format": "HTML"})
@@ -536,7 +536,7 @@ class Installer:
                 p = self.db.put("2.0/pipelines/"+id, definition)
                 if 'error_code' in p:
                     pipeline_ids.append({"name": pipeline["definition"]["name"], "uid": "INSTALLATION_ERROR", "id": pipeline["id"], "error": True})
-                    if 'complete the migration' in str(p).lower():
+                    if 'complete the migration' in str(p).lower() or 'CANNOT_SET_SCHEMA_FOR_EXISTING_PIPELINE' in str(p):
                         self.report.display_pipeline_error_migration(DLTCreationException(f"Please delete the existing DLT pipeline id {id} before re-installing this demo.", definition, p))
                     else:
                         self.report.display_pipeline_error(DLTCreationException(f"Error updating the DLT pipeline {id}: {p['error_code']}", definition, p))
