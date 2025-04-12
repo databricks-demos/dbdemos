@@ -35,10 +35,10 @@ class NotebookParser:
         #Remove the static settings tags are it's too big & unecessary to repeat in each notebook.
         self.html = re.sub("""<script>\s?window\.__STATIC_SETTINGS__.*</script>""", "", self.html)
 
-    def set_tracker_tag(self, org_id, uid, category, demo_name, notebook):
+    def set_tracker_tag(self, org_id, uid, category, demo_name, notebook, username):
         #Replace internal tags with dbdemos
         if Tracker.enable_tracker:
-            tracker = Tracker(org_id, uid)
+            tracker = Tracker(org_id, uid, username)
             #Our demos in the repo already have tags used when we clone the notebook directly.
             #We need to update the tracker with the demo configuration & dbdemos setup.
             tracker_url = tracker.get_track_url(category, demo_name, "VIEW", notebook)
