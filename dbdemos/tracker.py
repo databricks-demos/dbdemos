@@ -27,9 +27,8 @@ class Tracker:
         self.track("list_demos", "list_demos", "LIST")
 
     def get_user_hash(self):
-        if self.email is None:
+        if self.email is None or not self.email.endswith("@databricks.com"):
             return None
-        assert self.email.endswith("@databricks.com"), "We should only hash @databricks.com users"
         return hashlib.sha256(self.email.encode()).hexdigest()
 
     def get_track_url(self, category, demo_name, event, notebook = ""):
