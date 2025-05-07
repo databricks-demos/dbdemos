@@ -38,13 +38,15 @@ class InstallerGenie:
                     if "error_code" in path:
                         raise Exception(f"ERROR - wrong install path, can't save genie spaces here: {path}")
                     for room in demo_conf.genie_rooms:
-                        rooms.append(self.install_genie(demo_conf, room, path, warehouse_id, debug))
+                        rooms.append(self.install_genie(room, path, warehouse_id, debug))
             except Exception as e:
                 self.installer.report.display_genie_room_creation_error(e, demo_conf)
         return rooms
 
-    def install_genie(self, demo_conf: DemoConf, room: GenieRoom, genie_path, warehouse_id, debug=True):
+    def install_genie(self, room: GenieRoom, genie_path, warehouse_id, debug=True):
         #Genie rooms don't allow / anymore
+        ws = WorkspaceClient(token=self.installer.db.conf.pat_token, host=self.installer.db.conf.workspace_url)
+        self.create_temp_table_for_genie_creation(ws, room, warehouse_id, debug)
         room.display_name = room.display_name.replace("/", "-")
         room_payload = {
             "display_name": room.display_name,
@@ -84,7 +86,25 @@ class InstallerGenie:
             instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/instructions", {"title": sql['title'], "content": sql['content'], "instruction_type": "SQL_INSTRUCTION"})
             if debug:
                 print(f"genie room SQL instructions: {instructions}")
+        self.delete_temp_table_for_genie_creation(ws, room, debug)
         return {"id": room.id, "uid": created_room['id'], 'name': room.display_name}
+
+    # we need to have the table existing before creating the genie room, however they're created in DLT which is in a job and not yet available.
+    # This is a workaround to create a temp table with a property that will be used to delete it once the genie room is created so that the DLT table can run without issue.
+    def create_temp_table_for_genie_creation(self, ws: WorkspaceClient, room: GenieRoom, warehouse_id, debug=False):
+        for table in room.table_identifiers:
+            if not ws.tables.exists(table).table_exists:
+                sql_query = f"CREATE TABLE IF NOT EXISTS {table} TBLPROPERTIES ('dbdemos.mock_table_for_genie' = 1);"
+                if debug:
+                    print(f"Creating temp genie table {table}: {sql_query}")
+                self.sql_query_executor.execute_query(ws, sql_query, warehouse_id=warehouse_id, debug=debug)
+
+    def delete_temp_table_for_genie_creation(self, ws, room: GenieRoom, debug=False):
+        for table in room.table_identifiers:
+            if ws.tables.exists(table).table_exists and 'dbdemos.mock_table_for_genie' in ws.tables.get(table).properties:
+                if debug:
+                    print(f'Deleting temp genie table {table}')
+                ws.tables.delete(table)
 
     def load_genie_data(self, demo_conf: DemoConf, warehouse_id, debug=True):
         if demo_conf.data_folders:
