@@ -165,6 +165,7 @@ class GenieRoom():
         self.sql_instructions = sql_instructions
         self.curated_questions = curated_questions
         self.function_names = function_names
+        
 class DataFolder():
     def __init__(self, source_folder: str, source_format: str, target_table_name: str = None, target_volume_folder_name: str = None, target_format: str = "delta"):
         assert target_volume_folder_name or target_table_name, "Error, data folder should either has target_table_name or target_volume_folder_name set"

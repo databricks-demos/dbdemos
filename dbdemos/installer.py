@@ -134,7 +134,7 @@ class Installer:
         try:
             token = self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
         except Exception as e:
-            raise TokenException("Couldn't get a PAT Token: "+str(e))
+            raise TokenException("Couldn't get a PAT Token: "+str(e)+". If you're installing it locally or from a batch, please use the pat_token='xxx' parameter instead using a secret.")
         if len(token) == 0:
             raise TokenException("Empty PAT Token.")
         return token
