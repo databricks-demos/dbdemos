@@ -5,7 +5,7 @@ setup(
     #this will be the package name you will see, e.g. the output of 'conda list' in anaconda prompt
     name = 'dbdemos',
     #some version number you may wish to add - increment this after every update
-    version='0.6.16',
+    version='0.6.20',
     author="Databricks",
     author_email=["quentin.ambard@databricks.com", "cal.reynolds@databricks.com"],
     description="Install databricks demos: notebooks, Delta Live Table Pipeline, DBSQL Dashboards, ML Models etc.",
