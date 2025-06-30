@@ -34,19 +34,7 @@ echo "Found wheel file: $WHL_FILE"
 VERSION=$(basename "$WHL_FILE" | sed -E 's/dbdemos-([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
 echo "Extracted version from wheel file: $VERSION"
 
-TOOLS_FILE_NAME="./local_conf_tools.json"
-
-# Extract GitHub token from local_conf_tools.json
-GITHUB_TOKEN=$(grep -o '"github_token"[[:space:]]*:[[:space:]]*"[^"]*"' "$TOOLS_FILE_NAME" | sed 's/"github_token"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/')
-
-# Check for GitHub token
-if [ -z "$GITHUB_TOKEN" ]; then
-  echo "Error: GitHub token not found in $TOOLS_FILE_NAME."
-  echo "Please add a 'github_token' field to your $TOOLS_FILE_NAME file."
-  exit 1
-fi
-
-# Function to create a release and upload asset
+# Function to create a release and upload asset using gh CLI
 create_release_with_asset() {
   local repo=$1
   local tag_name="v$VERSION"
@@ -54,46 +42,17 @@ create_release_with_asset() {
   
   echo "Creating release $release_name for $repo..."
   
-  # Create the release
-  release_response=$(curl -s -X POST \
-    -H "Authorization: token $GITHUB_TOKEN" \
-    -H "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/repos/$repo/releases" \
-    -d "{\"tag_name\":\"$tag_name\",\"name\":\"$release_name\",\"body\":\"Release version $VERSION\",\"draft\":false,\"prerelease\":false}")
-  
-  # Extract the upload URL from the response
-  upload_url=$(echo "$release_response" | grep -o '"upload_url": "[^"]*' | cut -d'"' -f4 | sed 's/{?name,label}//')
-  
-  if [ -z "$upload_url" ]; then
-    echo "Error creating release for $repo. Response:"
-    echo "$release_response"
+  # Create the release using gh CLI
+  if gh release create "$tag_name" "$WHL_FILE" --repo "$repo" --title "$release_name" --notes "Release version $VERSION"; then
+    echo "Release created and asset uploaded successfully for $repo"
+    return 0
+  else
+    echo "Error creating release for $repo"
     return 1
   fi
-  
-  echo "Release created successfully. Uploading asset..."
-  
-  # Upload the asset
-  asset_response=$(curl -s -X POST \
-    -H "Authorization: token $GITHUB_TOKEN" \
-    -H "Content-Type: application/octet-stream" \
-    -H "Accept: application/vnd.github.v3+json" \
-    --data-binary @"$WHL_FILE" \
-    "${upload_url}?name=$(basename $WHL_FILE)")
-  
-  # Check if asset was uploaded successfully
-  asset_url=$(echo "$asset_response" | grep -o '"browser_download_url": "[^"]*' | cut -d'"' -f4)
-  
-  if [ -z "$asset_url" ]; then
-    echo "Error uploading asset to $repo. Response:"
-    echo "$asset_response"
-    return 1
-  fi
-  
-  echo "Asset uploaded successfully: $asset_url"
-  return 0
 }
 
-# Create releases with assets on both repositories
+# Create releases with assets on all repositories
 echo "Creating releases for version v$VERSION..."
 create_release_with_asset "databricks-demos/dbdemos"
 create_release_with_asset "databricks-demos/dbdemos-notebooks"
