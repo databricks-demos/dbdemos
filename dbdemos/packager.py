@@ -122,7 +122,7 @@ class Packager:
                 #print(f"Exporting notebook from job run {tasks[0]['run_id']}")
                 notebook_result = self.db.get("2.1/jobs/runs/export", {'run_id': tasks[0]['run_id'], 'views_to_export': 'ALL'})
                 if "views" not in notebook_result:
-                    raise Exception(f"couldn't get notebook for run {tasks[0]['run_id']} - {notebook.path}. {demo_conf.name}. You probably did a run repair. Please re run the job.")
+                    raise Exception(f"couldn't get notebook for run {tasks[0]['run_id']} - {notebook.path}. {demo_conf.name}. You probably did a run repair. Please re run the job. - {notebook_result}")
                 html = notebook_result["views"][0]["content"]
                 return self.process_notebook_content(html, full_path+".html")
             

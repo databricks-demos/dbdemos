@@ -238,10 +238,10 @@ class InstallerReport:
         info = """
         <div class="update_container">
             <div class="update_box">
-                <img src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/llm-tools-functions.jpg" class="update_image">
-                <div class="update_title">Discover our New GenAI demo!</div>
-                <p>Learn how Databricks makes it easy to create powerful, intelligent AI agents to augment your GenAI applications:<br><br>
-    <span class="code">dbdemos.install('llm-tools-functions')</span>
+                <img src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/declarative-pipelines.jpg" class="update_image">
+                <div class="update_title">Discover our Declarative Pipelines demo!</div>
+                <p>Discover how Lakeflow Declarative Pipeline simplifies batch and streaming ETL with automated reliability and built-in data quality:<br><br>
+    <span class="code">dbdemos.install('declarative-pipelines')</span>
     </p>
             </div>
             <div class="update_box">
