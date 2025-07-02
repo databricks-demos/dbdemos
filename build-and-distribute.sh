@@ -51,12 +51,21 @@ if ! twine upload dist/*; then
 fi
 echo "Upload ok - available as pip install dbdemos"
 
-# Commit and push the bumped version to main branch
-echo "Committing and pushing bumped version to main branch..."
+# Create or switch to release branch and commit the bumped version
+echo "Creating/updating release branch with bumped version..."
+git checkout -b release/v$VERSION 2>/dev/null || git checkout release/v$VERSION
 git add setup.py
 git commit -m "Bump version to $VERSION"
-git push origin main
-echo "Version bump committed and pushed to main branch"
+git push origin release/v$VERSION
+
+# Create PR to main branch
+echo "Creating pull request to main branch..."
+if gh pr create --title "Release v$VERSION" --body "Automated release for version $VERSION" --base main --head release/v$VERSION; then
+    echo "Pull request created successfully"
+else
+    echo "Warning: Failed to create pull request (may already exist)"
+fi
+echo "Version bump committed to release branch and PR created"
 
 # Find the wheel file
 WHL_FILE=$(find ./dist -name "*.whl" | head -n 1)
