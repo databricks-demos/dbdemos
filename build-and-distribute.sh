@@ -1,3 +1,30 @@
+# Check if gh CLI is installed
+if ! command -v gh &> /dev/null; then
+    echo "Error: GitHub CLI (gh) is not installed. Please install it first."
+    echo "Visit: https://cli.github.com/"
+    exit 1
+fi
+
+# Check authentication status
+if ! gh auth status &> /dev/null; then
+    echo "GitHub CLI not authenticated. Please login..."
+    gh auth login
+fi
+
+# Check access to required repositories
+echo "Checking access to required repositories..."
+REPOS=("databricks-demos/dbdemos" "databricks-demos/dbdemos-notebooks" "databricks-demos/dbdemos-dataset" "databricks-demos/dbdemos-resources")
+
+for repo in "${REPOS[@]}"; do
+    if ! gh api "repos/$repo" &> /dev/null; then
+        echo "Error: No access to repository $repo"
+        echo "Please ensure you have the necessary permissions or try logging in again:"
+        echo "gh auth login"
+        exit 1
+    fi
+    echo "✓ Access confirmed for $repo"
+done
+
 #save current branch
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 echo "Current branch: $CURRENT_BRANCH"
@@ -18,8 +45,27 @@ python3 setup.py clean --all bdist_wheel
 
 echo "Package built under dist/ - updating pypi with new version..."
 ls -alh ./dist
-twine upload dist/*
+if ! twine upload dist/*; then
+    echo "Error: Failed to upload package to PyPI"
+    exit 1
+fi
 echo "Upload ok - available as pip install dbdemos"
+
+# Create or switch to release branch and commit the bumped version
+echo "Creating/updating release branch with bumped version..."
+git checkout -b release/v$VERSION 2>/dev/null || git checkout release/v$VERSION
+git add setup.py
+git commit -m "Bump version to $VERSION"
+git push origin release/v$VERSION
+
+# Create PR to main branch
+echo "Creating pull request to main branch..."
+if gh pr create --title "Release v$VERSION" --body "Automated release for version $VERSION" --base main --head release/v$VERSION; then
+    echo "Pull request created successfully"
+else
+    echo "Warning: Failed to create pull request (may already exist)"
+fi
+echo "Version bump committed to release branch and PR created"
 
 # Find the wheel file
 WHL_FILE=$(find ./dist -name "*.whl" | head -n 1)
