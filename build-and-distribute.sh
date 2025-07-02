@@ -29,14 +29,31 @@ done
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 echo "Current branch: $CURRENT_BRANCH"
 
-#increase the release (needs pip install bump)
+#increase the release
 git checkout main || exit 1
 git pull || exit 1
-bump
 
-# Get the current version number
-VERSION=$(python -c "from dbdemos import __version__; print(__version__)")
-echo "New version: $VERSION"
+# Get current version from setup.py
+CURRENT_VERSION=$(grep "version=" setup.py | sed "s/.*version='\([^']*\)'.*/\1/")
+echo "Current version: $CURRENT_VERSION"
+
+# Bump version (patch increment)
+IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+NEW_PATCH=$((VERSION_PARTS[2] + 1))
+NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$NEW_PATCH"
+echo "New version: $NEW_VERSION"
+
+# Update version in setup.py
+sed -i.bak "s/version='[^']*'/version='$NEW_VERSION'/" setup.py
+rm setup.py.bak
+
+# Update version in __init__.py
+sed -i.bak "s/__version__ = \"[^\"]*\"/__version__ = \"$NEW_VERSION\"/" dbdemos/__init__.py
+rm dbdemos/__init__.py.bak
+
+# Use the version we just bumped
+VERSION=$NEW_VERSION
+echo "Using bumped version: $VERSION"
 
 #package
 rm -rf ./dist/*
@@ -54,7 +71,7 @@ echo "Upload ok - available as pip install dbdemos"
 # Create or switch to release branch and commit the bumped version
 echo "Creating/updating release branch with bumped version..."
 git checkout -b release/v$VERSION 2>/dev/null || git checkout release/v$VERSION
-git add setup.py
+git add setup.py dbdemos/__init__.py
 git commit -m "Bump version to $VERSION"
 git push origin release/v$VERSION
 
