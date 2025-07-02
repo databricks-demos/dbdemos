@@ -241,7 +241,7 @@ class InstallerReport:
                 <img src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/declarative-pipelines.jpg" class="update_image">
                 <div class="update_title">Discover our Declarative Pipelines demo!</div>
                 <p>Discover how Lakeflow Declarative Pipeline simplifies batch and streaming ETL with automated reliability and built-in data quality:<br><br>
-    <span class="code">dbdemos.install('declarative-pipelines')</span>
+    <span class="code">dbdemos.install('pipeline-bike')</span>
     </p>
             </div>
             <div class="update_box">
