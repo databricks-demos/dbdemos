@@ -7,5 +7,6 @@
   "repo_name": "field-demos_build",
   "repo_url": "https://github.com/databricks/field-demo.git",
   "branch": "master",
+  "github_token": "ghp_xxxxxx",
   "current_folder": "/Users/quentin.ambard@databricks.com/test_install_demo"
 }
