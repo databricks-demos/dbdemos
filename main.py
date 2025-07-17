@@ -47,6 +47,7 @@ from dbdemos.installer import Installer
 import dbdemos
 
 
+
 dbdemos.list_demos(pat_token=c['pat_token'])
 #dbdemos.install_all("/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False, catalog='main_test_quentin')
 #dbdemos.check_status_all()

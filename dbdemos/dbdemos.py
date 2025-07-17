@@ -234,6 +234,10 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
     if demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
         demo_name = "lakehouse-retail-c360"
+    if demo_name == "identity-pk-fk":
+        print("WARN: identity-pk-fk has been renamed to sql-warehouse")
+        demo_name = "sql-warehouse"
+        
     try:
         installer = Installer(username, pat_token, workspace_url, cloud, current_cluster_id = current_cluster_id)
     except TokenException as e:

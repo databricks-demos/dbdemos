@@ -34,7 +34,6 @@ def bundle(conf, demo_path_in_repo):
   "username": "xx.xx@databricks.com",
   "url": "https://e2-demo-field-eng.cloud.databricks.com/",
   "org_id": "1444828305810485",
-  "github_token": "ghp_xxxxxx",
   "repo_staging_path": "/Repos/xx.xxx@databricks.com",
   "repo_name": "field-demos,
   "repo_url": "<CHANGE WITH YOUR https://github.com/databricks-demos/dbdemos-notebook-demo.git FORK>",

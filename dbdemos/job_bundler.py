@@ -148,7 +148,8 @@ class JobBundler:
         return response.json()['sha']
     
     def run_bundle_jobs(self, force_execution: bool = False, skip_execution = False):
-        head_commit = self.get_head_commit()
+        if not force_execution:
+            head_commit = self.get_head_commit()
         with ThreadPoolExecutor(max_workers=10) as executor:
             def run_job(demo_conf):
                 if demo_conf.job_id is not None:
