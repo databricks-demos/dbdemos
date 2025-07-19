@@ -1,6 +1,6 @@
 import logging
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.sql import StatementState, CreateWarehouseRequest, ExecuteStatementRequestOnWaitTimeout
+from databricks.sdk.service.sql import StatementState, ExecuteStatementRequestOnWaitTimeout
 from databricks.sdk.service.sql import ResultData, ResultManifest
 from typing import List, Dict, Any
 import time
@@ -30,11 +30,9 @@ class SQLQueryExecutor:
         
         # If no warehouses at all, create a new one
         new_warehouse = ws.warehouses.create(
-            CreateWarehouseRequest(
-                name="shared-warehouse",
-                cluster_size="Small",
-                auto_stop_mins=10
-            )
+            name="shared-warehouse",
+            cluster_size="Small",
+            auto_stop_mins=10
         )
         return new_warehouse.id
 
