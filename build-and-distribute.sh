@@ -11,6 +11,37 @@ if ! gh auth status &> /dev/null; then
     gh auth login
 fi
 
+# Check if active account is Enterprise Managed User (ends with _data)
+ACTIVE_ACCOUNT=$(gh auth status | grep "Logged in to" | head -1 | sed 's/.*Logged in to github.com account \([^ ]*\).*/\1/')
+if [[ "$ACTIVE_ACCOUNT" == *"_data" ]]; then
+    echo "Warning: Active account '$ACTIVE_ACCOUNT' appears to be an Enterprise Managed User"
+    echo "Switching to regular account..."
+    
+    # Get list of available accounts by parsing auth status output
+    AVAILABLE_ACCOUNTS=$(gh auth status | grep "Logged in to" | sed 's/.*Logged in to github.com account \([^ ]*\).*/\1/')
+    
+    # Find first account that doesn't end with _data
+    REGULAR_ACCOUNT=""
+    while IFS= read -r account; do
+        if [[ "$account" != *"_data" ]]; then
+            REGULAR_ACCOUNT="$account"
+            break
+        fi
+    done <<< "$AVAILABLE_ACCOUNTS"
+    
+    if [[ -n "$REGULAR_ACCOUNT" ]]; then
+        echo "Switching to regular account: $REGULAR_ACCOUNT"
+        gh auth switch --user "$REGULAR_ACCOUNT" || {
+            echo "Error: Failed to switch to regular account"
+            exit 1
+        }
+    else
+        echo "Error: No regular account found. Please add a regular GitHub account:"
+        echo "gh auth login"
+        exit 1
+    fi
+fi
+
 # Check access to required repositories
 echo "Checking access to required repositories..."
 REPOS=("databricks-demos/dbdemos" "databricks-demos/dbdemos-notebooks" "databricks-demos/dbdemos-dataset" "databricks-demos/dbdemos-resources")
