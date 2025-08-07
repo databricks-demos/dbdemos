@@ -30,6 +30,7 @@ def bundle(conf, demo_path_in_repo):
 #Loads conf (your workspace url & token) : local_conf.json.
 # Conf file example. This is what will be used as repo content to build the package. You can use the repo you're working on.
 """ {
+  "cloud": "AWS",
   "pat_token": "xxx",
   "username": "xx.xx@databricks.com",
   "url": "https://e2-demo-field-eng.cloud.databricks.com/",
@@ -37,7 +38,8 @@ def bundle(conf, demo_path_in_repo):
   "repo_staging_path": "/Repos/xx.xxx@databricks.com",
   "repo_name": "field-demos,
   "repo_url": "<CHANGE WITH YOUR https://github.com/databricks-demos/dbdemos-notebook-demo.git FORK>",
-  "branch": "master"
+  "branch": "master",
+  "github_token": "ghp_xxx"
 }
 """
 conf = load_conf("local_conf_azure.json")
