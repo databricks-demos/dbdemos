@@ -22,3 +22,4 @@ dbdemos/resources/local_conf.json
 field-demo
 venv
 databricks-demos.iml
+local_conf_azure.json

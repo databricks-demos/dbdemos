@@ -14,7 +14,7 @@ def load_conf(conf_path):
         default_cluster_job_template = cc.read()
     return Conf(c['username'], c['url'], c['org_id'], c['pat_token'],
                 default_cluster_template, default_cluster_job_template,
-                c['repo_staging_path'], c['repo_name'], c['repo_url'], c['branch'])
+                c['repo_staging_path'], c['repo_name'], c['repo_url'], c['branch'],github_token=c['github_token'])
 
 def bundle(conf, demo_path_in_repo):
     bundler = JobBundler(conf)
@@ -30,6 +30,7 @@ def bundle(conf, demo_path_in_repo):
 #Loads conf (your workspace url & token) : local_conf.json.
 # Conf file example. This is what will be used as repo content to build the package. You can use the repo you're working on.
 """ {
+  "cloud": "AWS",
   "pat_token": "xxx",
   "username": "xx.xx@databricks.com",
   "url": "https://e2-demo-field-eng.cloud.databricks.com/",
@@ -37,7 +38,8 @@ def bundle(conf, demo_path_in_repo):
   "repo_staging_path": "/Repos/xx.xxx@databricks.com",
   "repo_name": "field-demos,
   "repo_url": "<CHANGE WITH YOUR https://github.com/databricks-demos/dbdemos-notebook-demo.git FORK>",
-  "branch": "master"
+  "branch": "master",
+  "github_token": "ghp_xxx"
 }
 """
 conf = load_conf("local_conf_azure.json")
@@ -45,7 +47,7 @@ conf = load_conf("local_conf_azure.json")
 #This will create the bundle and save it in the local ./bundles and ./minisite folder.
 #change the path with your demo path in the https://github.com/databricks/field-demo repo (your fork)
 try:
-    bundle(conf, "product_demos/Data-Science/mlops-end2end")
+    bundle(conf, "aibi/aibi-marketing-campaign")
 except Exception as e:
     print(f"Failure building the job: {e}")
     raise e
@@ -53,15 +55,14 @@ except Exception as e:
 # Now that your demo is packaged, we can install it & test.
 # We recommend testing in a new workspace so that you have a fresh install
 # Load the conf for the workspace where you want to install the demo:
-conf = load_conf("local_conf_azure.json")
 
 import dbdemos
 try:
     #Install your demo in a given folder:
-    dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, conf.username,
-                    conf.pat_token, conf.workspace_url, cloud="AZURE", start_cluster = False)
+    dbdemos.install("aibi-marketing-campaign", "/Users/andrea.picasso@databricks.com/test_install_aibidemo", True, conf.username,
+                    conf.pat_token, conf.workspace_url, cloud="AWS", start_cluster = False)
     #Check if the init job is successful:
-    dbdemos.check_status("sql-ai-functions", conf.username, conf.pat_token, conf.workspace_url, cloud="AWS")
+    #dbdemos.check_status("sql-ai-functions", conf.username, conf.pat_token, conf.workspace_url, cloud="AWS")
     print("looking good! Ready to send your PR with your new demo!")
 except Exception as e:
     print(f"Failure  installing the demo: {e}")

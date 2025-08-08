@@ -4,9 +4,9 @@
   "username": "xx.xx@databricks.com",
   "url": "https://xxx.databricks.com",
   "repo_staging_path": "/Repos/xx.xx@databricks.com",
-  "repo_name": "field-demos_build",
-  "repo_url": "https://github.com/databricks/field-demo.git",
-  "branch": "master",
+  "repo_name": "dbdemos-notebooks",
+  "repo_url": "https://github.com/AndreaPicasso/dbdemos-notebooks.git",
+  "branch": "main",
   "github_token": "ghp_xxxxxx",
-  "current_folder": "/Users/quentin.ambard@databricks.com/test_install_demo"
+  "current_folder": "/Users/quentin.ambard@databricks.com/test_install_demo_marketing_aibi"
 }

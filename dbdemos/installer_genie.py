@@ -77,15 +77,26 @@ class InstallerGenie:
             instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/instructions", {"title": "Notes", "content": room.instructions, "instruction_type": "TEXT_INSTRUCTION"})
             if debug:
                 print(f"genie room instructions: {instructions}")
-        if room.function_names:
-            for function_name in room.function_names:
-                instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/instructions", {"title": "SQL Function", "content": function_name, "instruction_type": "CERTIFIED_ANSWER"})
-                if debug:
-                    print(f"genie room function: {instructions}")
+        
+        for function_name in room.function_names:
+            instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/instructions", {"title": "SQL Function", "content": function_name, "instruction_type": "CERTIFIED_ANSWER"})
+            if debug:
+                print(f"genie room function: {instructions}")
         for sql in room.sql_instructions:
             instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/instructions", {"title": sql['title'], "content": sql['content'], "instruction_type": "SQL_INSTRUCTION"})
             if debug:
                 print(f"genie room SQL instructions: {instructions}")
+        for b in room.benchmarks:
+            benchmark =    {
+                            "question_text": b["question_text"],
+                            "question_type":"BENCHMARK",
+                            "answer_text": b["answer_text"],
+                            "is_deprecated": False,
+                            "updatable_fields_mask":[]
+                            }
+            instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/curated-questions", {"curated_question": benchmark, "data_room_id":created_room['id']})
+            if debug:
+                print(f"genie room benchmarks: {instructions}")
         self.delete_temp_table_for_genie_creation(ws, room, debug)
         return {"id": room.id, "uid": created_room['id'], 'name': room.display_name}
 
