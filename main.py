@@ -25,11 +25,13 @@ def bundle():
     #bundler.add_bundle("product_demos/Unity-Catalog/uc-05-upgrade")
     # Or manually add bundle to run faster:
     """
-    bundler.add_bundle("aibi/aibi-sales-pipeline-review")
+    
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
     #bundler.load_bundles_conf()
     """
+    #bundler.add_bundle("product_demos/data-ingestion")
+    
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
     bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False, recreate_jobs=False)
@@ -51,7 +53,7 @@ import dbdemos
 dbdemos.list_demos(pat_token=c['pat_token'])
 #dbdemos.install_all("/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False, catalog='main_test_quentin')
 #dbdemos.check_status_all()
-dbdemos.install("pipeline-bike", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False, serverless=True)
+dbdemos.install("ai-agent", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False, serverless=True)
 #dbdemos.install("lakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False, serverless=True)
 #dbdemos.install("lakehouse-fsi-fraud", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False)
 #dbdemos.install("lakehouse-retail-c360", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main_test_quentin2', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False, create_schema=True)

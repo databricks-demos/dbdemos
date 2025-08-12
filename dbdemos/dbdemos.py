@@ -237,6 +237,11 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
     if demo_name == "identity-pk-fk":
         print("WARN: identity-pk-fk has been renamed to sql-warehouse")
         demo_name = "sql-warehouse"
+    if demo_name == "auto-loader":
+        print("WARN: auto-loader has been renamed to data-ingestion")
+        demo_name = "data-ingestion"
+
+        
         
     try:
         installer = Installer(username, pat_token, workspace_url, cloud, current_cluster_id = current_cluster_id)
