@@ -234,6 +234,7 @@ class InstallerGenie:
                     
                     s3_url = file_url.replace("https://raw.githubusercontent.com/databricks-demos/dbdemos-dataset/main/", 
                                             "https://dbdemos-dataset.s3.amazonaws.com/")
+
                     if debug:
                         print(f"Copying {s3_url} to {target_path}")
                     response = requests.get(s3_url)

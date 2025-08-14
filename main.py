@@ -30,7 +30,7 @@ def bundle():
     bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
     #bundler.load_bundles_conf()
     """
-    #bundler.add_bundle("product_demos/data-ingestion")
+    bundler.ignore_bundle("/product_demos/Data-Science/mlops-end2end")
     
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)

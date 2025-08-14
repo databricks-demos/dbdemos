@@ -56,12 +56,13 @@ class JobBundler:
         path = bundle_config_paths[len(self.conf.get_repo_path()):]
         path = path[:-len("_resources/bundle_config")-1]
         print(f"add bundle under {path}")
-        if "xxxxx" in path:
-            print("WARNING --------------------------------------------------------------------------------")
-            print(f"TEMPORARY DISABLING CV DEMOS - {path}")
-            print("WARNING --------------------------------------------------------------------------------")
-        else:
-            self.add_bundle(path)
+        self.add_bundle(path)
+
+    def ignore_bundle(self, bundle_path):
+        print("WARNING --------------------------------------------------------------------------------")
+        print(f"TEMPORARY DISABLING DEMO - {bundle_path}")
+        print("WARNING --------------------------------------------------------------------------------")
+        del self.bundles[bundle_path]
 
     def add_bundle(self, bundle_path, config_path: str = "_resources/bundle_config"):
         if not self.staging_reseted:

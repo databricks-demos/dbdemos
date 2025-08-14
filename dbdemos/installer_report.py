@@ -246,9 +246,9 @@ class InstallerReport:
             </div>
             <div class="update_box">
                 <img src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/aibi-marketing-campaign.jpg" class="update_image">
-                <div class="update_title">Try AI/BI: Dashboard & Genie demos</div>
-                <p>Discover how Databricks simplifies data analysis by allowing teams to understand their data both visually and in natural language</p>
-                <p>Find all our AI/BI demo: <span class="code">dbdemos.list_demos()</span></p>
+                <div class="update_title">New AI Agent demo!</div>
+                <p>Discover how to build, package and evaluate a multi-agent system with Databricks and MLFlow 3.0!<br><br>
+    <span class="code">dbdemos.install('ai-agent')</span></p>
             </div>
         </div>
         """
