@@ -1,5 +1,5 @@
 import json
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.catalog import VolumeType
 from databricks.sdk.service.sql import StatementState
@@ -133,12 +133,16 @@ class InstallerGenie:
             self.run_sql_queries(ws, demo_conf, warehouse_id, debug)
 
     def run_sql_queries(self, ws: WorkspaceClient, demo_conf: DemoConf, warehouse_id, debug=True):
-        for query_batch in demo_conf.sql_queries:
-            with ThreadPoolExecutor(max_workers=5) as executor:
-                futures = [executor.submit(self.sql_query_executor.execute_query, ws, query, warehouse_id=warehouse_id, debug=debug) 
-                          for query in query_batch]
-                for future in futures:
-                    future.result()
+        for batch in demo_conf.sql_queries:
+            with ThreadPoolExecutor(max_workers=5) as ex:
+                futures = [ex.submit(self.sql_query_executor.execute_query, ws, q, warehouse_id=warehouse_id, debug=debug) for q in batch]
+                for f in as_completed(futures):
+                    try:
+                        f.result()
+                    except SQLQueryException as e:
+                        if "tag name" in str(e).lower():
+                            print(f"Warn - SQL error on tag ignored - probably free edition: {e}")
+                        else: raise
 
     def get_current_cluster_id(self):
         return json.loads(self.installer.get_dbutils_tags_safe()['clusterId'])
