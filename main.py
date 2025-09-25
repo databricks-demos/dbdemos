@@ -22,15 +22,15 @@ def bundle():
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
     bundler.reset_staging_repo(skip_pull=False, )
     bundler.load_bundles_conf()
+    """
     #bundler.add_bundle("product_demos/Unity-Catalog/uc-05-upgrade")
     # Or manually add bundle to run faster:
-    """
     
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
     #bundler.load_bundles_conf()
+    bundler.add_bundle("product_demos/Delta-Live-Table/pipeline-unit-test")
     """
-    bundler.ignore_bundle("/product_demos/Data-Science/mlops-end2end")
     
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
@@ -42,7 +42,7 @@ def bundle():
 bundle()
 
 #Loads conf to install on cse2.
-with open("local_conf_FREE.json", "r") as r:
+with open("local_conf_E2FE.json", "r") as r:
     c = json.loads(r.read())
 
 from dbdemos.installer import Installer
@@ -50,7 +50,7 @@ import dbdemos
 
 
 
-dbdemos.list_demos(pat_token=c['pat_token'])
+#dbdemos.list_demos(pat_token=c['pat_token'])
 #dbdemos.install_all("/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False, catalog='main_test_quentin')
 #dbdemos.check_status_all()
 #dbdemos.install("ai-agent", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, skip_dashboards=False, serverless=True)
@@ -73,12 +73,12 @@ dbdemos.list_demos(pat_token=c['pat_token'])
 
 #dbdemos.install("llm-tools-functions", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"], schema='test_quentin_rag', catalog='dbdemos', debug=True)
 
-#dbdemos.install("cdc-pipeline", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, debug=True)
+dbdemos.install("declarative-pipeline-unit-test", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_unit_test', cloud="AWS", start_cluster = False, debug=True)
 #dbdemos.install("auto-loader", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, debug=True)
 """
 """
 
-#dbdemos.install("llm-fine-tuning", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
+#dbdemos.install("pipeline-bike", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False)
 
 
 
@@ -115,7 +115,7 @@ dbdemos.list_demos(pat_token=c['pat_token'])
 #dbdemos.create_cluster("uc-05-upgrade", c['username'], c['pat_token'], c['url'], "GCP")
 
 
-dbdemos.install("aibi-marketing-campaign", "/Users/quentin.ambard@gmail.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
+#dbdemos.install("aibi-marketing-campaign", "/Users/quentin.ambard@gmail.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
 #dbdemos.install("aibi-portfolio-assistant", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
 #dbdemos.install("aibi-supply-chain-forecasting", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
 #dbdemos.install("aibi-sales-pipeline-review", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)

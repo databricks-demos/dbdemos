@@ -231,13 +231,31 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
             use_current_cluster: bool = False, current_cluster_id = None, warehouse_name = None, debug = False, catalog = None, schema = None, serverless=None, skip_genie_rooms=False, 
             create_schema=True, dlt_policy_id = None, dlt_compute_settings = None):
     check_version()
-    if demo_name == "lakehouse-retail-churn":
+    
+    if demo_name == "llm-fine-tuning" :
+        print("ERROR: llm-fine-tuning is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
+        return
+    elif demo_name == "chatbot-rag-llm" :
+        print("ERROR: chatbot-rag-llm is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
+        print("We will instead install the new ai-agent demos")
+        demo_name = "ai-agent"
+    elif demo_name == "dlt-loans" :
+        print("ERROR: dlt-loans is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
+        print("We will instead install the new pipeline-bike demos")
+        demo_name = "pipeline-bike"
+    elif demo_name == "dlt-unit-test":
+        print("WARN: dlt-unit-test has been renamed to declarative-pipeline-unit-test")
+        demo_name = "declarative-pipeline-cdc"
+    elif demo_name == "dlt-cdc":
+        print("WARN: dlt-cdc has been renamed to declarative-pipeline-cdc")
+        demo_name = "declarative-pipeline-cdc"
+    elif demo_name == "lakehouse-retail-churn":
         print("WARN: lakehouse-retail-churn has been renamed to lakehouse-retail-c360")
         demo_name = "lakehouse-retail-c360"
-    if demo_name == "identity-pk-fk":
+    elif demo_name == "identity-pk-fk":
         print("WARN: identity-pk-fk has been renamed to sql-warehouse")
         demo_name = "sql-warehouse"
-    if demo_name == "auto-loader":
+    elif demo_name == "auto-loader":
         print("WARN: auto-loader has been renamed to data-ingestion")
         demo_name = "data-ingestion"
 
