@@ -235,8 +235,8 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
     if demo_name == "llm-fine-tuning" :
         print("ERROR: llm-fine-tuning is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
         return
-    elif demo_name == "chatbot-rag-llm" :
-        print("ERROR: chatbot-rag-llm is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
+    elif demo_name == "chatbot-rag-llm" or demo_name == "llm-tools-functions":
+        print(f"ERROR: {demo_name} is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
         print("We will instead install the new ai-agent demos")
         demo_name = "ai-agent"
     elif demo_name == "dlt-loans" :
@@ -245,7 +245,7 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
         demo_name = "pipeline-bike"
     elif demo_name == "dlt-unit-test":
         print("WARN: dlt-unit-test has been renamed to declarative-pipeline-unit-test")
-        demo_name = "declarative-pipeline-cdc"
+        demo_name = "declarative-pipeline-unit-test"
     elif demo_name == "dlt-cdc":
         print("WARN: dlt-cdc has been renamed to declarative-pipeline-cdc")
         demo_name = "declarative-pipeline-cdc"
