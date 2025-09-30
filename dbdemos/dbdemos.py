@@ -235,7 +235,7 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
     if demo_name == "llm-fine-tuning" :
         print("ERROR: llm-fine-tuning is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
         return
-    elif demo_name == "chatbot-rag-llm" or demo_name == "llm-tools-functions":
+    elif demo_name == "chatbot-rag-llm" or demo_name == "llm-tools-functions" or demo_name == "llm-rag-chatbot":
         print(f"ERROR: {demo_name} is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
         print("We will instead install the new ai-agent demos")
         demo_name = "ai-agent"
