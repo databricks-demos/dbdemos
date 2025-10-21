@@ -283,10 +283,10 @@ class DemoConf():
 
     def set_pipeline_id(self, id, uid):
         j = json.dumps(self.init_job)
-        j = j.replace("{{DYNAMIC_DLT_ID_"+id+"}}", uid)
+        j = j.replace("{{DYNAMIC_SDL_ID_"+id+"}}", uid)
         self.init_job = json.loads(j)
         j = json.dumps(self.workflows)
-        j = j.replace("{{DYNAMIC_DLT_ID_"+id+"}}", uid)
+        j = j.replace("{{DYNAMIC_SDL_ID_"+id+"}}", uid)
         self.workflows = json.loads(j)
 
     def get_job_name(self):

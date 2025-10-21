@@ -56,20 +56,20 @@ class FolderCreationException(Exception):
 
 
 
-class DLTException(Exception):
+class SDPException(Exception):
     def __init__(self, message, description, pipeline_conf, response):
         super().__init__(message)
         self.description = description
         self.pipeline_conf = pipeline_conf
         self.response = response
 
-class DLTNotAvailableException(DLTException):
+class SDPNotAvailableException(SDPException):
     def __init__(self, message, pipeline_conf, response):
-        super().__init__("DLT not available", message, pipeline_conf, response)
+        super().__init__("SDP not available", message, pipeline_conf, response)
 
-class DLTCreationException(DLTException):
+class SDPCreationException(SDPException):
     def __init__(self, message, pipeline_conf, response):
-        super().__init__("DLT creation failure", message, pipeline_conf, response)
+        super().__init__("SDP creation failure", message, pipeline_conf, response)
 
 class WorkflowException(Exception):
     def __init__(self, message, details, job_config, response):

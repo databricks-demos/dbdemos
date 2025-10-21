@@ -21,16 +21,17 @@ def bundle():
     bundler = JobBundler(conf)
     # the bundler will use a stating repo dir in the workspace to analyze & run content.
     bundler.reset_staging_repo(skip_pull=False, )
-    bundler.load_bundles_conf()
     """
+    bundler.load_bundles_conf()
     #bundler.add_bundle("product_demos/Unity-Catalog/uc-05-upgrade")
     # Or manually add bundle to run faster:
     
     bundler.add_bundle("product_demos/Unity-Catalog/05-Upgrade-to-UC")
     bundler.add_bundle("product_demos/Unity-Catalog/02-External-location")
     #bundler.load_bundles_conf()
-    bundler.add_bundle("product_demos/Delta-Live-Table/pipeline-unit-test")
     """
+    bundler.load_bundles_conf()
+    #bundler.add_bundle("product_demos/Data-Science/mlops-end2end")
     
 
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
@@ -73,7 +74,7 @@ import dbdemos
 
 #dbdemos.install("llm-tools-functions", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"], schema='test_quentin_rag', catalog='dbdemos', debug=True)
 
-dbdemos.install("declarative-pipeline-unit-test", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_unit_test', cloud="AWS", start_cluster = False, debug=True)
+#dbdemos.install("declarative-pipeline-unit-test", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_unit_test', cloud="AWS", start_cluster = False, debug=True)
 #dbdemos.install("auto-loader", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test', cloud="AWS", start_cluster = False, debug=True)
 """
 """
@@ -106,7 +107,7 @@ dbdemos.install("declarative-pipeline-unit-test", "/Users/quentin.ambard@databri
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="Azure", use_current_cluster=True, current_cluster_id=c["current_cluster_id"])
 #dbdemos.install("lakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("lakehouse-retail-churn", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
-#dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", skip_dashboards=True, schema='test_quentin_rag', catalog='dbdemos')
+dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", skip_dashboards=True, schema='test_quentin_rag', catalog='dbdemos')
 #dbdemos.install("pandas-on-spark", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("delta-sharing-airlines", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-cdc", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])

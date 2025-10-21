@@ -5,7 +5,7 @@ import pkg_resources
 
 from .conf import DBClient, DemoConf, Conf, ConfTemplate, merge_dict, DemoNotebook
 from .exceptions.dbdemos_exception import ClusterPermissionException, ClusterCreationException, ClusterException, \
-    ExistingResourceException, FolderDeletionException, DLTNotAvailableException, DLTCreationException, DLTException, \
+    ExistingResourceException, FolderDeletionException, SDPNotAvailableException, SDPCreationException, SDPException, \
     FolderCreationException, TokenException
 from .installer_report import InstallerReport
 from .installer_genie import InstallerGenie
@@ -499,7 +499,7 @@ class Installer:
                 definition['photon'] = True
                 definition['serverless'] = True
                 if dlt_policy_id is not None:
-                    self.report.display_pipeline_error(DLTCreationException(f"Policy ID is not supported for serverless pipelines, {dlt_policy_id}", definition, None))
+                    self.report.display_pipeline_error(SDPCreationException(f"Policy ID is not supported for serverless pipelines, {dlt_policy_id}", definition, None))
             else:
                 #enforce demo tagging in the cluster
                 for cluster in definition["clusters"]:
@@ -520,13 +520,13 @@ class Installer:
             if existing_pipeline == None:
                 p = self.db.post("2.0/pipelines", definition)
                 if 'error_code' in p and p['error_code'] == 'FEATURE_DISABLED':
-                    message = f'DLT pipelines are not available in this workspace. Only Premium workspaces are supported on Azure.'
+                    message = f'SDP pipelines are not available in this workspace. Only Premium workspaces are supported on Azure.'
                     pipeline_ids.append({"name": pipeline["definition"]["name"], "uid": "INSTALLATION_ERROR", "id": pipeline["id"], "error": True})
-                    self.report.display_pipeline_error(DLTNotAvailableException(message, definition, p))
+                    self.report.display_pipeline_error(SDPNotAvailableException(message, definition, p))
                     continue
                 if 'error_code' in p:
                     pipeline_ids.append({"name": pipeline["definition"]["name"], "uid": "INSTALLATION_ERROR", "id": pipeline["id"], "error": True})
-                    self.report.display_pipeline_error(DLTCreationException(f"Error creating the DLT pipeline: {p['error_code']}", definition, p))
+                    self.report.display_pipeline_error(SDPCreationException(f"Error creating the SDP pipeline: {p['error_code']}", definition, p))
                     continue
                 id = p['pipeline_id']
             else:
@@ -537,9 +537,9 @@ class Installer:
                 if 'error_code' in p:
                     pipeline_ids.append({"name": pipeline["definition"]["name"], "uid": "INSTALLATION_ERROR", "id": pipeline["id"], "error": True})
                     if 'complete the migration' in str(p).lower() or 'CANNOT_SET_SCHEMA_FOR_EXISTING_PIPELINE' in str(p):
-                        self.report.display_pipeline_error_migration(DLTCreationException(f"Please delete the existing DLT pipeline id {id} before re-installing this demo.", definition, p))
+                        self.report.display_pipeline_error_migration(SDPCreationException(f"Please delete the existing SDP pipeline id {id} before re-installing this demo.", definition, p))
                     else:
-                        self.report.display_pipeline_error(DLTCreationException(f"Error updating the DLT pipeline {id}: {p['error_code']}", definition, p))
+                        self.report.display_pipeline_error(SDPCreationException(f"Error updating the SDP pipeline {id}: {p['error_code']}", definition, p))
                     continue
             permissions = self.db.patch(f"2.0/preview/permissions/pipelines/{id}", {
                 "access_control_list": [{"group_name": "users", "permission_level": "CAN_MANAGE"}]

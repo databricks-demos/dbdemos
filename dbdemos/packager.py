@@ -164,7 +164,7 @@ class Packager:
 
     #Build HTML pages with index.
     # - If the notebook is pre-run, load them from the install_package folder
-    # - If the notebook isn't pre-run, download them from the pacakge workspace as HTML (ex: can't run DLT pipelines)
+    # - If the notebook isn't pre-run, download them from the pacakge workspace as HTML (ex: can't run SDP pipelines)
     def build_minisite(self, demo_conf: DemoConf, iframe_root_src = "./"):
         notebooks_to_publish = demo_conf.get_notebooks_to_publish()
         print(f"Build minisite for demo {demo_conf.name} ({demo_conf.path}) - {notebooks_to_publish}")

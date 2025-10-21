@@ -100,8 +100,8 @@ class InstallerGenie:
         self.delete_temp_table_for_genie_creation(ws, room, debug)
         return {"id": room.id, "uid": created_room['id'], 'name': room.display_name}
 
-    # we need to have the table existing before creating the genie room, however they're created in DLT which is in a job and not yet available.
-    # This is a workaround to create a temp table with a property that will be used to delete it once the genie room is created so that the DLT table can run without issue.
+    # we need to have the table existing before creating the genie room, however they're created in SDP which is in a job and not yet available.
+    # This is a workaround to create a temp table with a property that will be used to delete it once the genie room is created so that the SDP table can run without issue.
     def create_temp_table_for_genie_creation(self, ws: WorkspaceClient, room: GenieRoom, warehouse_id, debug=False):
         for table in room.table_identifiers:
             if not ws.tables.exists(table).table_exists:

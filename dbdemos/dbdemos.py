@@ -239,7 +239,7 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
         print(f"ERROR: {demo_name} is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
         print("We will instead install the new ai-agent demos")
         demo_name = "ai-agent"
-    elif demo_name == "dlt-loans" :
+    elif demo_name == "dlt-loans" or demo_name == "dlt-loan" :
         print("ERROR: dlt-loans is deprecated and has been removed. You can restore it from an older dbdemos version: %pip install dbdemos==0.6.28")
         print("We will instead install the new pipeline-bike demos")
         demo_name = "pipeline-bike"

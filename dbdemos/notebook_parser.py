@@ -252,7 +252,7 @@ class NotebookParser:
 
     def replace_dynamic_links_pipeline(self, pipelines_id):
         """
-        Replace the links in the notebook with the DLT pipeline installed if any
+        Replace the links in the notebook with the SDP pipeline installed if any
         """
         self.replace_dynamic_links(pipelines_id, "pipeline", "#joblist/pipelines")
 

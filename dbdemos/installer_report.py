@@ -1,6 +1,6 @@
 from .conf import DemoConf
 from .exceptions.dbdemos_exception import ClusterCreationException, ExistingResourceException, FolderDeletionException, \
-    DLTException, WorkflowException, FolderCreationException, TokenException
+    SDPException, WorkflowException, FolderCreationException, TokenException
 from pathlib import Path
 import json
 
@@ -159,24 +159,24 @@ class InstallerReport:
 
     def display_non_premium_warn(self, exception: Exception, response):
         self.display_error(exception, f"""DBSQL isn't available in this workspace. Only Premium/Enterprise workspaces are supported.<br/>
-                                          dbdemos will try its best to install the demo and load the notebooks, but some component won't be available (DLT pipelines, Dashboards etc).<br/>
+                                          dbdemos will try its best to install the demo and load the notebooks, but some component won't be available (SDP pipelines, Dashboards etc).<br/>
                                           Forcing skip_dashboards = True and continuing.<br/><br/>
                                           <strong>Details</strong><br/>
                                           API response: <div class="code dbdemos_block">{json.dumps(response)}</div>""", raise_error=False, warning=True)
 
-    def display_pipeline_error(self, exception: DLTException):
+    def display_pipeline_error(self, exception: SDPException):
         self.display_error(exception, f"""{exception.description}. <br/>
-                                         Skipping pipelines. Your demo will be installed without DLT pipelines.<br/><br/>
+                                         Skipping pipelines. Your demo will be installed without SDP pipelines.<br/><br/>
                                          <strong>Details</strong><br/>
                                          Pipeline configuration: <div class="code dbdemos_block">{json.dumps(exception.pipeline_conf)}</div>
                                          API response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""", raise_error=False, warning=True)
 
-    def display_pipeline_error_migration(self, exception: DLTException):
+    def display_pipeline_error_migration(self, exception: SDPException):
         self.display_error(exception, f"""{exception.description}. <br/>
-                                         Skipping pipelines. Your demo will be installed without DLT pipelines.<br/><br/>
+                                         Skipping pipelines. Your demo will be installed without SDP pipelines.<br/><br/>
                                          <strong>Details</strong><br/>
-                                         DBDemos updated its API to use the latest DLT features. You installed your pipeline on an older version which needs to be updated.<br/>
-                                         The easiest fix is to delete the existing pipeline and re-install the demo to get the latest DLT features.<br/>
+                                         DBDemos updated its API to use the latest SDP features. You installed your pipeline on an older version which needs to be updated.<br/>
+                                         The easiest fix is to delete the existing pipeline and re-install the demo to get the latest SDP features.<br/>
                                          Pipeline configuration: <div class="code dbdemos_block">{json.dumps(exception.pipeline_conf)}</div>
                                          API response: <div class="code dbdemos_block">{json.dumps(exception.response)}</div>""", raise_error=False, warning=True)
 

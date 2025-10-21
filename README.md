@@ -35,7 +35,7 @@ dbdemos.install('lakehouse-retail-c360', path='./', overwrite = True)
 
 `dbdemos` requires the current user to have:
 * Cluster creation permission
-* DLT Pipeline creation permission 
+* SDP Pipeline creation permission
 * DBSQL dashboard & query creation permission
 * For UC demos: Unity Catalog metastore must be available (demo will be installed but won't work) 
 
@@ -45,7 +45,7 @@ dbdemos.install('lakehouse-retail-c360', path='./', overwrite = True)
 * Load demo notebooks (pre-run) to the given path
 * Start job to load dataset based on demo requirement
 * Start demo cluster customized for the demo & the current user
-* Setup DLT pipelines
+* Setup SDP pipelines
 * Setup DBSQL dashboard
 * Create ML Model
 * Demo links are updated with resources created for an easy navigation
@@ -71,11 +71,11 @@ DBdemos will dynamically override the link to point to the resources created.
 
 **Always use links relative to the local path to support multi workspaces. Do not add the workspace id.**
 
-#### DLT pipelines:
-Your DLT pipeline must be added in the bundle file (see below).
+#### SDP pipelines:
+Your SDP pipeline must be added in the bundle file (see below).
 Within your notebook, to identify your pipeline using the id in the bundle file, specify the id `dbdemos-pipeline-id="<id>"`as following:
 
-`<a dbdemos-pipeline-id="dlt-churn" href="#joblist/pipelines/a6ba1d12-74d7-4e2d-b9b7-ca53b655f39d" target="_blank">Delta Live Table pipeline</a>`
+`<a dbdemos-pipeline-id="sdp-churn" href="#joblist/pipelines/a6ba1d12-74d7-4e2d-b9b7-ca53b655f39d" target="_blank">Spark Declarative Pipeline</a>`
 
 #### Workflows:
 Your workflows must be added in the bundle file (see below).
@@ -104,7 +104,7 @@ This need to be a notebook & not a .json file (due to current api limitation).
   "title": "<Title>.",
   "description": "<Description>",
   "bundle": <Will bundle when True, skip when False>,
-  "tags": [{"dlt": "Delta Live Table"}],
+  "tags": [{"sdp": "Spark Declarative Pipeline"}],
   "notebooks": [
     {
       "path": "<notebbok path from the demo folder (ex: resources/00-load-data)>", 
@@ -118,7 +118,7 @@ This need to be a notebook & not a .json file (due to current api limitation).
   ],
   "init_job": {
     "settings": {
-        "name": "demos_dlt_cdc_init_{{CURRENT_USER_NAME}}",
+        "name": "demos_sdp_cdc_init_{{CURRENT_USER_NAME}}",
         "email_notifications": {
             "no_alert_for_skipped_runs": False
         },
@@ -139,13 +139,13 @@ This need to be a notebook & not a .json file (due to current api limitation).
         .... Full standard job definition
     }
   },
-  "pipelines": <list of DLT pipelines if any>
+  "pipelines": <list of SDP pipelines if any>
   [
     {
-      "id": "dlt-cdc", <id, used in the notebook links to go to the generated notebook: <a dbdemos-pipeline-id="dlt-cdc" href="#joblist/pipelines/xxxx">installed DLT pipeline</a> >
+      "id": "sdp-cdc", <id, used in the notebook links to go to the generated notebook: <a dbdemos-pipeline-id="sdp-cdc" href="#joblist/pipelines/xxxx">installed SDP pipeline</a> >
       "run_after_creation": True,
       "definition": {
-        ... Any DLT pipelineconfiguration...
+        ... Any SDP pipeline configuration...
         "libraries": [
             {
                 "notebook": {
@@ -153,9 +153,9 @@ This need to be a notebook & not a .json file (due to current api limitation).
                 }
             }
         ],
-        "name": "demos_dlt_cdc_{{CURRENT_USER_NAME}}",
-        "storage": "/demos/dlt/cdc/{{CURRENT_USER_NAME}}",
-        "target": "demos_dlt_cdc_{{CURRENT_USER_NAME}}"
+        "name": "demos_sdp_cdc_{{CURRENT_USER_NAME}}",
+        "storage": "/demos/sdp/cdc/{{CURRENT_USER_NAME}}",
+        "target": "demos_sdp_cdc_{{CURRENT_USER_NAME}}"
       }
     }
   ],
