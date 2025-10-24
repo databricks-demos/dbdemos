@@ -24,46 +24,183 @@
 
     <style>
         .list-group-item {
-            padding-top: 4px !important;
-            padding-bottom: 4px !important;
-            margin-top: 0px;
-            margin-bottom: 0px;
-            border-bottom: 1px solid rgba(0,0,0,.125) !important;
-            border-top: 0px !important;
-            border-left: 0px !important;
-            border-right: 0px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
         }
 
-       .notebook_path{
-          font-size: 14px;
-       }
+        .notebook_path{
+            font-size: 14px;
+        }
 
-      .b-example-divider {
-        height: 3rem;
-        background-color: rgba(0, 0, 0, .1);
-        border: solid rgba(0, 0, 0, .15);
-        border-width: 1px 0;
-        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
-      }
+        .b-example-divider {
+            height: 3rem;
+            background-color: rgba(0, 0, 0, .1);
+            border: solid rgba(0, 0, 0, .15);
+            border-width: 1px 0;
+            box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+        }
 
-      .b-example-vr {
-        flex-shrink: 0;
-        width: 1.5rem;
-        height: 91.4vh;
-      }
+        .b-example-vr {
+            flex-shrink: 0;
+            width: 1.5rem;
+            height: 91.4vh;
+        }
 
-      .bi {
-        vertical-align: -.125em;
-        fill: currentColor;
-      }
+        .bi {
+            vertical-align: -.125em;
+            fill: currentColor;
+        }
 
-      .notebook_description{
-        color: #778490;
-      }
+        .notebook_description{
+            color: #778490;
+        }
 
-      .active .notebook_description {
-        color: #fff;
-      }
+        .active .notebook_description {
+            color: #fff;
+        }
+
+        /* Modern Tree-style File Explorer with CSS borders */
+        .tree-item {
+            position: relative;
+            user-select: none;
+        }
+
+        /* Tree structure indentation */
+        .tree-children {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        /* Vertical line for tree structure - positioned to align with middle of folder icon (16px wide, so middle is at 8px) */
+        .tree-children::before {
+            content: '';
+            position: absolute;
+            left: 13px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #d1d5da;
+            z-index: 0;
+        }
+
+        /* Horizontal connector line - connects to icon */
+        .tree-item-row::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 50%;
+            width: 7px;
+            height: 1px;
+            background: #d1d5da;
+        }
+
+        /* Common row styling */
+        .tree-item-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 8px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            font-size: 13px;
+            color: #24292e;
+        }
+
+        .tree-item-row:hover {
+            background-color: #f6f8fa;
+        }
+
+        /* Folder styling */
+        .folder-row {
+            font-weight: 500;
+        }
+
+        .folder-icon {
+            color: #79b8ff;
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+        }
+
+        .folder-name {
+            font-weight: 500;
+        }
+
+        /* Collapse indicator - change folder icon when collapsed */
+        .folder-row:not(.expanded) + .tree-children {
+            display: none;
+        }
+
+        /* File styling */
+        .file-row {
+            text-decoration: none;
+            color: inherit;
+            border: none !important;
+        }
+
+        .file-icon {
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            color: #6a737d;
+            opacity: 0.8;
+        }
+
+        .file-name {
+            font-size: 13px;
+            font-weight: 400;
+            color: #24292e;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Active file state */
+        ._left_menu.active {
+            background-color: #0366d6 !important;
+            color: #ffffff;
+        }
+
+        ._left_menu.active .file-icon {
+            color: #ffffff;
+            opacity: 1;
+            filter: brightness(0) invert(1);
+        }
+
+        ._left_menu.active .file-name {
+            color: #ffffff;
+        }
+
+        /* Root level - no connectors */
+        .list-group-flush > .tree-item > .tree-item-row::before {
+            display: none;
+        }
+
+        /* Smooth scrolling for the file list */
+        .list-group-flush {
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #ffffff;
+        }
+
+        .list-group-flush::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .list-group-flush::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .list-group-flush::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .list-group-flush::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
     </style>
 
 
@@ -112,23 +249,83 @@
 </body>
 
 <script>
+// Listen for navigation messages from iframe (using postMessage API)
+window.addEventListener('message', function(event) {
+    // Accept messages from any origin for local file:// protocol support
+    if (event.data && event.data.type === 'dbdemos-navigate') {
+        const targetPath = event.data.targetPath;
+
+        // Update iframe src
+        const iframe = document.getElementById('_iframe');
+        if (iframe) {
+            iframe.src = targetPath;
+        }
+
+        // Update left menu selection
+        const menuItems = document.querySelectorAll('._left_menu');
+        menuItems.forEach(function(item) {
+            item.classList.remove('active');
+            const itemSrc = item.getAttribute('iframe-src');
+            if (itemSrc && itemSrc.endsWith(targetPath)) {
+                item.classList.add('active');
+            }
+        });
+    }
+});
+
+// Toggle folder expand/collapse
+function toggleFolder(folderId) {
+    const folderRow = document.querySelector(`[data-folder-id="${folderId}"]`);
+
+    if (folderRow) {
+        folderRow.classList.toggle('expanded');
+    }
+}
+
 (function() {
     function updateMenu() {
-        iframe = document.getElementById("_iframe")
+        const iframe = document.getElementById("_iframe")
         if (iframe) {
-            iframeLink = iframe.contentWindow.location.href
-            const name = iframeLink.split("/").pop();
-            const selection = $('a[iframe-src$="'+name+'"]')
-            if (selection.length > 0) {
-                $('._left_menu').removeClass('active')
-                $(selection[0]).addClass('active')
+            try {
+                // Try to read iframe location (will fail with CORS/file:// protocol)
+                const iframeLink = iframe.contentWindow.location.href
+                const name = iframeLink.split("/").pop();
+                const selection = $('a[iframe-src$="'+name+'"]')
+                if (selection.length > 0) {
+                    $('._left_menu').removeClass('active')
+                    $(selection[0]).addClass('active')
+                }
+            } catch (e) {
+                // CORS/SecurityError - can't access iframe location
+                // This is expected with file:// protocol, menu updates via postMessage instead
             }
         }
     }
     //For some reason capturing the change on location doesn't work, instead check every sec :/
     setInterval(updateMenu, 1000);
 
-    $($('._left_menu')[0]).addClass('active')
+    // Initialize all folders as expanded
+    $('.folder-row').addClass('expanded')
+
+    // Find and select the first file at the root level
+    let firstFile = null;
+
+    // Look for the first file at root level (direct child of list-group-flush)
+    firstFile = $('.list-group-flush > .tree-item.tree-file ._left_menu').first();
+
+    // If no file found at root, fall back to first file overall
+    if (!firstFile || firstFile.length === 0) {
+        firstFile = $('._left_menu').first();
+    }
+
+    // Select and load the first file
+    if (firstFile && firstFile.length > 0) {
+        firstFile.addClass('active');
+        const src = firstFile.attr('iframe-src');
+        if (src) {
+            $('#_iframe').attr('src', src);
+        }
+    }
 
     $('._left_menu').click(function(e) {
         $('._left_menu').removeClass('active')
@@ -136,7 +333,6 @@
         src = $(this).attr("iframe-src")
         $('#_iframe').attr('src', src);
     });
-    $($('._left_menu')[0]).click()
 })();
 
 </script>

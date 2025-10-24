@@ -283,10 +283,10 @@ class DemoConf():
 
     def set_pipeline_id(self, id, uid):
         j = json.dumps(self.init_job)
-        j = j.replace("{{DYNAMIC_SDL_ID_"+id+"}}", uid)
+        j = j.replace("{{DYNAMIC_SDP_ID_"+id+"}}", uid)
         self.init_job = json.loads(j)
         j = json.dumps(self.workflows)
-        j = j.replace("{{DYNAMIC_SDL_ID_"+id+"}}", uid)
+        j = j.replace("{{DYNAMIC_SDP_ID_"+id+"}}", uid)
         self.workflows = json.loads(j)
 
     def get_job_name(self):
@@ -295,7 +295,7 @@ class DemoConf():
     def get_notebooks_to_run(self):
         return [n for n in self.notebooks if n.pre_run]
 
-    def get_notebooks_to_publish(self):
+    def get_notebooks_to_publish(self) -> List[DemoNotebook]:
         return [n for n in self.notebooks if n.publish_on_website]
 
     def get_bundle_path(self):

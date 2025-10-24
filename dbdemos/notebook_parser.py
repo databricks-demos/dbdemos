@@ -92,34 +92,46 @@ class NotebookParser:
                                                         "};"
                                                       "});", 1)
 
-    def replace_schema(self, demo_conf: DemoConf):
-        #main__build is used during the build process to avoid collision with default main. 
+    @staticmethod
+    def replace_schema_in_content(content: str, demo_conf: DemoConf) -> str:
+        """
+        Static method to replace schema/catalog references in any content string.
+        Used for both notebook content and FILE object types.
+        """
+        #main__build is used during the build process to avoid collision with default main.
         # #main_build is used because agent don't support __ in their catalog name - TODO should improve this and move everything to main_build
-        self.replace_in_notebook(f'catalog = \\"main__build\\"', f'catalog = \\"main\\"')
-        self.replace_in_notebook(f'catalog = \\"main_build\\"', f'catalog = \\"main\\"')
-        self.replace_in_notebook(f'main__build.{demo_conf.default_schema}', f'main.{demo_conf.default_schema}')
-        self.replace_in_notebook(f'main_build.{demo_conf.default_schema}', f'main.{demo_conf.default_schema}')
-        self.replace_in_notebook('Volumes/main__build', 'Volumes/main')
-        self.replace_in_notebook('Volumes/main_build', 'Volumes/main')
+        content = content.replace('catalog = "main__build"', 'catalog = "main"')
+        content = content.replace('catalog = "main_build"', 'catalog = "main"')
+        content = content.replace(f'main__build.{demo_conf.default_schema}', f'main.{demo_conf.default_schema}')
+        content = content.replace(f'main_build.{demo_conf.default_schema}', f'main.{demo_conf.default_schema}')
+        content = content.replace('Volumes/main__build', 'Volumes/main')
+        content = content.replace('Volumes/main_build', 'Volumes/main')
+
         #TODO we need to unify this across all demos.
         if demo_conf.custom_schema_supported:
-            self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$schema=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $schema={demo_conf.schema}", True)
-            self.replace_in_notebook("\$catalog=[0-9a-z_]*\s{1,3}\$db=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $db={demo_conf.schema}", True)
-            self.replace_in_notebook(f"{demo_conf.default_catalog}.{demo_conf.default_schema}", f"{demo_conf.catalog}.{demo_conf.schema}")
-            self.replace_in_notebook(f'dbutils.widgets.text(\\"catalog\\", \\"{demo_conf.default_catalog}\\"', f'dbutils.widgets.text(\\"catalog\\", \\"{demo_conf.catalog}\\"')
-            self.replace_in_notebook(f'dbutils.widgets.text(\\"schema\\", \\"{demo_conf.default_schema}\\"', f'dbutils.widgets.text(\\"schema\\", \\"{demo_conf.schema}\\"')
-            self.replace_in_notebook(f'dbutils.widgets.text(\\"db\\", \\"{demo_conf.default_schema}\\"', f'dbutils.widgets.text(\\"db\\", \\"{demo_conf.schema}\\"')
-            self.replace_in_notebook(f'Volumes/{demo_conf.default_catalog}/{demo_conf.default_schema}', f'Volumes/{demo_conf.catalog}/{demo_conf.schema}')
+            content = re.sub(r"\$catalog=[0-9a-z_]*\s{1,3}\$schema=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $schema={demo_conf.schema}", content)
+            content = re.sub(r"\$catalog=[0-9a-z_]*\s{1,3}\$db=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $db={demo_conf.schema}", content)
+            content = content.replace(f"{demo_conf.default_catalog}.{demo_conf.default_schema}", f"{demo_conf.catalog}.{demo_conf.schema}")
+            content = content.replace(f'dbutils.widgets.text("catalog", "{demo_conf.default_catalog}"', f'dbutils.widgets.text("catalog", "{demo_conf.catalog}"')
+            content = content.replace(f'dbutils.widgets.text("schema", "{demo_conf.default_schema}"', f'dbutils.widgets.text("schema", "{demo_conf.schema}"')
+            content = content.replace(f'dbutils.widgets.text("db", "{demo_conf.default_schema}"', f'dbutils.widgets.text("db", "{demo_conf.schema}"')
+            content = content.replace(f'Volumes/{demo_conf.default_catalog}/{demo_conf.default_schema}', f'Volumes/{demo_conf.catalog}/{demo_conf.schema}')
 
-            self.replace_in_notebook(f'catalog = \\"{demo_conf.default_catalog}\\"', f'catalog = \\"{demo_conf.catalog}\\"')
-            self.replace_in_notebook(f'dbName = db = \\"{demo_conf.default_schema}\\"', f'dbName = db = \\"{demo_conf.schema}\\"')
-            self.replace_in_notebook(f'schema = dbName = db = \\"{demo_conf.default_schema}\\"', f'schema = dbName = db = \\"{demo_conf.schema}\\"')
-            self.replace_in_notebook(f'db = \\"{demo_conf.default_schema}\\"', f'db = \\"{demo_conf.schema}\\"')
-            self.replace_in_notebook(f'schema = \\"{demo_conf.default_schema}\\"', f'schema = \\"{demo_conf.schema}\\"')
-            self.replace_in_notebook(f'USE SCHEMA {demo_conf.default_schema}', f'USE SCHEMA {demo_conf.schema}')
-            self.replace_in_notebook(f'USE CATALOG {demo_conf.default_catalog}', f'USE CATALOG {demo_conf.catalog}')
-            self.replace_in_notebook(f'CREATE CATALOG IF NOT EXISTS {demo_conf.default_catalog}', f'CREATE CATALOG IF NOT EXISTS {demo_conf.catalog}')
-            self.replace_in_notebook(f'CREATE SCHEMA IF NOT EXISTS {demo_conf.default_schema}', f'CREATE SCHEMA IF NOT EXISTS {demo_conf.schema}')
+            content = content.replace(f'catalog = "{demo_conf.default_catalog}"', f'catalog = "{demo_conf.catalog}"')
+            content = content.replace(f'dbName = db = "{demo_conf.default_schema}"', f'dbName = db = "{demo_conf.schema}"')
+            content = content.replace(f'schema = dbName = db = "{demo_conf.default_schema}"', f'schema = dbName = db = "{demo_conf.schema}"')
+            content = content.replace(f'db = "{demo_conf.default_schema}"', f'db = "{demo_conf.schema}"')
+            content = content.replace(f'schema = "{demo_conf.default_schema}"', f'schema = "{demo_conf.schema}"')
+            content = content.replace(f'USE SCHEMA {demo_conf.default_schema}', f'USE SCHEMA {demo_conf.schema}')
+            content = content.replace(f'USE CATALOG {demo_conf.default_catalog}', f'USE CATALOG {demo_conf.catalog}')
+            content = content.replace(f'CREATE CATALOG IF NOT EXISTS {demo_conf.default_catalog}', f'CREATE CATALOG IF NOT EXISTS {demo_conf.catalog}')
+            content = content.replace(f'CREATE SCHEMA IF NOT EXISTS {demo_conf.default_schema}', f'CREATE SCHEMA IF NOT EXISTS {demo_conf.schema}')
+
+        return content
+
+    def replace_schema(self, demo_conf: DemoConf):
+        """Replace schema/catalog in notebook content"""
+        self.content = NotebookParser.replace_schema_in_content(self.content, demo_conf)
 
     def replace_in_notebook(self, old, new, regex = False):
         if regex:
@@ -159,33 +171,138 @@ class NotebookParser:
         self.replace_in_notebook("""\]\(\$\.\/(.*?)\)""", """](./\g<1>.html)""", True)
 
 
-    def add_javascript_to_minisite_relative_links(self):
-        self.html = re.sub("""</body>""",
-            """<script type="text/javascript">
-                function removeDollarFromLinks() {
-                  const links = document.getElementsByTagName("a");
-            
-                  for (let i = 0; i < links.length; i++) {
-                    const href = links[i].getAttribute("href");
-            
-                    if (href && href.includes("$")) {
-                      newHref = href.replace(/\$/g, "");
-                      if (newHref.startsWith("/")) {
-                        newHref = newHref.slice(1)
-                      } 
-                      links[i].setAttribute("href", newHref+".html");
-            
-                      if (links[i].hasAttribute("target")) {
-                        links[i].removeAttribute("target");
-                      }
-                    }
-                  }
-                }
-                window.addEventListener('load', function(event) {
-                    removeDollarFromLinks()
-                });
-            </script>
-            </body>""", self.html)
+    def add_javascript_to_minisite_relative_links(self, notebook_path):
+        # Add JavaScript to the HTML (not content) that intercepts link clicks
+        # This is much more reliable than trying to modify the notebook content
+
+        # Get the notebook's directory (remove filename)
+        notebook_dir = '/'.join(notebook_path.split('/')[:-1])
+        script = f"""
+        <script type="text/javascript">
+        (function() {{
+            const NOTEBOOK_PATH = '{notebook_path}';
+            const NOTEBOOK_DIR = '{notebook_dir}';
+
+            function resolvePath(relativePath) {{
+                // If path starts with /, it's absolute from root
+                if (relativePath.startsWith('/')) {{
+                    return relativePath.substring(1);
+                }}
+
+                // Otherwise, resolve relative to current notebook's directory
+                if (!NOTEBOOK_DIR || NOTEBOOK_DIR === '') {{
+                    return relativePath;
+                }}
+
+                // Combine directory with relative path
+                let parts = NOTEBOOK_DIR.split('/').filter(p => p !== '');
+                let pathParts = relativePath.split('/').filter(p => p !== '');
+
+                for (let part of pathParts) {{
+                    if (part === '..') {{
+                        parts.pop();
+                    }} else if (part !== '.') {{
+                        parts.push(part);
+                    }}
+                }}
+
+                return parts.join('/');
+            }}
+
+            function setupMinisiteLinks() {{
+                // Find all links in the page
+                const links = document.querySelectorAll('a[href]');
+
+                links.forEach(function(link) {{
+                    const href = link.getAttribute('href');
+
+                    if (!href) return;
+
+                    // Check if link has $ (internal demo link)
+                    if (href.includes('$')) {{
+                        // All $ links are relative to the current notebook directory
+                        // Remove various prefixes: /$./  $./  /$.  $.
+                        let relativePath = href;
+
+                        // Remove /$./
+                        if (relativePath.includes('/$' + './')) {{
+                            relativePath = relativePath.replace('/$' + './', '');
+                        }}
+                        // Remove $./
+                        else if (relativePath.includes('$' + './')) {{
+                            relativePath = relativePath.replace('$' + './', '');
+                        }}
+                        // Remove /$.
+                        else if (relativePath.includes('/$' + '.')) {{
+                            relativePath = relativePath.replace('/$' + '.', '');
+                        }}
+                        // Remove $.
+                        else if (relativePath.includes('$' + '.')) {{
+                            relativePath = relativePath.replace('$' + '.', '');
+                        }}
+                        // Just remove $
+                        else {{
+                            relativePath = relativePath.replace('$', '');
+                        }}
+
+                        // Remove only a single leading ./ if present (preserve ../ for navigation)
+                        if (relativePath.startsWith('./')) {{
+                            relativePath = relativePath.substring(2);
+                        }}
+
+                        // Always resolve against notebook directory
+                        let targetPath = resolvePath(relativePath) + '.html';
+
+                        // Remove target and rel attributes immediately
+                        link.removeAttribute('target');
+                        link.removeAttribute('rel');
+
+                        // Change href to # immediately to prevent navigation
+                        link.setAttribute('href', '#');
+
+                        // Store targetPath in data attribute for debugging
+                        link.setAttribute('data-target-path', targetPath);
+
+                        // Add click handler with capture phase
+                        link.addEventListener('click', function(e) {{
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            // Send message to parent window
+                            if (window.parent && window.parent !== window) {{
+                                window.parent.postMessage({{
+                                    type: 'dbdemos-navigate',
+                                    targetPath: targetPath
+                                }}, '*');
+                            }} else {{
+                                window.location.href = targetPath;
+                            }}
+
+                            return false;
+                        }}, true);
+                    }} else if (!href.startsWith('#') && !href.startsWith('http')) {{
+                        // Remove non-demo internal links (convert to plain text)
+                        const text = document.createTextNode(link.textContent);
+                        link.parentNode.replaceChild(text, link);
+                    }}
+                }});
+            }}
+
+            // Run when DOM is ready
+            if (document.readyState === 'loading') {{
+                document.addEventListener('DOMContentLoaded', setupMinisiteLinks);
+            }} else {{
+                setupMinisiteLinks();
+            }}
+
+            // Also run after a short delay to catch dynamically loaded content
+            setTimeout(setupMinisiteLinks, 500);
+        }})();
+        </script>
+        """
+
+        # Insert the script before </body>
+        self.html = self.html.replace('</body>', script + '</body>')
 
     #Set the environment metadata to the notebook.
     # TODO: might want to re-evaluate this once we move to ipynb format as it'll be set in the ipynb file, as metadata.

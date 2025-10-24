@@ -151,16 +151,158 @@ class Packager:
             with open(demo_conf.get_bundle_path() + "/" + init_notebook.path+".html", "w") as f:
                 f.write(html)
 
-    def get_html_menu(self, path: str, title: str, description: str, notebook_link: str):
-        # Add padding for subfolder for better visualization
-        padding = path.count("/")*20+10
-        return f"""
-                <a href="#" class="_left_menu list-group-item list-group-item-action py-3 lh-sm" iframe-src="{notebook_link}" style="padding: 2px 2px 2px {padding}px;">
-                    <div class="d-flex w-100 align-items-center justify-content-between">
-                        <span class="notebook_path"><strong class="mb-1">{title}</strong></span>
+    def get_file_icon_svg(self, file_path: str) -> str:
+        """
+        Get the appropriate SVG icon based on file type
+
+        Args:
+            file_path: Path to the file
+
+        Returns:
+            SVG icon as HTML string
+        """
+        # Notebook icon (for .html notebook files)
+        notebook_icon = '''<svg class="file-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" fill-rule="evenodd" d="M3 1.75A.75.75 0 0 1 3.75 1h10.5a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75V12.5H1V11h2V8.75H1v-1.5h2V5H1V3.5h2zm1.5.75v11H6v-11zm3 0v11h6v-11z" clip-rule="evenodd"></path></svg>'''
+
+        # Generic file icon (for .py, .sql, and other code files)
+        file_icon = '''<svg class="file-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" fill-rule="evenodd" d="M2 1.75A.75.75 0 0 1 2.75 1h6a.75.75 0 0 1 .53.22l4.5 4.5c.141.14.22.331.22.53v9a.75.75 0 0 1-.75.75H2.75a.75.75 0 0 1-.75-.75zm1.5.75v12h9V7H8.75A.75.75 0 0 1 8 6.25V2.5zm6 1.06 1.94 1.94H9.5z" clip-rule="evenodd"></path></svg>'''
+
+        if file_path.endswith(('.py', '.sql')):
+            return file_icon
+        else:
+            return notebook_icon
+
+    def build_tree_structure(self, notebooks_to_publish):
+        """
+        Build a hierarchical tree structure from notebook paths
+
+        Returns a nested dict representing the folder/file hierarchy
+        """
+        tree = {}
+
+        for notebook in notebooks_to_publish:
+            parts = notebook.get_clean_path().split('/')
+            current = tree
+
+            # Navigate/create the folder structure
+            for i, part in enumerate(parts[:-1]):
+                if part not in current:
+                    current[part] = {'__type__': 'folder', '__children__': {}}
+                current = current[part]['__children__']
+
+            # Add the file at the end
+            filename = parts[-1]
+            current[filename] = {
+                '__type__': 'file',
+                '__notebook__': notebook,
+                '__path__': notebook.get_clean_path()
+            }
+
+        return tree
+
+    def render_tree_html(self, tree, iframe_root_src="./", level=0):
+        """
+        Recursively render the tree structure as HTML with CSS-based tree lines
+
+        Args:
+            tree: The tree structure dict
+            iframe_root_src: Root path for iframe sources
+            level: Current depth level
+        """
+        html = ""
+        items = sorted(tree.items(), key=lambda x: (x[1].get('__type__') != 'folder', x[0]))
+
+        for idx, (name, node) in enumerate(items):
+            is_last = (idx == len(items) - 1)
+
+            if node['__type__'] == 'folder':
+                # Render folder
+                folder_id = f"folder_{level}_{idx}_{name.replace(' ', '_')}"
+
+                html += f'''
+                <div class="tree-item tree-folder {'tree-last' if is_last else ''}">
+                    <div class="tree-item-row folder-row expanded" data-folder-id="{folder_id}" onclick="toggleFolder('{folder_id}')">
+                        <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 16 16">
+                            <path fill="currentColor" d="M.75 2a.75.75 0 0 0-.75.75v10.5c0 .414.336.75.75.75h14.5a.75.75 0 0 0 .75-.75v-8.5a.75.75 0 0 0-.75-.75H7.81L6.617 2.805A2.75 2.75 0 0 0 4.672 2z"></path>
+                        </svg>
+                        <span class="folder-name">{name}</span>
                     </div>
-                    <div class="small notebook_description">{description}</div>
-                </a>"""
+                    <div class="tree-children" id="{folder_id}">
+                '''
+
+                # Recursively render children
+                html += self.render_tree_html(node['__children__'], iframe_root_src, level + 1)
+
+                html += '''
+                    </div>
+                </div>
+                '''
+            else:
+                # Render file
+                notebook = node['__notebook__']
+                path = node['__path__']
+                file_icon = self.get_file_icon_svg(path)
+                notebook_link = iframe_root_src + path + ".html"
+                # Use the filename (last part of the path)
+                filename = path.split('/')[-1]
+
+                html += f'''
+                <div class="tree-item tree-file {'tree-last' if is_last else ''}">
+                    <a href="#" class="tree-item-row file-row _left_menu" iframe-src="{notebook_link}">
+                        {file_icon}
+                        <span class="file-name">{filename}</span>
+                    </a>
+                </div>
+                '''
+
+        return html
+
+    def generate_html_from_code_file(self, code_file_path: str, output_html_path: str, demo_name: str):
+        """
+        Generate HTML file from .py or .sql code file with syntax highlighting
+
+        Args:
+            code_file_path: Path to the source code file (.py or .sql)
+            output_html_path: Path where the HTML file should be saved
+            demo_name: Name of the demo (for metadata)
+        """
+        import html
+
+        # Determine file type and language
+        file_extension = code_file_path.split('.')[-1]
+        file_name = os.path.basename(code_file_path)
+        file_path_display = code_file_path
+
+        if file_extension == 'py':
+            language = 'python'
+            file_type = 'Python'
+        elif file_extension == 'sql':
+            language = 'sql'
+            file_type = 'SQL'
+        else:
+            raise ValueError(f"Unsupported file type: {file_extension}. Only .py and .sql are supported.")
+
+        # Read the code file
+        with open(code_file_path, 'r', encoding='utf-8') as f:
+            code_content = f.read()
+
+        # HTML escape the code content to prevent XSS
+        code_content_escaped = html.escape(code_content)
+
+        # Load the code viewer template
+        template = pkg_resources.resource_string("dbdemos", "template/code_viewer.html").decode('UTF-8')
+
+        # Replace placeholders
+        template = template.replace("{{FILE_NAME}}", file_name)
+        template = template.replace("{{FILE_TYPE}}", file_type)
+        template = template.replace("{{FILE_PATH}}", file_path_display)
+        template = template.replace("{{LANGUAGE}}", language)
+        template = template.replace("{{CODE_CONTENT}}", code_content_escaped)
+        template = template.replace("{{DEMO_NAME}}", demo_name)
+
+        # Write the HTML file
+        with open(output_html_path, 'w', encoding='utf-8') as f:
+            f.write(template)
 
     #Build HTML pages with index.
     # - If the notebook is pre-run, load them from the install_package folder
@@ -169,44 +311,45 @@ class Packager:
         notebooks_to_publish = demo_conf.get_notebooks_to_publish()
         print(f"Build minisite for demo {demo_conf.name} ({demo_conf.path}) - {notebooks_to_publish}")
         minisite_path = demo_conf.get_minisite_path()
-        html_menu = {}
-        previous_folder = ""
+
         for notebook in notebooks_to_publish:
             Path(minisite_path).mkdir(parents=True, exist_ok=True)
             full_path = minisite_path+"/"+notebook.get_clean_path()+".html"
             Path(full_path[:full_path.rindex("/")]).mkdir(parents=True, exist_ok=True)
-            with open(demo_conf.get_bundle_path()+"/"+notebook.get_clean_path()+".html", "r") as f:
-                parser = NotebookParser(f.read())
-            with open(full_path, "w") as f:
-                parser.remove_robots_meta()
-                parser.add_cell_as_html_for_seo()
-                parser.remove_delete_cell()
-                parser.add_javascript_to_minisite_relative_links()
-                f.write(parser.get_html())
-            menu_entry = ""
-            title = notebook.get_clean_path()
-            i = title.rfind("/")
-            if i > 0:
-                folder = title[:i+1]
-                title = title[i+1:]
+
+            # Check if we have a code file (.py or .sql) or notebook HTML file
+            # Code files are stored with their full extension in the bundle
+            clean_path = notebook.get_clean_path()
+
+            if notebook.path.endswith(('.py', '.sql')):
+                # Code file - path already includes extension (.py or .sql)
+                source_file_path = demo_conf.get_bundle_path() + "/" + clean_path
+                file_type = clean_path.split('.')[-1].upper()
+                print(f"  Generating HTML from {file_type} file: {source_file_path}")
+                self.generate_html_from_code_file(source_file_path, full_path, demo_conf.name)
             else:
-                folder = ""
-            if folder != previous_folder:
-                previous_folder = folder
-                if len(folder) > 0:
-                    menu_entry = f"""<div style="padding: 2px 0px 2px 10px; border-bottom: 1px solid rgba(0,0,0,.125);">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class=""><path fill="currentColor" d="M.75 2a.75.75 0 0 0-.75.75v10.5c0 .414.336.75.75.75h14.5a.75.75 0 0 0 .75-.75v-8.5a.75.75 0 0 0-.75-.75H7.81L6.617 2.805A2.75 2.75 0 0 0 4.672 2H.75Z"></path></svg>
-                                        {folder[:-1]}</div>"""
+                # Standard notebook HTML file - append .html extension
+                source_file_path = demo_conf.get_bundle_path() + "/" + clean_path + ".html"
+                if not os.path.exists(source_file_path):
+                    raise FileNotFoundError(f"Could not find notebook file: {source_file_path}")
+                with open(source_file_path, "r") as f:
+                    parser = NotebookParser(f.read())
+                with open(full_path, "w") as f:
+                    parser.remove_robots_meta()
+                    parser.add_cell_as_html_for_seo()
+                    parser.remove_delete_cell()
+                    parser.add_javascript_to_minisite_relative_links(notebook.get_clean_path())
+                    f.write(parser.get_html())
 
-            menu_entry += self.get_html_menu(notebook.get_clean_path(), title, notebook.description, iframe_root_src+notebook.get_clean_path()+".html")
-            html_menu[notebook.get_clean_path()] = menu_entry
+        # Build the tree structure from all notebooks
+        tree = self.build_tree_structure(notebooks_to_publish)
 
-        #create the index file
+        # Render the tree as HTML
+        tree_html = self.render_tree_html(tree, iframe_root_src)
+
+        # Create the index file
         template = pkg_resources.resource_string("dbdemos", "template/index.html").decode('UTF-8')
-        #Sort the menu to display  proper order.
-        menu_keys = [*html_menu]
-        menu_keys.sort()
-        template = template.replace("{{LEFT_MENU}}", ' '.join([html_menu[k] for k in menu_keys]))
+        template = template.replace("{{LEFT_MENU}}", tree_html)
         template = template.replace("{{TITLE}}", demo_conf.title)
         template = template.replace("{{DESCRIPTION}}", demo_conf.description)
         template = template.replace("{{DEMO_NAME}}", demo_conf.name)

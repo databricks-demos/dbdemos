@@ -436,7 +436,10 @@ class Installer:
                             self.report.display_folder_creation_error(FolderCreationException(install_path, r), demo_conf)
             if notebook.object_type == "FILE":
                 file = self.get_resource(template_path, decode=False)
-                file_encoded = base64.b64encode(file).decode("utf-8")
+                # Decode file content, replace schema, then re-encode
+                file_content = file.decode('utf-8')
+                file_content = NotebookParser.replace_schema_in_content(file_content, demo_conf)
+                file_encoded = base64.b64encode(file_content.encode('utf-8')).decode("utf-8")
                 r = self.db.post(f"2.0/workspace/import", {"path": install_path+"/"+notebook.get_clean_path(), "content": file_encoded, "format": "AUTO", "overwrite": False})
                 if 'error_code' in r:
                     self.report.display_folder_creation_error(FolderCreationException(f"{install_path}/{notebook.get_clean_path()}", r), demo_conf)
@@ -495,7 +498,8 @@ class Installer:
             today = date.today().strftime("%Y-%m-%d")
             #modify cluster definitions if serverless
             if serverless:
-                del definition['clusters']
+                if "clusters" in definition:
+                    del definition['clusters']
                 definition['photon'] = True
                 definition['serverless'] = True
                 if dlt_policy_id is not None:

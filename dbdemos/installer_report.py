@@ -239,8 +239,8 @@ class InstallerReport:
         <div class="update_container">
             <div class="update_box">
                 <img src="https://github.com/databricks-demos/dbdemos-resources/raw/main/icon/declarative-pipelines.jpg" class="update_image">
-                <div class="update_title">Discover our Declarative Pipelines demo!</div>
-                <p>Discover how Lakeflow Declarative Pipeline simplifies batch and streaming ETL with automated reliability and built-in data quality:<br><br>
+                <div class="update_title">Discover our Spark Declarative Pipelines demo!</div>
+                <p>Discover how Lakeflow SDP simplifies batch and streaming ETL with automated reliability and built-in data quality:<br><br>
     <span class="code">dbdemos.install('pipeline-bike')</span>
     </p>
             </div>
@@ -334,7 +334,7 @@ class InstallerReport:
                     html += f"""<div class="notebook {div_class}">{InstallerReport.NOTEBOOK_SVG} <a href="{self.workspace_url}/#workspace{install_path}/{demo_name}/{n.get_clean_path()}">{path}</a>: <span class="path_desc">{n.title}</span></div>"""
             html += """</div>"""
         if len(pipelines_ids) > 0:
-            html += f"""<h2>Lakeflow Declarative Pipelines</h2><ul>"""
+            html += f"""<h2>Spark Declarative Pipelines</h2><ul>"""
             for p in pipelines_ids:
                 if 'error' in p:
                     html += f"""<li>{p['name']}: Installation error</li>"""
@@ -399,7 +399,7 @@ class InstallerReport:
             cluster_instruction = ""
         if len(pipelines_ids) > 0:
             print("----------------------------------------------------")
-            print("------------ Lakeflow Declarative Pipelines available: -----------")
+            print("------------ Spark Declarative Pipelines available: -----------")
             for p in pipelines_ids:
                 if 'error' in p:
                     print(f"    - {p['name']}: Installation error")
