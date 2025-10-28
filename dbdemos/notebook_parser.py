@@ -93,6 +93,24 @@ class NotebookParser:
                                                       "});", 1)
 
     @staticmethod
+    def _replace_with_optional_escaped_quotes(content: str, old: str, new: str) -> str:
+        """
+        Helper to replace text handling both escaped and unescaped quotes.
+        In JSON content, quotes are escaped as \", but in parsed content they're not.
+        We handle both by trying replacements with escaped quotes first, then unescaped.
+        This is much faster than using regex.
+        """
+        # Try with escaped quotes first (JSON format: \")
+        old_escaped = old.replace('"', '\\"')
+        new_escaped = new.replace('"', '\\"')
+        content = content.replace(old_escaped, new_escaped)
+
+        # Then try with unescaped quotes (plain text format: ")
+        content = content.replace(old, new)
+
+        return content
+
+    @staticmethod
     def replace_schema_in_content(content: str, demo_conf: DemoConf) -> str:
         """
         Static method to replace schema/catalog references in any content string.
@@ -100,8 +118,8 @@ class NotebookParser:
         """
         #main__build is used during the build process to avoid collision with default main.
         # #main_build is used because agent don't support __ in their catalog name - TODO should improve this and move everything to main_build
-        content = content.replace('catalog = "main__build"', 'catalog = "main"')
-        content = content.replace('catalog = "main_build"', 'catalog = "main"')
+        content = NotebookParser._replace_with_optional_escaped_quotes(content, 'catalog = "main__build"', 'catalog = "main"')
+        content = NotebookParser._replace_with_optional_escaped_quotes(content, 'catalog = "main_build"', 'catalog = "main"')
         content = content.replace(f'main__build.{demo_conf.default_schema}', f'main.{demo_conf.default_schema}')
         content = content.replace(f'main_build.{demo_conf.default_schema}', f'main.{demo_conf.default_schema}')
         content = content.replace('Volumes/main__build', 'Volumes/main')
@@ -112,16 +130,16 @@ class NotebookParser:
             content = re.sub(r"\$catalog=[0-9a-z_]*\s{1,3}\$schema=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $schema={demo_conf.schema}", content)
             content = re.sub(r"\$catalog=[0-9a-z_]*\s{1,3}\$db=[0-9a-z_]*", f"$catalog={demo_conf.catalog} $db={demo_conf.schema}", content)
             content = content.replace(f"{demo_conf.default_catalog}.{demo_conf.default_schema}", f"{demo_conf.catalog}.{demo_conf.schema}")
-            content = content.replace(f'dbutils.widgets.text("catalog", "{demo_conf.default_catalog}"', f'dbutils.widgets.text("catalog", "{demo_conf.catalog}"')
-            content = content.replace(f'dbutils.widgets.text("schema", "{demo_conf.default_schema}"', f'dbutils.widgets.text("schema", "{demo_conf.schema}"')
-            content = content.replace(f'dbutils.widgets.text("db", "{demo_conf.default_schema}"', f'dbutils.widgets.text("db", "{demo_conf.schema}"')
+            content = NotebookParser._replace_with_optional_escaped_quotes(content, f'dbutils.widgets.text("catalog", "{demo_conf.default_catalog}"', f'dbutils.widgets.text("catalog", "{demo_conf.catalog}"')
+            content = NotebookParser._replace_with_optional_escaped_quotes(content, f'dbutils.widgets.text("schema", "{demo_conf.default_schema}"', f'dbutils.widgets.text("schema", "{demo_conf.schema}"')
+            content = NotebookParser._replace_with_optional_escaped_quotes(content, f'dbutils.widgets.text("db", "{demo_conf.default_schema}"', f'dbutils.widgets.text("db", "{demo_conf.schema}"')
             content = content.replace(f'Volumes/{demo_conf.default_catalog}/{demo_conf.default_schema}', f'Volumes/{demo_conf.catalog}/{demo_conf.schema}')
 
-            content = content.replace(f'catalog = "{demo_conf.default_catalog}"', f'catalog = "{demo_conf.catalog}"')
-            content = content.replace(f'dbName = db = "{demo_conf.default_schema}"', f'dbName = db = "{demo_conf.schema}"')
-            content = content.replace(f'schema = dbName = db = "{demo_conf.default_schema}"', f'schema = dbName = db = "{demo_conf.schema}"')
-            content = content.replace(f'db = "{demo_conf.default_schema}"', f'db = "{demo_conf.schema}"')
-            content = content.replace(f'schema = "{demo_conf.default_schema}"', f'schema = "{demo_conf.schema}"')
+            content = NotebookParser._replace_with_optional_escaped_quotes(content, f'catalog = "{demo_conf.default_catalog}"', f'catalog = "{demo_conf.catalog}"')
+            content = NotebookParser._replace_with_optional_escaped_quotes(content, f'dbName = db = "{demo_conf.default_schema}"', f'dbName = db = "{demo_conf.schema}"')
+            content = NotebookParser._replace_with_optional_escaped_quotes(content, f'schema = dbName = db = "{demo_conf.default_schema}"', f'schema = dbName = db = "{demo_conf.schema}"')
+            content = NotebookParser._replace_with_optional_escaped_quotes(content, f'db = "{demo_conf.default_schema}"', f'db = "{demo_conf.schema}"')
+            content = NotebookParser._replace_with_optional_escaped_quotes(content, f'schema = "{demo_conf.default_schema}"', f'schema = "{demo_conf.schema}"')
             content = content.replace(f'USE SCHEMA {demo_conf.default_schema}', f'USE SCHEMA {demo_conf.schema}')
             content = content.replace(f'USE CATALOG {demo_conf.default_catalog}', f'USE CATALOG {demo_conf.catalog}')
             content = content.replace(f'CREATE CATALOG IF NOT EXISTS {demo_conf.default_catalog}', f'CREATE CATALOG IF NOT EXISTS {demo_conf.catalog}')
