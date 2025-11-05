@@ -242,6 +242,7 @@ class DemoConf():
         self.dashboards = json_conf.get('dashboards', [])
         self.sql_queries = json_conf.get('sql_queries', [])
         self.bundle = json_conf.get('bundle', False)
+        self.env_version = json_conf.get('env_version', 2)
         
         self.data_folders: List[DataFolder] = []
         for data_folder in json_conf.get('data_folders', []):

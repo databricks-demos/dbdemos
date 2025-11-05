@@ -217,40 +217,53 @@ class InstallerGenie:
 
         import requests
         import collections
+        dbutils = self.installer.get_dbutils()
         try:
-            # Get list of files from GitHub API, to avoid adding a S3 boto dependency just for this
-            github_path = f"https://api.github.com/repos/databricks-demos/dbdemos-dataset/contents/{data_folder.source_folder}"
-            if debug:
-                print(f"Getting files from {github_path}")
-            files = requests.get(github_path).json()
-            if 'message' in files:
-                print(f"Error getting files from {github_path}: {files}")
-            files = [f['download_url'] for f in files]
-            
-            if debug:
-                print(f"Found {len(files)} files in GitHub repo for {data_folder.source_folder}")
-                            
-            def copy_file(file_url):
-                if not file_url.endswith('/'):
-                    file_name = file_url.split('/')[-1]
-                    folder = data_folder.target_volume_folder_name if data_folder.target_volume_folder_name else data_folder.source_folder
-                    target_path = f"/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}/{file_name}"
-                    
-                    s3_url = file_url.replace("https://raw.githubusercontent.com/databricks-demos/dbdemos-dataset/main/", 
-                                            "https://dbdemos-dataset.s3.amazonaws.com/")
+            folder = data_folder.target_volume_folder_name if data_folder.target_volume_folder_name else data_folder.source_folder
+            #first try with a dbutils copy if available
+            copied_successfully = False
+            if dbutils is not None:
+                try:
+                    dbutils.fs.cp(f"s3://dbdemos-dataset/{data_folder.source_folder}", f"/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}", recurse=True)
+                    copied_successfully = True
+                except Exception as e:
+                    if debug:
+                        print(f"Error copying {data_folder.source_folder} to {f'/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}'} using dbutils fs.cp: {e}")
+                if debug:
+                    print(f"Copied {data_folder.source_folder} to {f'/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}'} using dbutils fs.cp")
+            if not copied_successfully:
+                # Get list of files from GitHub API, to avoid adding a S3 boto dependency just for this
+                github_path = f"https://api.github.com/repos/databricks-demos/dbdemos-dataset/contents/{data_folder.source_folder}"
+                if debug:
+                    print(f"Getting files from {github_path}")
+                files = requests.get(github_path).json()
+                if 'message' in files:
+                    print(f"Error getting files from {github_path}: {files}")
+                files = [f['download_url'] for f in files]
+                
+                if debug:
+                    print(f"Found {len(files)} files in GitHub repo for {data_folder.source_folder}")
+                                
+                def copy_file(file_url):
+                    if not file_url.endswith('/'):
+                        file_name = file_url.split('/')[-1]
+                        target_path = f"/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}/{file_name}"
+                        
+                        s3_url = file_url.replace("https://raw.githubusercontent.com/databricks-demos/dbdemos-dataset/main/", 
+                                                "https://dbdemos-dataset.s3.amazonaws.com/")
 
-                    if debug:
-                        print(f"Copying {s3_url} to {target_path}")
-                    response = requests.get(s3_url)
-                    response.raise_for_status()
-                    if debug:
-                        print(f"File {file_name} in memory. sending to volume...")
-                    ws.files.upload(target_path, response.content, overwrite=True)
-                    if debug:
-                        print(f"File {file_name} in volume!")
-            
-            with ThreadPoolExecutor(max_workers=5) as executor:
-                collections.deque(executor.map(copy_file, files))
+                        if debug:
+                            print(f"Copying {s3_url} to {target_path}")
+                        response = requests.get(s3_url)
+                        response.raise_for_status()
+                        if debug:
+                            print(f"File {file_name} in memory. sending to volume...")
+                        ws.files.upload(target_path, response.content, overwrite=True)
+                        if debug:
+                            print(f"File {file_name} in volume!")
+                
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    collections.deque(executor.map(copy_file, files))
 
         except Exception as e:
             raise DataLoaderException(f"Error loading data from S3: {str(e)}")

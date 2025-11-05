@@ -58,11 +58,11 @@ class Packager:
         with open(destination_path + extension, "wb") as f:
             f.write(file_content)
 
-    def process_notebook_content(self, html, full_path):
+    def process_notebook_content(self, demo_conf: DemoConf, html, full_path):
         #Replace notebook content.
         parser = NotebookParser(html)
         parser.remove_uncomment_tag()
-        parser.set_environement_metadata()
+        parser.set_environement_metadata(demo_conf.env_version)
         parser.remove_dbdemos_build()
         #parser.remove_static_settings()
         parser.hide_commands_and_results()
@@ -106,7 +106,7 @@ class Packager:
                     if 'error_code' in file:
                         raise Exception(f"Couldn't find file {repo_path} in workspace. Check notebook path in bundle conf file. {file['error_code']} - {file['message']}")
                     html = base64.b64decode(file['content']).decode('utf-8')
-                    return self.process_notebook_content(html, full_path+".html")
+                    return self.process_notebook_content(demo_conf, html, full_path+".html")
                 elif status['object_type'] == 'DIRECTORY':
                     folder = self.db.get("2.0/workspace/export", {"path": repo_path, "format": "AUTO", "direct_download": True})
                     return self.process_file_content(folder, full_path, ".zip")
@@ -124,7 +124,7 @@ class Packager:
                 if "views" not in notebook_result:
                     raise Exception(f"couldn't get notebook for run {tasks[0]['run_id']} - {notebook.path}. {demo_conf.name}. You probably did a run repair. Please re run the job. - {notebook_result}")
                 html = notebook_result["views"][0]["content"]
-                return self.process_notebook_content(html, full_path+".html")
+                return self.process_notebook_content(demo_conf, html, full_path+".html")
             
 
         requires_global_setup_v2 = False
