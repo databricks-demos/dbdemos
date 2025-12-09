@@ -31,18 +31,20 @@ def bundle():
     #bundler.load_bundles_conf()
     """
     bundler.load_bundles_conf()
+    bundler.ignore_bundle("/product_demos/delta-sharing-airlines")
     #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
     
-
+    #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
     bundler.start_and_wait_bundle_jobs(force_execution = False, skip_execution=False, recreate_jobs=False)
 
     packager = Packager(conf, bundler)
     packager.package_all()
 
-bundle()
+#bundle()
 
-#Loads conf to install on cse2.
+
+#Loads conf to install
 with open("local_conf_E2FE.json", "r") as r:
     c = json.loads(r.read())
 
@@ -54,7 +56,7 @@ import dbdemos
 #dbdemos.list_demos(pat_token=c['pat_token'])
 #dbdemos.install_all("/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", start_cluster = False, skip_dashboards=False, catalog='main_test_quentin')
 #dbdemos.check_status_all()
-#dbdemos.install("ai-agent", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test2', cloud="AWS", start_cluster = False, skip_dashboards=False, serverless=True)
+#dbdemos.install("ai-agent", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='test_quentin_dbdemos_ai_agent', cloud="AWS", start_cluster = False, skip_dashboards=False, serverless=True)
 #dbdemos.install("computer-vision-pcb", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test2', cloud="AWS", start_cluster = False, skip_dashboards=False)
 
 #dbdemos.install("uc-01-acl", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], start_cluster = False,  schema='test_quentin_acl', catalog='dbdemos')
@@ -65,7 +67,7 @@ import dbdemos
     
 #dbdemos.install("dlt-cdc", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test2', cloud="AWS", start_cluster = False, debug=True, dlt_policy_id = "0003963E5B551CE4", dlt_compute_settings = {"autoscale": {"min_workers": 1, "max_workers": 5}})
 #dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test2', cloud="AWS", start_cluster = False, debug=True)
-#dbdemos.install("dlt-unit-test", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test2', cloud="AWS", start_cluster = False, debug=True)
+#dbdemos.install("declarative-pipeline-unit-test", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='test_quentin_pipeline_unit_test', cloud="AWS", start_cluster = False, debug=True)
 
 #dbdemos.install("llm-tools-functions", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"], schema='test_quentin_rag', catalog='dbdemos', debug=True)
 
@@ -100,10 +102,10 @@ import dbdemos
 #dbdemos.install("lakehouse-iot-platform", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test3', cloud="AWS", start_cluster = False)
 #dbdemos.install("pipeline-bike", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test3', cloud="AWS", start_cluster = False)
 
-dbdemos.install("feature-store", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
+#dbdemos.install("feature-store", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", use_current_cluster=False, current_cluster_id=c["current_cluster_id"])
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="GCP")
 #dbdemos.install("delta-lake", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="Azure", use_current_cluster=True, current_cluster_id=c["current_cluster_id"])
-dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", skip_dashboards=True, schema='test_quentin_rag', catalog='dbdemos')
+#dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS", skip_dashboards=True, schema='test_quentin_dbdemos', catalog='dbdemos')
 #dbdemos.install("pandas-on-spark", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], cloud="AWS")
 #dbdemos.install("delta-sharing-airlines", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
 #dbdemos.install("dlt-loans", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'])
@@ -111,7 +113,7 @@ dbdemos.install("mlops-end2end", "/Users/quentin.ambard@databricks.com/test_inst
 #dbdemos.create_cluster("uc-05-upgrade", c['username'], c['pat_token'], c['url'], "GCP")
 
 
-#dbdemos.install("aibi-marketing-campaign", "/Users/quentin.ambard@gmail.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
+dbdemos.install("aibi-marketing-campaign", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
 #dbdemos.install("aibi-portfolio-assistant", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
 #dbdemos.install("aibi-supply-chain-forecasting", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)
 #dbdemos.install("aibi-sales-pipeline-review", "/Users/quentin.ambard@databricks.com/test_install_quentin", True, c['username'], c['pat_token'], c['url'], catalog='main', schema='quentin_test_sys', cloud="AWS", start_cluster = False, debug = True)

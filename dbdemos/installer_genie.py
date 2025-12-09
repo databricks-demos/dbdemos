@@ -222,14 +222,17 @@ class InstallerGenie:
             folder = data_folder.target_volume_folder_name if data_folder.target_volume_folder_name else data_folder.source_folder
             #first try with a dbutils copy if available
             copied_successfully = False
+            if debug:
+                print(f"Copying {data_folder.source_folder} to {f'/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}'} using dbutils fs.cp")
             if dbutils is not None:
                 try:
                     dbutils.fs.cp(f"s3://dbdemos-dataset/{data_folder.source_folder}", f"/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}", recurse=True)
                     copied_successfully = True
                 except Exception as e:
+                    copied_successfully = False
                     if debug:
                         print(f"Error copying {data_folder.source_folder} to {f'/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}'} using dbutils fs.cp: {e}")
-                if debug:
+                if copied_successfully and debug:
                     print(f"Copied {data_folder.source_folder} to {f'/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}'} using dbutils fs.cp")
             if not copied_successfully:
                 # Get list of files from GitHub API, to avoid adding a S3 boto dependency just for this
@@ -258,7 +261,9 @@ class InstallerGenie:
                         response.raise_for_status()
                         if debug:
                             print(f"File {file_name} in memory. sending to volume...")
-                        ws.files.upload(target_path, response.content, overwrite=True)
+                        import io
+                        buffer = io.BytesIO(response.content)
+                        ws.files.upload(target_path, buffer, overwrite=True)
                         if debug:
                             print(f"File {file_name} in volume!")
                 

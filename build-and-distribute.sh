@@ -1,3 +1,22 @@
+#!/bin/bash
+
+# Check for pending changes before doing anything
+if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "Error: You have uncommitted changes."
+    echo "Please commit and push your changes before running a release."
+    echo ""
+    git status --short
+    exit 1
+fi
+
+if [ -n "$(git log origin/main..HEAD 2>/dev/null)" ]; then
+    echo "Error: You have unpushed commits."
+    echo "Please push your changes before running a release."
+    echo ""
+    git log origin/main..HEAD --oneline
+    exit 1
+fi
+
 # Check if gh CLI is installed
 if ! command -v gh &> /dev/null; then
     echo "Error: GitHub CLI (gh) is not installed. Please install it first."
@@ -56,11 +75,7 @@ for repo in "${REPOS[@]}"; do
     echo "✓ Access confirmed for $repo"
 done
 
-#save current branch
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-echo "Current branch: $CURRENT_BRANCH"
-
-#increase the release
+# Switch to main and pull latest
 git checkout main || exit 1
 git pull || exit 1
 
@@ -113,7 +128,13 @@ if gh pr create --title "Release v$VERSION" --body "Automated release for versio
 else
     echo "Warning: Failed to create pull request (may already exist)"
 fi
-echo "Version bump committed to release branch and PR created"
+
+# Also update main with the version bump so it doesn't get lost
+echo "Syncing version bump to main..."
+git checkout main
+git add setup.py dbdemos/__init__.py
+git commit -m "Bump version to $VERSION"
+git push origin main
 
 # Find the wheel file
 WHL_FILE=$(find ./dist -name "*.whl" | head -n 1)
@@ -152,8 +173,5 @@ create_release_with_asset "databricks-demos/dbdemos"
 create_release_with_asset "databricks-demos/dbdemos-notebooks"
 create_release_with_asset "databricks-demos/dbdemos-dataset"
 create_release_with_asset "databricks-demos/dbdemos-resources"
-
-# Return to original branch
-git checkout $CURRENT_BRANCH || exit 1
 
 echo "Release process completed for v$VERSION!"

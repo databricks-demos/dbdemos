@@ -62,6 +62,7 @@ class JobBundler:
         print("WARNING --------------------------------------------------------------------------------")
         print(f"TEMPORARY DISABLING DEMO - {bundle_path}")
         print("WARNING --------------------------------------------------------------------------------")
+        print(self.bundles)
         del self.bundles[bundle_path]
 
     def add_bundle(self, bundle_path, config_path: str = "_resources/bundle_config"):

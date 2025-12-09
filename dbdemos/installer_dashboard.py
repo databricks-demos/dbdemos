@@ -48,7 +48,7 @@ class InstallerDashboard:
         #Make sure the dashboard folder exists
         f = self.db.post("2.0/workspace/mkdirs", {"path": dashboard_path})
         if "error_code" in f:
-            raise Exception(f"ERROR - wrong install path, can't save dashboard here: {f}")
+            raise Exception(f"ERROR - wrong install path, can't save dashboard here: {f} - {dashboard_path}")
         
         #Avoid issue with / in the dashboard name (such as AI/BI)
         dashboard['name'] = dashboard['name'].replace('/', '')
