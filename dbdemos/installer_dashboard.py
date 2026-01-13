@@ -11,12 +11,12 @@ class InstallerDashboard:
         self.installer = installer
         self.db = installer.db
 
-    def install_dashboards(self, demo_conf: DemoConf, install_path, warehouse_name = None, debug=True):
+    def install_dashboards(self, demo_conf: DemoConf, install_path, warehouse_name = None, debug=True, genie_rooms = None):
         if len(demo_conf.dashboards) > 0:
             try:
                 if debug:
                     print(f'installing {len(demo_conf.dashboards)} dashboards...')
-                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name) for d in demo_conf.dashboards]
+                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name, genie_rooms, debug) for d in demo_conf.dashboards]
                 if debug:
                     print(f'dashboard installed: {installed_dash}')
                 return installed_dash
@@ -36,7 +36,7 @@ class InstallerDashboard:
             return re.sub(r"`?" + re.escape(demo_conf.default_catalog) + r"`?\.`?" + re.escape(demo_conf.default_schema) + r"`?", f"`{demo_conf.catalog}`.`{demo_conf.schema}`", definition)
         return definition
 
-    def load_lakeview_dashboard(self, demo_conf: DemoConf, install_path, dashboard, warehouse_name = None):
+    def load_lakeview_dashboard(self, demo_conf: DemoConf, install_path, dashboard, warehouse_name = None, genie_rooms = None, debug=True):
         endpoint = self.installer.get_or_create_endpoint(self.db.conf.name, demo_conf, warehouse_name = warehouse_name)
         try:
             definition = self.installer.get_resource(f"bundles/{demo_conf.name}/install_package/_resources/dashboards/{dashboard['id']}.lvdash.json")
@@ -44,6 +44,20 @@ class InstallerDashboard:
         except Exception as e:
             raise Exception(f"Can't load dashboard {dashboard} in demo {demo_conf.name}. Check bundle configuration under dashboards: [..]. "
                             f"The dashboard id should match the file name under the _resources/dashboard/<dashboard> folder.. {e}")
+        # Optionally inject a Genie room uid into the dashboard definition when a single Genie exists.
+        # We only modify when a recognizable placeholder is present to keep this change minimal and safe.
+        try:
+            if genie_rooms and len(genie_rooms) == 1:
+                import re as _re
+                genie_uid = genie_rooms[0].get('uid')
+                if genie_uid:
+                    pattern = r'"overrideId"\s*:\s*""'
+                    if _re.search(pattern, definition):
+                        definition = _re.sub(pattern, f'"overrideId": "{genie_uid}"', definition, count=1)
+            # If multiple or none, skip injection silently.
+        except Exception:
+            # Do not fail installation on optional injection
+            pass
         dashboard_path = f"{install_path}/{demo_conf.name}/_dashboards"
         #Make sure the dashboard folder exists
         f = self.db.post("2.0/workspace/mkdirs", {"path": dashboard_path})
