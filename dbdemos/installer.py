@@ -315,7 +315,7 @@ class Installer:
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless, dlt_policy_id, dlt_compute_settings)
         # Create Genie rooms before dashboards so we can optionally inject their uid into dashboards
         genie_rooms = self.installer_genie.install_genies(demo_conf, install_path, warehouse_name, skip_genie_rooms, debug)
-        dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, warehouse_name, debug, genie_rooms)
+        dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, warehouse_name, genie_rooms)
         repos = self.installer_repo.install_repos(demo_conf, debug)
         workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, warehouse_name, serverless, debug)
         init_job = self.installer_workflow.create_demo_init_job(demo_conf, use_cluster_id, warehouse_name, serverless, debug)

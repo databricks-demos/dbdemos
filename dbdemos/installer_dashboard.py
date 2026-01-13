@@ -11,14 +11,10 @@ class InstallerDashboard:
         self.installer = installer
         self.db = installer.db
 
-    def install_dashboards(self, demo_conf: DemoConf, install_path, warehouse_name = None, debug=True, genie_rooms = None):
+    def install_dashboards(self, demo_conf: DemoConf, install_path, warehouse_name = None, genie_rooms = None):
         if len(demo_conf.dashboards) > 0:
             try:
-                if debug:
-                    print(f'installing {len(demo_conf.dashboards)} dashboards...')
-                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name, genie_rooms, debug) for d in demo_conf.dashboards]
-                if debug:
-                    print(f'dashboard installed: {installed_dash}')
+                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name, genie_rooms) for d in demo_conf.dashboards]
                 return installed_dash
             except Exception as e:
                 self.installer.report.display_dashboard_error(e, demo_conf)
@@ -36,7 +32,7 @@ class InstallerDashboard:
             return re.sub(r"`?" + re.escape(demo_conf.default_catalog) + r"`?\.`?" + re.escape(demo_conf.default_schema) + r"`?", f"`{demo_conf.catalog}`.`{demo_conf.schema}`", definition)
         return definition
 
-    def load_lakeview_dashboard(self, demo_conf: DemoConf, install_path, dashboard, warehouse_name = None, genie_rooms = None, debug=True):
+    def load_lakeview_dashboard(self, demo_conf: DemoConf, install_path, dashboard, warehouse_name = None, genie_rooms = None):
         endpoint = self.installer.get_or_create_endpoint(self.db.conf.name, demo_conf, warehouse_name = warehouse_name)
         try:
             definition = self.installer.get_resource(f"bundles/{demo_conf.name}/install_package/_resources/dashboards/{dashboard['id']}.lvdash.json")
