@@ -11,9 +11,14 @@ class InstallerDashboard:
         self.installer = installer
         self.db = installer.db
 
-    def install_dashboards(self, demo_conf: DemoConf, install_path, warehouse_name = None, genie_rooms = None, debug: bool = True):
+    def install_dashboards(self, demo_conf: DemoConf, install_path, warehouse_name = None, debug = True, genie_rooms = None):
         if len(demo_conf.dashboards) > 0:
             try:
+                if debug:
+                    print(f'installing {len(demo_conf.dashboards)} dashboards...')
+                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name) for d in demo_conf.dashboards]
+                if debug:
+                    print(f'dashboard installed: {installed_dash}')
                 installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name, genie_rooms) for d in demo_conf.dashboards]
                 return installed_dash
             except Exception as e:
