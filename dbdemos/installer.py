@@ -313,12 +313,13 @@ class Installer:
             cluster_name = "Current Cluster"
         self.check_if_install_folder_exists(demo_name, install_path, demo_conf, overwrite, debug)
         pipeline_ids = self.load_demo_pipelines(demo_name, demo_conf, debug, serverless, dlt_policy_id, dlt_compute_settings)
-        dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, warehouse_name, debug)
+        # Create Genie rooms before dashboards so we can optionally inject their uid into dashboards
+        genie_rooms = self.installer_genie.install_genies(demo_conf, install_path, warehouse_name, skip_genie_rooms, debug)
+        dashboards = [] if skip_dashboards else self.installer_dashboard.install_dashboards(demo_conf, install_path, warehouse_name, genie_rooms)
         repos = self.installer_repo.install_repos(demo_conf, debug)
         workflows = self.installer_workflow.install_workflows(demo_conf, use_cluster_id, warehouse_name, serverless, debug)
         init_job = self.installer_workflow.create_demo_init_job(demo_conf, use_cluster_id, warehouse_name, serverless, debug)
         all_workflows = workflows if init_job["id"] is None else workflows + [init_job]
-        genie_rooms = self.installer_genie.install_genies(demo_conf, install_path, warehouse_name, skip_genie_rooms, debug)
         notebooks = self.install_notebooks(demo_name, install_path, demo_conf, cluster_name, cluster_id, pipeline_ids, dashboards, all_workflows, repos, overwrite, use_current_cluster, genie_rooms, debug)
         self.installer_workflow.start_demo_init_job(demo_conf, init_job, debug)
         for pipeline in pipeline_ids:
