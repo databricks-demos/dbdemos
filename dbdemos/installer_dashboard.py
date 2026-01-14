@@ -35,9 +35,20 @@ class InstallerDashboard:
         definition = re.sub(r"`main[_]{1,2}build`\.", "`main`.", definition)
         if demo_conf.custom_schema_supported:
             return re.sub(r"`?" + re.escape(demo_conf.default_catalog) + r"`?\.`?" + re.escape(demo_conf.default_schema) + r"`?", f"`{demo_conf.catalog}`.`{demo_conf.schema}`", definition)
-            return definition
+        return definition
 
     def load_lakeview_dashboard(self, demo_conf: DemoConf, install_path, dashboard, warehouse_name = None, genie_rooms = None):
+        """
+        Create a Lakeview dashboard from the packaged lvdash.json and optionally link it to a Genie space.
+        
+        Behavior:
+        - Load the dashboard definition from the bundle and replace catalog/schema placeholders.
+        - If the dashboard dict provides a mapping key 'genie_room_id' and a matching Genie room exists
+          in 'genie_rooms' (matching by 'id'), inject that room 'uid' in the lvdash JSON by replacing
+          the first occurrence of `"overrideId": ""` with the Genie uid.
+        - If the mapping key is absent or no matching Genie room is found, skip the injection silently.
+        - Then create the Lakeview dashboard using the (possibly) modified serialized JSON.
+        """
         endpoint = self.installer.get_or_create_endpoint(self.db.conf.name, demo_conf, warehouse_name = warehouse_name)
         try:
             definition = self.installer.get_resource(f"bundles/{demo_conf.name}/install_package/_resources/dashboards/{dashboard['id']}.lvdash.json")
@@ -45,7 +56,7 @@ class InstallerDashboard:
         except Exception as e:
             raise Exception(f"Can't load dashboard {dashboard} in demo {demo_conf.name}. Check bundle configuration under dashboards: [..]. "
                             f"The dashboard id should match the file name under the _resources/dashboard/<dashboard> folder.. {e}")
-        # Minimal change: honor explicit dashboard -> genie mapping if present
+        # Honor explicit dashboard -> genie mapping if present (inject Genie uid into "overrideId" when matched)
         try:
             target_room_uid = None
             mapped_room_id = dashboard.get("genie_room_id")
