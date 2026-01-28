@@ -16,10 +16,9 @@ class InstallerDashboard:
             try:
                 if debug:
                     print(f'installing {len(demo_conf.dashboards)} dashboards...')
-                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name) for d in demo_conf.dashboards]
+                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name, genie_rooms) for d in demo_conf.dashboards]
                 if debug:
                     print(f'dashboard installed: {installed_dash}')
-                installed_dash = [self.load_lakeview_dashboard(demo_conf, install_path, d, warehouse_name, genie_rooms) for d in demo_conf.dashboards]
                 return installed_dash
             except Exception as e:
                 self.installer.report.display_dashboard_error(e, demo_conf)
