@@ -5,8 +5,9 @@
   "url": "https://xxx.databricks.com",
   "repo_staging_path": "/Repos/xx.xx@databricks.com",
   "repo_name": "dbdemos-notebooks",
-  "repo_url": "https://github.com/AndreaPicasso/dbdemos-notebooks.git",
+  "repo_url": "https://github.com/databricks-demos/dbdemos-notebooks",
   "branch": "main",
   "github_token": "ghp_xxxxxx",
-  "current_folder": "/Users/quentin.ambard@databricks.com/test_install_demo_marketing_aibi"
+  "cluster_name_pattern": "quentin",
+  "dbdemos_notebooks_path": "../dbdemos-notebooks"
 }

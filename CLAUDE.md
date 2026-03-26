@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⛔ CRITICAL: NEVER Release to PyPI
+
+**Claude Code must NEVER run `./build-and-distribute.sh` or release to PyPI.**
+
+Only the human maintainer can trigger a PyPI release. When demos are ready:
+1. Report to the human that bundling is complete
+2. Wait for the human to run the release script manually
+
+## ⛔ CRITICAL: Never Commit Secrets
+
+**NEVER include PAT tokens, GitHub tokens, or any credentials in:**
+- Commits
+- PR descriptions
+- Tool outputs shown to user
+- Log messages
+
+Tokens are stored in `local_conf.json` (gitignored) or environment variables.
+
 ## CRITICAL: Do Not Modify Bundle and Minisite Directories
 
 **NEVER search, read, edit, or modify files under these directories unless explicitly asked:**
@@ -210,3 +228,115 @@ By default, dbdemos collects usage metrics (views, installations) to improve dem
 - Some demos have resource quotas (compute, storage)
 - Pre-run notebooks require job execution in staging workspace
 - Dashboard API has rate limits (especially on GCP workspaces)
+
+## Claude Code Release Workflow
+
+For the full release workflow, use the `/release` command which provides detailed instructions.
+
+### Quick Reference
+
+**Remote Execution** (`ai_release/run_remote.py`) - Test fixes before committing:
+```bash
+# List clusters
+python ai_release/run_remote.py --list-clusters
+
+# Start/check cluster
+python ai_release/run_remote.py --start-cluster --wait-for-cluster
+
+# Execute code
+python ai_release/run_remote.py --code "print(spark.version)"
+
+# Execute SQL
+python ai_release/run_remote.py --code "SELECT 1" --language sql
+```
+
+**Job Inspection** (`ai_release/inspect_jobs.py`) - Auto-extracts errors from notebook:
+```bash
+# List all jobs with status
+python ai_release/inspect_jobs.py --list
+
+# List only failed jobs
+python ai_release/inspect_jobs.py --list --failed-only
+
+# Get details for a demo (auto-fetches errors if failed)
+python ai_release/inspect_jobs.py --demo <name>
+
+# Show full error traces and code
+python ai_release/inspect_jobs.py --demo <name> --errors
+```
+
+**Bundle CLI** (`ai_release/bundle.py`):
+```bash
+# Check demo status
+python ai_release/bundle.py --demo <name> --status
+
+# Bundle from main
+python ai_release/bundle.py --demo <name>
+
+# Bundle from feature branch
+python ai_release/bundle.py --demo <name> --branch <branch>
+
+# Repair failed job (quick iteration)
+python ai_release/bundle.py --demo <name> --repair
+
+# Force full re-run
+python ai_release/bundle.py --demo <name> --force
+
+# Bundle all demos
+python ai_release/bundle.py --all
+```
+
+**Fix Workflow Summary**:
+1. Inspect errors: `python ai_release/inspect_jobs.py --demo <name> --errors`
+2. Test fix interactively: `python ai_release/run_remote.py --code "..."`
+3. Create fix branch in `../dbdemos-notebooks`: `ai-fix-<demo>-<issue>`
+4. Make fix, commit, push
+5. Test: `--branch ai-fix-... --force`
+6. If fails, iterate with `--repair` or `--force`
+7. Create PR when green
+8. Human merges PR
+9. Final verification from main: `--force`
+10. Human runs `./build-and-distribute.sh`
+
+**GitHub CLI Account Switch** - Use the public account for PRs:
+```bash
+# List accounts
+gh auth status
+
+# Switch to public account (for creating PRs on public repos)
+gh auth switch --user QuentinAmbard
+
+# Switch to enterprise account (quentin-ambard_data is EMU, can't create PRs on public repos)
+gh auth switch --user quentin-ambard_data
+```
+
+**PR Status Verification** - Always check PR state before assuming:
+```bash
+# Check if PR is merged before running tests from main
+gh pr view <PR_NUMBER> --json state,mergedAt
+
+# Never assume a PR is not merged - always verify first
+```
+
+### Environment
+
+- **Workspace**: `https://e2-demo-tools.cloud.databricks.com/`
+- **Config**: `local_conf_E2TOOL.json` (primary) or environment variables
+- **Notebooks repo**: `../dbdemos-notebooks` (configurable)
+- **Test cluster**: Matches `cluster_name_pattern` in config (default: "quentin")
+
+### Key Files
+
+- `ai_release/inspect_jobs.py` - Job inspection CLI (auto-extracts errors)
+- `ai_release/jobs.py` - Job inspection library (uses Databricks SDK)
+- `ai_release/bundle.py` - Bundle CLI for demo packaging
+- `ai_release/run_remote.py` - Remote code execution on clusters
+- `ai_release/compute.py` - Remote execution library
+- `.claude/commands/release.md` - Full release workflow documentation
+- `dbdemos/job_bundler.py` - Job creation and execution logic
+- `dbdemos/packager.py` - Packaging logic
+- `local_conf.json` - Local configuration (gitignored, contains secrets)
+
+### Databricks SDK
+
+All Databricks API operations use the Python SDK: https://databricks-sdk-py.readthedocs.io/en/latest/
