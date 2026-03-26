@@ -1,0 +1,4 @@
+# Direct dependencies from setup.py
+requests
+pandas
+databricks-sdk>=0.38.0
