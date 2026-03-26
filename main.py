@@ -31,8 +31,8 @@ def bundle():
     #bundler.load_bundles_conf()
     """
     bundler.load_bundles_conf()
-    bundler.ignore_bundle("/product_demos/delta-sharing-airlines")
-    #bundler.add_bundle("demo-manufacturing/lakehouse-iot-platform")
+    #bundler.ignore_bundle("/product_demos/delta-sharing-airlines")
+    #bundler.add_bundle("aibi/aibi-marketing-campaign")
     
     #bundler.add_bundle("demo-retail/lakehouse-retail-c360")
     # Run the jobs (only if there is a new commit since the last time, or failure, or force execution)
@@ -41,7 +41,7 @@ def bundle():
     packager = Packager(conf, bundler)
     packager.package_all()
 
-#bundle()
+bundle()
 
 
 #Loads conf to install
