@@ -27,13 +27,18 @@ from dbdemos.sql_query import SQLQueryExecutor
 from databricks.sdk import WorkspaceClient
 
 class Installer:
-    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS", org_id: str = None, current_cluster_id: str = None):
-        self.cloud = cloud
+    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = None, org_id: str = None, current_cluster_id: str = None):
         self.dbutils = None
         if username is None:
             username = self.get_current_username()
         if workspace_url is None:
             workspace_url = self.get_current_url()
+        # Auto-detect cloud from workspace_url when caller didn't pass one explicitly.
+        # The previous default was "AWS", which silently produced wrong node_type_id
+        # values on Azure and GCP workspaces.
+        if cloud is None:
+            cloud = self._infer_cloud_from_url(workspace_url) or "AWS"
+        self.cloud = cloud
         if pat_token is None:
             pat_token = self.get_current_pat_token()
         if org_id is None:
@@ -80,6 +85,26 @@ class Installer:
                 return "https://"+self.get_dbutils_tags_safe()['browserHostName']
             except:
                 return "local"
+
+    @staticmethod
+    def _infer_cloud_from_url(workspace_url):
+        """Infer Databricks cloud from workspace URL hostname.
+
+        Returns one of ``"AZURE"``, ``"GCP"``, ``"AWS"`` or ``None`` if the URL
+        is missing / local / unrecognizable. Used so the ``Installer.__init__``
+        ``cloud`` argument doesn't need to be passed explicitly on Azure / GCP
+        workspaces.
+        """
+        if not workspace_url or workspace_url == "local":
+            return None
+        url = workspace_url.lower()
+        if "azuredatabricks.net" in url:
+            return "AZURE"
+        if "gcp.databricks.com" in url:
+            return "GCP"
+        if "cloud.databricks.com" in url or "databricks.com" in url:
+            return "AWS"
+        return None
 
     def get_dbutils_tags_safe(self):
         import json

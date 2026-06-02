@@ -69,3 +69,17 @@ def test_list_html():
 #test_list_html()
 #test_list()
 #test_html()
+
+
+def test_infer_cloud_from_url():
+    f = Installer._infer_cloud_from_url
+    assert f("https://adb-1234567890.0.azuredatabricks.net") == "AZURE"
+    assert f("https://adb-XXXX.0.azuredatabricks.net/?o=1234") == "AZURE"
+    assert f("https://e2-demo-tools.cloud.databricks.com") == "AWS"
+    assert f("https://workspace.cloud.databricks.com") == "AWS"
+    assert f("https://workspace.gcp.databricks.com") == "GCP"
+    assert f(None) is None
+    assert f("local") is None
+    assert f("") is None
+    # Mixed-case host
+    assert f("https://ADB-1234.0.AzureDatabricks.net") == "AZURE"
