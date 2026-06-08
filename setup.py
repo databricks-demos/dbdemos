@@ -15,7 +15,12 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     setup_requires=["wheel"],
     include_package_data=True,
-    install_requires=["requests", "pandas", "databricks-sdk>=0.38.0"],
+    install_requires=[
+        "requests==2.33.0",
+        "pandas==3.0.1",
+        "databricks-sdk==0.114.0",
+        "cryptography==46.0.6",  # Transitive dep, pinned for CVE-2026-34073
+    ],
     license="Databricks License",
     license_files = ('LICENSE',),
     tests_require=[

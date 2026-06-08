@@ -77,4 +77,23 @@ class InstallerDashboard:
         })
         dashboard['uid'] = dashboard_creation['dashboard_id']
         dashboard['is_lakeview'] = True
+        self.publish_dashboard(dashboard, endpoint['warehouse_id'])
         return dashboard
+
+    def publish_dashboard(self, dashboard, warehouse_id):
+        """Publish the dashboard so it's directly accessible, and store the published URL.
+
+        Publishing failures are non-fatal: the draft dashboard is still installed, we just
+        won't have a published link to show.
+        """
+        from databricks.sdk import WorkspaceClient
+        try:
+            ws = WorkspaceClient(token=self.db.conf.pat_token, host=self.db.conf.workspace_url)
+            ws.lakeview.publish(dashboard['uid'], embed_credentials=False, warehouse_id=warehouse_id)
+            published_url = f"{self.db.conf.workspace_url}/dashboardsv3/{dashboard['uid']}/published"
+            if self.db.conf.org_id and self.db.conf.org_id != "local":
+                published_url += f"?o={self.db.conf.org_id}"
+            dashboard['published_url'] = published_url
+        except Exception as e:
+            print(f"WARN: couldn't publish dashboard '{dashboard.get('name')}' ({dashboard['uid']}): {e}. "
+                  f"The draft dashboard is still available.")

@@ -348,7 +348,8 @@ class InstallerReport:
                     error_already_installed  = ""
                     html += f"""<div>ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}</div>"""
                 else:
-                    html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{self.workspace_url}/sql/dashboardsv3/{d['uid']}">{d['name']}</a></div>"""
+                    dashboard_url = d.get("published_url") or f"{self.workspace_url}/sql/dashboardsv3/{d['uid']}"
+                    html += f"""<div>{InstallerReport.DASHBOARD_SVG} <a href="{dashboard_url}">{d['name']}</a></div>"""
             html +="</div>"
         if len(genie_rooms) > 0:
             html += f"""<h2>Databricks AI/BI Genie Spaces: Talk to your data</h2><div class="container_dbdemos">"""
@@ -413,7 +414,8 @@ class InstallerReport:
                 if "error" in d:
                     print(f"    - ERROR INSTALLING DASHBOARD {d['name']}: {d['error']}. The Import/Export API must be enabled.{error_already_installed}")
                 else:
-                    print(f"    - {d['name']}: {self.workspace_url}/sql/dashboardsv3/{d['uid']}")
+                    dashboard_url = d.get("published_url") or f"{self.workspace_url}/sql/dashboardsv3/{d['uid']}"
+                    print(f"    - {d['name']}: {dashboard_url}")
         if len(genie_rooms) > 0:
             print("----------------------------------------------------")
             print("------------- Genie Spaces available: -----------")
