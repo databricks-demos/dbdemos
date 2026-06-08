@@ -27,8 +27,9 @@ from dbdemos.sql_query import SQLQueryExecutor
 from databricks.sdk import WorkspaceClient
 
 class Installer:
-    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = "AWS", org_id: str = None, current_cluster_id: str = None):
-        self.cloud = cloud
+    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = None, org_id: str = None, current_cluster_id: str = None):
+        # Explicit override; when None the cloud is inferred from the workspace URL (see get_current_cloud).
+        self.cloud_override = cloud
         self.dbutils = None
         if username is None:
             username = self.get_current_username()
@@ -153,17 +154,27 @@ class Installer:
                     return "unknown"
 
     def get_current_cloud(self):
-        try:
-            hostname = self.get_dbutils().notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
-        except:
-            print(f"WARNING: Can't get cloud from dbutils. Fallback to default local cloud {self.cloud}")
-            return self.cloud
-        if "gcp" in hostname:
-            return "GCP"
-        elif "azure" in hostname:
+        if self.cloud_override:
+            return self.cloud_override
+        return self._infer_cloud_from_url(self.db.conf.workspace_url) or "AWS"
+
+    @staticmethod
+    def _infer_cloud_from_url(workspace_url):
+        """Infer the Databricks cloud from the workspace URL hostname.
+
+        Returns one of "AZURE", "GCP", "AWS", or None if the URL is missing /
+        local / unrecognizable (callers fall back to "AWS").
+        """
+        if not workspace_url or workspace_url == "local":
+            return None
+        url = workspace_url.lower()
+        if "azuredatabricks.net" in url:
             return "AZURE"
-        else:
+        if "gcp.databricks.com" in url:
+            return "GCP"
+        if "databricks.com" in url:
             return "AWS"
+        return None
         
     def get_current_cluster_id(self):
         try:

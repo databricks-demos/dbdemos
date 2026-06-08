@@ -48,57 +48,90 @@ class InstallerGenie:
         ws = WorkspaceClient(token=self.installer.db.conf.pat_token, host=self.installer.db.conf.workspace_url)
         self.create_temp_table_for_genie_creation(ws, room, warehouse_id, debug)
         room.display_name = room.display_name.replace("/", "-")
-        room_payload = {
-            "display_name": room.display_name,
-            "description": room.description,
-            "warehouse_id": warehouse_id,
-            "table_identifiers": room.table_identifiers,
-            "parent_folder": f'folders/{genie_path["object_id"]}',
-            "run_as_type": "VIEWER"
-        }
-        created_room = self.db.post("2.0/data-rooms", json=room_payload)
-        if 'id' not in created_room:
-            raise GenieCreationException(f"Error creating room {room_payload} - {created_room}", room, created_room)
-
+        serialized_space = self.build_serialized_space(room)
         if debug:
-            print(f"Genie room created created_room: {created_room} - {room_payload}")
-        actions = [{
-            "action_type": "CREATE",
-            "curated_question": {
-                "data_room_id": created_room['id'],
-                "question_text": q,
-                "question_type": "SAMPLE_QUESTION"
-            }
-        } for q in room.curated_questions]
-        questions = self.db.post(f"2.0/data-rooms/{created_room['id']}/curated-questions/batch-actions", {"actions": actions})
+            print(f"Creating genie space '{room.display_name}' under {genie_path['path']} with payload: {serialized_space}")
+        try:
+            created_space = ws.genie.create_space(
+                warehouse_id=warehouse_id,
+                serialized_space=serialized_space,
+                title=room.display_name,
+                description=room.description,
+                parent_path=genie_path["path"],
+            )
+        except Exception as e:
+            raise GenieCreationException(f"Error creating genie space '{room.display_name}': {e}", room, str(e))
         if debug:
-            print(f"Genie room question created:{questions}")
-        if room.instructions:
-            instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/instructions", {"title": "Notes", "content": room.instructions, "instruction_type": "TEXT_INSTRUCTION"})
-            if debug:
-                print(f"genie room instructions: {instructions}")
-        
-        for function_name in room.function_names:
-            instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/instructions", {"title": "SQL Function", "content": function_name, "instruction_type": "CERTIFIED_ANSWER"})
-            if debug:
-                print(f"genie room function: {instructions}")
-        for sql in room.sql_instructions:
-            instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/instructions", {"title": sql['title'], "content": sql['content'], "instruction_type": "SQL_INSTRUCTION"})
-            if debug:
-                print(f"genie room SQL instructions: {instructions}")
-        for b in room.benchmarks:
-            benchmark =    {
-                            "question_text": b["question_text"],
-                            "question_type":"BENCHMARK",
-                            "answer_text": b["answer_text"],
-                            "is_deprecated": False,
-                            "updatable_fields_mask":[]
-                            }
-            instructions = self.db.post(f"2.0/data-rooms/{created_room['id']}/curated-questions", {"curated_question": benchmark, "data_room_id":created_room['id']})
-            if debug:
-                print(f"genie room benchmarks: {instructions}")
+            print(f"Genie space created: {created_space.space_id} - {room.display_name}")
         self.delete_temp_table_for_genie_creation(ws, room, debug)
-        return {"id": room.id, "uid": created_room['id'], 'name': room.display_name}
+        return {"id": room.id, "uid": created_space.space_id, 'name': room.display_name}
+
+    @staticmethod
+    def build_serialized_space(room: GenieRoom) -> str:
+        """Build the ``serialized_space`` JSON payload consumed by ``GenieAPI.create_space``.
+
+        The Genie space API takes the full space definition as a single serialized
+        JSON string (schema version 2). Each text field is encoded as a list of
+        string chunks that the platform concatenates. We assign deterministic ids
+        (prefixed per section) so the payload is stable across re-installs.
+        """
+        space = {
+            "version": 2,
+            "config": {
+                "sample_questions": [
+                    {"id": InstallerGenie._genie_id("1", i), "question": [q]}
+                    for i, q in enumerate(room.curated_questions or [])
+                ]
+            },
+            "data_sources": {
+                # The Genie API requires tables to be sorted by identifier.
+                "tables": [{"identifier": t} for t in sorted(room.table_identifiers or [])]
+            },
+            "instructions": {},
+        }
+
+        instructions = space["instructions"]
+        if room.instructions:
+            instructions["text_instructions"] = [
+                {"id": InstallerGenie._genie_id("3", 0), "content": [room.instructions]}
+            ]
+        if room.sql_instructions:
+            instructions["example_question_sqls"] = [
+                {
+                    "id": InstallerGenie._genie_id("2", i),
+                    "question": [sql["title"]],
+                    "sql": [sql["content"]],
+                }
+                for i, sql in enumerate(room.sql_instructions)
+            ]
+        if room.function_names:
+            instructions["sql_functions"] = [
+                {"id": InstallerGenie._genie_id("4", i), "identifier": fn}
+                for i, fn in enumerate(room.function_names)
+            ]
+        if room.benchmarks:
+            space["benchmarks"] = {
+                "questions": [
+                    {
+                        "id": InstallerGenie._genie_id("5", i),
+                        "question": [b["question_text"]],
+                        "answer": [{"format": "SQL", "content": [b["answer_text"]]}],
+                    }
+                    for i, b in enumerate(room.benchmarks)
+                ]
+            }
+
+        return json.dumps(space)
+
+    @staticmethod
+    def _genie_id(section: str, index: int) -> str:
+        """Deterministic 32-char id for a serialized-space element.
+
+        Genie space ids are 32-char strings; we keep them stable and collision-free
+        by encoding the section (1=question, 2=sql, 3=text, 4=function, 5=benchmark)
+        in the leading digit and the element index in the trailing digits.
+        """
+        return section + str(index + 1).zfill(31)
 
     # we need to have the table existing before creating the genie room, however they're created in SDP which is in a job and not yet available.
     # This is a workaround to create a temp table with a property that will be used to delete it once the genie room is created so that the SDP table can run without issue.
@@ -258,6 +291,12 @@ class InstallerGenie:
                         if debug:
                             print(f"Copying {s3_url} to {target_path}")
                         response = requests.get(s3_url)
+                        if response.status_code == 404:
+                            # Not synced to the S3 mirror yet (e.g. a new/updated demo). Fall back
+                            # to the file in the GitHub dataset repo so the install still works.
+                            print(f"WARN: {file_name} is missing from the S3 mirror ({s3_url}). "
+                                  f"Falling back to the GitHub dataset repo: {file_url}")
+                            response = requests.get(file_url)
                         response.raise_for_status()
                         if debug:
                             print(f"File {file_name} in memory. sending to volume...")
