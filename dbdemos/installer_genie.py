@@ -268,13 +268,23 @@ class InstallerGenie:
                 if copied_successfully and debug:
                     print(f"Copied {data_folder.source_folder} to {f'/Volumes/{demo_conf.catalog}/{demo_conf.schema}/{InstallerGenie.VOLUME_NAME}/{folder}'} using dbutils fs.cp")
             if not copied_successfully:
-                # Get list of files from GitHub API, to avoid adding a S3 boto dependency just for this
+                # Get list of files from GitHub API, to avoid adding a S3 boto dependency just for this.
+                # A github_token is optional (only set in the bundling/maintainer path, never for end
+                # users); when present it raises the unauthenticated 60 req/hour rate limit to 5000/hour.
                 github_path = f"https://api.github.com/repos/databricks-demos/dbdemos-dataset/contents/{data_folder.source_folder}"
                 if debug:
                     print(f"Getting files from {github_path}")
-                files = requests.get(github_path).json()
-                if 'message' in files:
-                    print(f"Error getting files from {github_path}: {files}")
+                github_token = getattr(self.db.conf, "github_token", None)
+                headers = {"Authorization": f"token {github_token}"} if github_token else {}
+                files = requests.get(github_path, headers=headers).json()
+                # The GitHub API returns a list of files on success, or a dict (e.g. {"message": ...})
+                # on error - most commonly a rate-limit hit on the unauthenticated 60 req/hour quota.
+                if not isinstance(files, list):
+                    message = files.get("message", files) if isinstance(files, dict) else files
+                    raise DataLoaderException(
+                        f"Couldn't list files from the GitHub dataset repo at {github_path}: {message}. "
+                        f"This is usually a GitHub API rate limit (60 requests/hour unauthenticated)."
+                    )
                 files = [f['download_url'] for f in files]
                 
                 if debug:

@@ -229,7 +229,7 @@ def list_dashboards(category = None):
 
 def install(demo_name, path = None, overwrite = False, username = None, pat_token = None, workspace_url = None, skip_dashboards = False, cloud = "AWS", start_cluster: bool = None,
             use_current_cluster: bool = False, current_cluster_id = None, warehouse_name = None, debug = False, catalog = None, schema = None, serverless=None, skip_genie_rooms=False, 
-            create_schema=True, dlt_policy_id = None, dlt_compute_settings = None):
+            create_schema=True, dlt_policy_id = None, dlt_compute_settings = None, github_token = None):
     check_version()
     
     if demo_name == "llm-fine-tuning" :
@@ -262,7 +262,7 @@ def install(demo_name, path = None, overwrite = False, username = None, pat_toke
         
         
     try:
-        installer = Installer(username, pat_token, workspace_url, cloud, current_cluster_id = current_cluster_id)
+        installer = Installer(username, pat_token, workspace_url, cloud, current_cluster_id = current_cluster_id, github_token = github_token)
     except TokenException as e:
         report = InstallerReport(workspace_url)
         report.display_token_error(e, demo_name)

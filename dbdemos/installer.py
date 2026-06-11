@@ -27,7 +27,7 @@ from dbdemos.sql_query import SQLQueryExecutor
 from databricks.sdk import WorkspaceClient
 
 class Installer:
-    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = None, org_id: str = None, current_cluster_id: str = None):
+    def __init__(self, username = None, pat_token = None, workspace_url = None, cloud = None, org_id: str = None, current_cluster_id: str = None, github_token: str = None):
         # Explicit override; when None the cloud is inferred from the workspace URL (see get_current_cloud).
         self.cloud_override = cloud
         self.dbutils = None
@@ -42,7 +42,7 @@ class Installer:
         self.current_cluster_id = current_cluster_id
         if self.current_cluster_id is None:
             self.current_cluster_id = self.get_current_cluster_id()
-        conf = Conf(username, workspace_url, org_id, pat_token)
+        conf = Conf(username, workspace_url, org_id, pat_token, github_token=github_token)
         self.tracker = Tracker(org_id, self.get_uid(), username)
         self.db = DBClient(conf)
         self.report = InstallerReport(self.db.conf.workspace_url)
