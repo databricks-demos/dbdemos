@@ -116,7 +116,7 @@ class Packager:
                 else:
                     raise Exception(f"Unsupported object type {status['object_type']} for {repo_path}")
             else:
-                tasks = [t for t in run['tasks'] if t['notebook_task']['notebook_path'].endswith(notebook.get_clean_path())]
+                tasks = [t for t in run['tasks'] if 'notebook_task' in t and t['notebook_task']['notebook_path'].endswith(notebook.get_clean_path())]
                 if len(tasks) == 0:
                     raise Exception(f"couldn't find task for notebook {notebook.path}. Please re-run the job & make sure the stating git repo is synch / reseted.")
                 #print(f"Exporting notebook from job run {tasks[0]['run_id']}")
