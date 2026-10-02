@@ -4,11 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⛔ CRITICAL: NEVER Release to PyPI
 
-**Claude Code must NEVER run `./build-and-distribute.sh` or release to PyPI.**
+**Claude Code must NEVER publish to PyPI.**
 
-Only the human maintainer can trigger a PyPI release. When demos are ready:
-1. Report to the human that bundling is complete
-2. Wait for the human to run the release script manually
+Publishing is owned by the separate release repo, the only place that publishes to
+PyPI. When demos are ready, Claude's part is limited to bumping the version:
+1. Bump the version to the exact value in `setup.py` and `dbdemos/__init__.py` via a PR
+   (the release publishes the source version exactly as written — no auto-bump), then
+   let the human merge it.
+2. Report to the human that bundling is complete.
+3. The release repo publishes the merged version. No PyPI upload, tags, or GitHub
+   Releases happen from this repo.
 
 ## ⛔ CRITICAL: Never Commit Secrets
 
@@ -147,18 +152,15 @@ See `test_demo.py` for a complete bundling example.
 
 ### Distribution and Release
 
-```bash
-# Full release process (bumps version, builds, uploads to PyPI, creates GitHub releases)
-./build-and-distribute.sh
-```
+Publishing is handled by the separate release repo, the only place that publishes to
+PyPI. To cut a release:
 
-This script:
-1. Verifies GitHub CLI authentication and repository access
-2. Auto-increments version in `setup.py` and `dbdemos/__init__.py`
-3. Builds wheel package
-4. Uploads to PyPI via `twine`
-5. Creates release branch and pull request
-6. Creates GitHub releases on multiple repositories (`dbdemos`, `dbdemos-notebooks`, `dbdemos-dataset`, `dbdemos-resources`)
+1. Bump the version to the exact value you want to publish in both `setup.py` and
+   `dbdemos/__init__.py` (the release publishes the source version exactly as written —
+   there is no auto-bump, and a version that already exists on PyPI is rejected).
+2. Open a PR with that bump and have the human merge it.
+3. The release repo publishes the merged version. This repo creates no tags or GitHub
+   Releases; the release repo records each publish.
 
 ## Key Implementation Details
 
@@ -296,7 +298,7 @@ python ai_release/bundle.py --all
 7. Create PR when green
 8. Human merges PR
 9. Final verification from main: `--force`
-10. Human runs `./build-and-distribute.sh`
+10. Bump the version to the exact value in `setup.py` and `dbdemos/__init__.py` via a PR; after merge the release repo publishes it
 
 **GitHub CLI Account Switch** - Use the public account for PRs:
 ```bash

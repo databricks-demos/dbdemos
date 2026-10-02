@@ -4,7 +4,7 @@ You are helping with the dbdemos release process. This involves bundling demos f
 
 ## ⛔ CRITICAL WARNINGS
 
-1. **NEVER run a release to PyPI by yourself** - Only the human can trigger `./build-and-distribute.sh`
+1. **NEVER publish to PyPI yourself** - Publishing is owned by the separate release repo (the only publisher). Your part is bumping the version in a PR; the human merges and the release repo publishes.
 2. **NEVER commit secrets** - PAT tokens, GitHub tokens must never appear in commits or outputs
 3. **NEVER push directly to main** - Always use feature branches and PRs
 4. **NEVER cleanup workspace resources yourself** - Always ask the human to do cleanup
@@ -367,15 +367,21 @@ python ai_release/bundle.py --all --force
 ### Step 2: Verify All Passed
 Check output for any failures. If any failed, fix them first.
 
-### Step 3: Report to Human
+### Step 3: Bump the Version
+Bump the version to the exact value to publish in both `setup.py` and
+`dbdemos/__init__.py`, and open a PR with that bump. The release publishes the source
+version exactly as written (no auto-bump), and a version already on PyPI is rejected, so
+pick the next unused version.
+
+### Step 4: Report to Human
 Tell the human:
 - All demos bundled successfully
 - Any changes made
-- Ready for PyPI release
+- The version bump PR is open and ready to merge
 
-### Step 4: Human Runs Release
-**The human will run:** `./build-and-distribute.sh`
-**You must NEVER run this yourself.**
+### Step 5: Release
+After the human merges the bump, the separate release repo publishes it. This repo
+creates no tags or GitHub Releases, and you never publish to PyPI yourself.
 
 ---
 
