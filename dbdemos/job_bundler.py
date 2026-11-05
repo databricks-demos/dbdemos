@@ -343,8 +343,14 @@ class JobBundler:
                                      catalog=demo_conf.catalog, schema=demo_conf.schema,
                                      demo_folder=demo_folder)
         demo_conf.init_job = json.loads(conf_template.replace_template_key(json.dumps(demo_conf.init_job)))
-        for pipeline in demo_conf.pipelines:
-            pipeline["definition"] = json.loads(conf_template.replace_template_key(json.dumps(pipeline["definition"])))
+        # Resolve the pipelines on copies: demo_conf.pipelines is the same list as
+        # demo_conf.json_conf["pipelines"], which the packager dumps to the bundle conf.json.
+        # Mutating it in place shipped the build catalog (main__build) and the staging repo
+        # path to end users instead of the {{CATALOG}} / {{DEMO_FOLDER}} templates.
+        demo_conf.pipelines = [
+            dict(pipeline, definition=json.loads(conf_template.replace_template_key(json.dumps(pipeline["definition"]))))
+            for pipeline in demo_conf.pipelines
+        ]
 
         # Create the SDP pipeline(s) first; this resolves {{DYNAMIC_SDP_ID_*}} in init_job.
         self.installer_pipelines.load_demo_pipelines(demo_conf.name, demo_conf, serverless=True)
